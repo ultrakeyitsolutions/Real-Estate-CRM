@@ -1,0 +1,52 @@
+# Binaries and build outputs
+bin/
+obj/
+publish/
+*.exe
+*.dll
+*.pdb
+
+# User-specific files
+*.user
+*.suo
+*.tmp
+
+# IDE files
+.vscode/
+.idea/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+AttendanceDebug.txt
+facebook_service_log.txt
+PayoutDebug.txt
+QuickDebug.txt
+
+# Secrets and sensitive files
+appsettings.json
+realestatecrm-b1b4f-firebase-adminsdk-*.json
+*.key
+*.pem
+
+# Environment files
+.env
+.env.local
+
+# Database files
+*.db
+*.sqlite
+
+# Temporary files
+*.tmp
+*.bak
+
+# Node modules (if any)
+node_modules/
+
+# Coverage reports
+coverage/
+*.coverage
