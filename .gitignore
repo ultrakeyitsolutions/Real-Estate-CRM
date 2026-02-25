@@ -27,7 +27,6 @@ PayoutDebug.txt
 QuickDebug.txt
 
 # Secrets and sensitive files
-appsettings.json
 realestatecrm-b1b4f-firebase-adminsdk-*.json
 *.key
 *.pem
