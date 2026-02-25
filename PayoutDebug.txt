@@ -1,0 +1,151 @@
+Loading payouts for Feb 2026
+Found 0 payouts
+Loading payouts for Feb 2026
+Found 0 payouts
+Agent 1: WorkingDays=20, PresentDays=0, AbsentDays=20, DailySalary=750.00, Deduction=15000.00
+Agent 1: AgentType='Salary', BaseSalary=15000.00, Deduction=15000.00
+CalculateFinalPayout: Original='Salary', Normalized='salary', BaseSalary=15000.00, Deduction=15000.00, Commission=0.00, Result=0.00
+Final Payout Object: BaseSalary=15000.00, Deduction=15000.00, FinalPayout=0.00, Amount=0.00
+Agent 2: WorkingDays=20, PresentDays=0, AbsentDays=20, DailySalary=500.00, Deduction=10000.00
+Agent 2: AgentType='Hybrid', BaseSalary=10000.00, Deduction=10000.00
+CalculateFinalPayout: Original='Hybrid', Normalized='hybrid', BaseSalary=10000.00, Deduction=10000.00, Commission=0.00, Result=0.00
+Final Payout Object: BaseSalary=10000.00, Deduction=10000.00, FinalPayout=0.00, Amount=0.00
+Agent 3: WorkingDays=20, PresentDays=0, AbsentDays=20, DailySalary=7500.00, Deduction=150000.00
+Agent 3: AgentType='Salary', BaseSalary=150000.00, Deduction=150000.00
+CalculateFinalPayout: Original='Salary', Normalized='salary', BaseSalary=150000.00, Deduction=150000.00, Commission=0.00, Result=0.00
+Final Payout Object: BaseSalary=150000.00, Deduction=150000.00, FinalPayout=0.00, Amount=0.00
+Agent 5: WorkingDays=20, PresentDays=0, AbsentDays=20, DailySalary=750.00, Deduction=15000.00
+Agent 5: AgentType='Salary', BaseSalary=15000.00, Deduction=15000.00
+CalculateFinalPayout: Original='Salary', Normalized='salary', BaseSalary=15000.00, Deduction=15000.00, Commission=0.00, Result=0.00
+Final Payout Object: BaseSalary=15000.00, Deduction=15000.00, FinalPayout=0.00, Amount=0.00
+Agent 6: WorkingDays=20, PresentDays=0, AbsentDays=20, DailySalary=500.00, Deduction=10000.00
+Agent 6: AgentType='Salary', BaseSalary=10000.00, Deduction=10000.00
+CalculateFinalPayout: Original='Salary', Normalized='salary', BaseSalary=10000.00, Deduction=10000.00, Commission=0.00, Result=0.00
+Final Payout Object: BaseSalary=10000.00, Deduction=10000.00, FinalPayout=0.00, Amount=0.00
+Agent 7: WorkingDays=20, PresentDays=0, AbsentDays=20, DailySalary=1000.00, Deduction=20000.00
+Agent 7: AgentType='Hybrid', BaseSalary=20000.00, Deduction=20000.00
+CalculateFinalPayout: Original='Hybrid', Normalized='hybrid', BaseSalary=20000.00, Deduction=20000.00, Commission=0.00, Result=0.00
+Final Payout Object: BaseSalary=20000.00, Deduction=20000.00, FinalPayout=0.00, Amount=0.00
+Agent 9: WorkingDays=20, PresentDays=0, AbsentDays=20, DailySalary=0.00, Deduction=0.00
+Agent 9: AgentType='Commission', BaseSalary=0.00, Deduction=0.00
+CalculateFinalPayout: Original='Commission', Normalized='commission', BaseSalary=0.00, Deduction=0.00, Commission=0.00, Result=0.00
+Final Payout Object: BaseSalary=0.00, Deduction=0.00, FinalPayout=0.00, Amount=0.00
+Agent 10: WorkingDays=20, PresentDays=0, AbsentDays=20, DailySalary=0.00, Deduction=0.00
+Agent 10: AgentType='Commission', BaseSalary=0.00, Deduction=0.00
+CalculateFinalPayout: Original='Commission', Normalized='commission', BaseSalary=0.00, Deduction=0.00, Commission=0.00, Result=0.00
+Final Payout Object: BaseSalary=0.00, Deduction=0.00, FinalPayout=0.00, Amount=0.00
+Agent 11: WorkingDays=20, PresentDays=0, AbsentDays=20, DailySalary=500.00, Deduction=10000.00
+Agent 11: AgentType='Hybrid', BaseSalary=10000.00, Deduction=10000.00
+CalculateFinalPayout: Original='Hybrid', Normalized='hybrid', BaseSalary=10000.00, Deduction=10000.00, Commission=0.00, Result=0.00
+Final Payout Object: BaseSalary=10000.00, Deduction=10000.00, FinalPayout=0.00, Amount=0.00
+Agent 12: AgentType='Commission', BaseSalary=0, Deduction=0
+CalculateFinalPayout: Original='Commission', Normalized='commission', BaseSalary=0, Deduction=0, Commission=0.00, Result=0.00
+Final Payout Object: BaseSalary=0, Deduction=0, FinalPayout=0.00, Amount=0.00
+Agent 13: WorkingDays=20, PresentDays=0, AbsentDays=20, DailySalary=500.00, Deduction=10000.00
+Agent 13: AgentType='Salary', BaseSalary=10000.00, Deduction=10000.00
+CalculateFinalPayout: Original='Salary', Normalized='salary', BaseSalary=10000.00, Deduction=10000.00, Commission=0.00, Result=0.00
+Final Payout Object: BaseSalary=10000.00, Deduction=10000.00, FinalPayout=0.00, Amount=0.00
+Agent 14: WorkingDays=20, PresentDays=0, AbsentDays=20, DailySalary=5000.00, Deduction=100000.00
+Agent 14: AgentType='Salary', BaseSalary=100000.00, Deduction=100000.00
+CalculateFinalPayout: Original='Salary', Normalized='salary', BaseSalary=100000.00, Deduction=100000.00, Commission=0.00, Result=0.00
+Final Payout Object: BaseSalary=100000.00, Deduction=100000.00, FinalPayout=0.00, Amount=0.00
+Agent 15: WorkingDays=20, PresentDays=0, AbsentDays=20, DailySalary=500.00, Deduction=10000.00
+Agent 15: AgentType='Hybrid', BaseSalary=10000.00, Deduction=10000.00
+CalculateFinalPayout: Original='Hybrid', Normalized='hybrid', BaseSalary=10000.00, Deduction=10000.00, Commission=0.00, Result=0.00
+Final Payout Object: BaseSalary=10000.00, Deduction=10000.00, FinalPayout=0.00, Amount=0.00
+Agent 16: WorkingDays=20, PresentDays=0, AbsentDays=20, DailySalary=500.00, Deduction=10000.00
+Agent 16: AgentType='Hybrid', BaseSalary=10000.00, Deduction=10000.00
+CalculateFinalPayout: Original='Hybrid', Normalized='hybrid', BaseSalary=10000.00, Deduction=10000.00, Commission=0.00, Result=0.00
+Final Payout Object: BaseSalary=10000.00, Deduction=10000.00, FinalPayout=0.00, Amount=0.00
+Agent 17: WorkingDays=20, PresentDays=0, AbsentDays=20, DailySalary=0.00, Deduction=0.00
+Agent 17: AgentType='Commission', BaseSalary=0.00, Deduction=0.00
+CalculateFinalPayout: Original='Commission', Normalized='commission', BaseSalary=0.00, Deduction=0.00, Commission=0.00, Result=0.00
+Final Payout Object: BaseSalary=0.00, Deduction=0.00, FinalPayout=0.00, Amount=0.00
+Agent 20: WorkingDays=20, PresentDays=0, AbsentDays=20, DailySalary=500.00, Deduction=10000.00
+Agent 20: AgentType='Salary', BaseSalary=10000.00, Deduction=10000.00
+CalculateFinalPayout: Original='Salary', Normalized='salary', BaseSalary=10000.00, Deduction=10000.00, Commission=0.00, Result=0.00
+Final Payout Object: BaseSalary=10000.00, Deduction=10000.00, FinalPayout=0.00, Amount=0.00
+Agent 21: WorkingDays=20, PresentDays=0, AbsentDays=20, DailySalary=500.00, Deduction=10000.00
+Agent 21: AgentType='Salary', BaseSalary=10000.00, Deduction=10000.00
+CalculateFinalPayout: Original='Salary', Normalized='salary', BaseSalary=10000.00, Deduction=10000.00, Commission=0.00, Result=0.00
+Final Payout Object: BaseSalary=10000.00, Deduction=10000.00, FinalPayout=0.00, Amount=0.00
+Agent 22: WorkingDays=20, PresentDays=0, AbsentDays=20, DailySalary=5000.00, Deduction=100000.00
+Agent 22: AgentType='Commission', BaseSalary=100000.00, Deduction=100000.00
+CalculateFinalPayout: Original='Commission', Normalized='commission', BaseSalary=100000.00, Deduction=100000.00, Commission=0.00, Result=0.00
+Final Payout Object: BaseSalary=100000.00, Deduction=100000.00, FinalPayout=0.00, Amount=0.00
+Agent 23: WorkingDays=20, PresentDays=0, AbsentDays=20, DailySalary=500.00, Deduction=10000.00
+Agent 23: AgentType='Salary', BaseSalary=10000.00, Deduction=10000.00
+CalculateFinalPayout: Original='Salary', Normalized='salary', BaseSalary=10000.00, Deduction=10000.00, Commission=0.00, Result=0.00
+Final Payout Object: BaseSalary=10000.00, Deduction=10000.00, FinalPayout=0.00, Amount=0.00
+Agent 26: WorkingDays=20, PresentDays=0, AbsentDays=20, DailySalary=50.00, Deduction=1000.00
+Agent 26: AgentType='Hybrid', BaseSalary=1000.00, Deduction=1000.00
+CalculateFinalPayout: Original='Hybrid', Normalized='hybrid', BaseSalary=1000.00, Deduction=1000.00, Commission=0.00, Result=0.00
+Final Payout Object: BaseSalary=1000.00, Deduction=1000.00, FinalPayout=0.00, Amount=0.00
+Agent 28: WorkingDays=20, PresentDays=0, AbsentDays=20, DailySalary=500.00, Deduction=10000.00
+Agent 28: AgentType='Salary', BaseSalary=10000.00, Deduction=10000.00
+CalculateFinalPayout: Original='Salary', Normalized='salary', BaseSalary=10000.00, Deduction=10000.00, Commission=0.00, Result=0.00
+Final Payout Object: BaseSalary=10000.00, Deduction=10000.00, FinalPayout=0.00, Amount=0.00
+Agent 30: AgentType='Salary', BaseSalary=0, Deduction=0
+CalculateFinalPayout: Original='Salary', Normalized='salary', BaseSalary=0, Deduction=0, Commission=0.00, Result=0
+Final Payout Object: BaseSalary=0, Deduction=0, FinalPayout=0, Amount=0
+Agent 31: AgentType='Salary', BaseSalary=0, Deduction=0
+CalculateFinalPayout: Original='Salary', Normalized='salary', BaseSalary=0, Deduction=0, Commission=0.00, Result=0
+Final Payout Object: BaseSalary=0, Deduction=0, FinalPayout=0, Amount=0
+CalculateFinalPayout: Original='Salary', Normalized='salary', BaseSalary=15000.00, Deduction=15000.00, Commission=0.00, Result=0.00
+CalculateFinalPayout: Original='Hybrid', Normalized='hybrid', BaseSalary=10000.00, Deduction=10000.00, Commission=0.00, Result=0.00
+CalculateFinalPayout: Original='Salary', Normalized='salary', BaseSalary=150000.00, Deduction=150000.00, Commission=0.00, Result=0.00
+CalculateFinalPayout: Original='Salary', Normalized='salary', BaseSalary=15000.00, Deduction=15000.00, Commission=0.00, Result=0.00
+CalculateFinalPayout: Original='Salary', Normalized='salary', BaseSalary=10000.00, Deduction=10000.00, Commission=0.00, Result=0.00
+CalculateFinalPayout: Original='Hybrid', Normalized='hybrid', BaseSalary=20000.00, Deduction=20000.00, Commission=0.00, Result=0.00
+CalculateFinalPayout: Original='Commission', Normalized='commission', BaseSalary=0.00, Deduction=0.00, Commission=0.00, Result=0.00
+CalculateFinalPayout: Original='Commission', Normalized='commission', BaseSalary=0.00, Deduction=0.00, Commission=0.00, Result=0.00
+CalculateFinalPayout: Original='Hybrid', Normalized='hybrid', BaseSalary=10000.00, Deduction=10000.00, Commission=0.00, Result=0.00
+CalculateFinalPayout: Original='Commission', Normalized='commission', BaseSalary=0, Deduction=0, Commission=0.00, Result=0.00
+CalculateFinalPayout: Original='Salary', Normalized='salary', BaseSalary=10000.00, Deduction=10000.00, Commission=0.00, Result=0.00
+CalculateFinalPayout: Original='Salary', Normalized='salary', BaseSalary=100000.00, Deduction=100000.00, Commission=0.00, Result=0.00
+CalculateFinalPayout: Original='Hybrid', Normalized='hybrid', BaseSalary=10000.00, Deduction=10000.00, Commission=0.00, Result=0.00
+CalculateFinalPayout: Original='Hybrid', Normalized='hybrid', BaseSalary=10000.00, Deduction=10000.00, Commission=0.00, Result=0.00
+CalculateFinalPayout: Original='Commission', Normalized='commission', BaseSalary=0.00, Deduction=0.00, Commission=0.00, Result=0.00
+CalculateFinalPayout: Original='Salary', Normalized='salary', BaseSalary=10000.00, Deduction=10000.00, Commission=0.00, Result=0.00
+CalculateFinalPayout: Original='Salary', Normalized='salary', BaseSalary=10000.00, Deduction=10000.00, Commission=0.00, Result=0.00
+CalculateFinalPayout: Original='Commission', Normalized='commission', BaseSalary=100000.00, Deduction=100000.00, Commission=0.00, Result=0.00
+CalculateFinalPayout: Original='Salary', Normalized='salary', BaseSalary=10000.00, Deduction=10000.00, Commission=0.00, Result=0.00
+CalculateFinalPayout: Original='Hybrid', Normalized='hybrid', BaseSalary=1000.00, Deduction=1000.00, Commission=0.00, Result=0.00
+CalculateFinalPayout: Original='Salary', Normalized='salary', BaseSalary=10000.00, Deduction=10000.00, Commission=0.00, Result=0.00
+CalculateFinalPayout: Original='Salary', Normalized='salary', BaseSalary=0, Deduction=0, Commission=0.00, Result=0
+CalculateFinalPayout: Original='Salary', Normalized='salary', BaseSalary=0, Deduction=0, Commission=0.00, Result=0
+Updated existing payouts with commission data
+Loading payouts for Feb 2026
+Found 16 payouts
+Loading payouts for Feb 2026
+Found 16 payouts
+Loading payouts for Feb 2026
+Found 16 payouts
+Loading payouts for Feb 2026
+Found 16 payouts
+Loading payouts for Feb 2026
+Found 16 payouts
+Loading payouts for Feb 2026
+Found 16 payouts
+Loading payouts for Feb 2026
+Found 16 payouts
+Loading payouts for Feb 2026
+Found 16 payouts
+Loading payouts for Feb 2026
+Found 16 payouts
+Loading payouts for Feb 2026
+Found 16 payouts
+Loading payouts for Feb 2026
+Found 16 payouts
+Loading payouts for Feb 2026
+Found 16 payouts
+Loading payouts for Feb 2026
+Found 16 payouts
+Loading payouts for Feb 2026
+Found 16 payouts
+Loading payouts for Feb 2026
+Found 16 payouts
+Loading payouts for Feb 2026
+Found 16 payouts
+Loading payouts for Feb 2026
+Found 16 payouts

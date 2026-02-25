@@ -1,0 +1,505 @@
+@{
+    ViewData["Title"] = "Admin Dashboard";
+}
+
+<style>
+    @@keyframes fadeInUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+    @@keyframes slideInLeft { from { opacity: 0; transform: translateX(-50px); } to { opacity: 1; transform: translateX(0); } }
+    @@keyframes bounce { 0%, 20%, 50%, 80%, 100% { transform: translateY(0); } 40% { transform: translateY(-10px); } 60% { transform: translateY(-5px); } }
+    @@keyframes progressFill { from { width: 0%; } to { width: var(--target-width); } }
+    @@keyframes drawCircle { from { stroke-dashoffset: 100; } to { stroke-dashoffset: 0; } }
+    
+    .dashboard-card {
+        background: white;
+        border-radius: 12px;
+        padding: 0.5rem 1.25rem;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+        border: 1px solid rgba(0,0,0,0.05);
+        transition: all 0.3s;
+        animation: fadeInUp 0.6s ease-out;
+    }
+    .dashboard-card:hover { transform: translateY(-5px); box-shadow: 0 12px 40px rgba(0,0,0,0.15); }
+    .stat-card { cursor: pointer; min-height: 55px; position: relative; }
+    .stat-number { font-size: 2rem; font-weight: 700; color: #4f46e5; margin: 0; }
+    .stat-label { color: #6b7280; font-size: 0.85rem; margin-top: 0.1rem; margin-bottom: 0; }
+    .stat-icon { font-size: 2rem; opacity: 0.2; position: absolute; right: 1.25rem; top: 1.25rem; animation: bounce 2s infinite; }
+    .chart-card { min-height: 320px; }
+    .chart-card canvas { height: 300px !important; }
+    .circle-chart-container { display: flex; justify-content: center; align-items: center; height: 300px; }
+    .circle-chart-container canvas { width: 300px !important; height: 300px !important; }
+    .table-card { min-height: 320px; display: flex; flex-direction: column; }
+    .table-card .mb-3 { margin-bottom: 0.75rem !important; flex-shrink: 0; }
+    .table-responsive { flex: 1; overflow-y: auto; min-height: 0; }
+    .table-responsive::-webkit-scrollbar { width: 6px; }
+    .table-responsive::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 10px; }
+    .table-responsive::-webkit-scrollbar-thumb { background: #888; border-radius: 10px; }
+    .table-responsive::-webkit-scrollbar-thumb:hover { background: #555; }
+    .progress-thin { height: 8px; }
+    .pipeline-card { min-height: 320px; }
+    .dark-mode .dashboard-card { background: #222639 !important; border-color: #2c3049 !important; color: #e4e6eb !important; }
+    .dark-mode .stat-label { color: #a6adc8 !important; }
+    .animated-row { animation: slideInLeft 0.5s ease-out; }
+    .animated-progress { animation: progressFill 2s ease-out; }
+    .card-1 { animation-delay: 0.1s; }
+    .card-2 { animation-delay: 0.2s; }
+    .card-3 { animation-delay: 0.3s; }
+    .card-4 { animation-delay: 0.4s; }
+    .chart-1 { animation-delay: 0.5s; }
+    .chart-2 { animation-delay: 0.6s; }
+    .chart-3 { animation-delay: 0.7s; }
+    .chart-4 { animation-delay: 0.8s; }
+    .chart-5 { animation-delay: 0.9s; }
+    .chart-6 { animation-delay: 1.0s; }
+</style>
+
+<div class="content">
+    <nav class="mb-3" aria-label="breadcrumb">
+        <ol class="breadcrumb mb-0">
+            <li class="breadcrumb-item"><a href="/Home/Index">Home</a></li>
+            <li class="breadcrumb-item active">Dashboard</li>
+        </ol>
+    </nav>
+
+    <h1 class="h3 mb-4" style="animation: fadeInUp 0.5s ease-out;"><i class="fa-solid fa-chart-line me-2"></i>Admin Dashboard</h1>
+
+    <!-- Stats Cards -->
+    <div class="row g-3 mb-3">
+        <div class="col-md-3">
+            <div class="dashboard-card stat-card card-1" onclick="window.location.href='/Leads/Index'">
+                <i class="fa-solid fa-users stat-icon"></i>
+                <h2 class="stat-number" id="totalLeads">0</h2>
+                <p class="stat-label">Total Leads</p>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="dashboard-card stat-card card-2">
+                <i class="fa-brands fa-facebook stat-icon"></i>
+                <h2 class="stat-number" id="facebookLeads">0</h2>
+                <p class="stat-label">Facebook Leads</p>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="dashboard-card stat-card card-3">
+                <i class="fa-solid fa-indian-rupee-sign stat-icon"></i>
+                <h2 class="stat-number" id="totalRevenue">₹0</h2>
+                <p class="stat-label">Total Revenue</p>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="dashboard-card stat-card card-4">
+                <i class="fa-solid fa-indian-rupee-sign stat-icon"></i>
+                <h2 class="stat-number" id="totalProfit">₹0</h2>
+                <p class="stat-label">Total Profit</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-3 mb-4">
+        <!-- Lead Analysis -->
+        <div class="col-lg-6">
+            <div class="dashboard-card chart-card chart-1">
+                <h5 class="mb-3"><i class="fa-solid fa-chart-bar me-2"></i>Lead Growth (Last 6 Months)</h5>
+                <canvas id="leadGrowthChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Traffic Sources -->
+        <div class="col-lg-6">
+            <div class="dashboard-card chart-card chart-2">
+                <h5 class="mb-3"><i class="fa-solid fa-chart-pie me-2"></i>Traffic Sources</h5>
+                <div class="circle-chart-container">
+                    <canvas id="trafficSourcesChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-3 mb-4">
+        <!-- Sales Pipeline -->
+        <div class="col-lg-8">
+            <div class="dashboard-card pipeline-card chart-3">
+                <h5 class="mb-3"><i class="fa-solid fa-filter me-2"></i>Sales Pipeline Overview</h5>
+                <div id="pipelineContainer"></div>
+            </div>
+        </div>
+
+        <!-- All Leads List -->
+        <div class="col-lg-4">
+            <div class="dashboard-card table-card chart-4">
+                <div class="mb-3">
+                    <h5 class="mb-0"><i class="fa-solid fa-users me-2"></i>Leads List</h5>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-sm" id="allLeadsTable">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Contact</th>
+                                <th>Stage</th>
+                                <th>Date</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-3">
+        <!-- Revenue vs Expenses -->
+        <div class="col-lg-8">
+            <div class="dashboard-card chart-card chart-5">
+                <h5 class="mb-3"><i class="fa-solid fa-chart-line me-2"></i>Revenue vs Expenses</h5>
+                <canvas id="revenueExpensesChart"></canvas>
+            </div>
+        </div>
+
+        <!-- All Transactions -->
+        <div class="col-lg-4">
+            <div class="dashboard-card table-card chart-6">
+                <div class="mb-3">
+                    <h5 class="mb-0"><i class="fa-solid fa-receipt me-2"></i>Transactions List</h5>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-sm" id="allTransactionsTable">
+                        <thead>
+                            <tr>
+                                <th>Amount</th>
+                                <th>Method</th>
+                                <th>Date</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        let charts = {};
+
+        document.addEventListener('DOMContentLoaded', function() {
+            setTimeout(() => {
+                loadDashboardData();
+            }, 100);
+            
+            // Match heights on window resize
+            window.addEventListener('resize', () => {
+                setTimeout(matchCardHeights, 100);
+            });
+        });
+
+        function loadDashboardData() {
+            fetch('/Home/GetDashboardData')
+                .then(response => response.json())
+                .then(data => {
+                    updateStats(data);
+                    renderLeadGrowthChart(data.monthlyLeads);
+                    renderTrafficSourcesChart(data.sources);
+                    renderPipeline(data.pipeline);
+                    // Load all leads separately
+                    fetch('/Home/GetAllLeads')
+                        .then(response => response.json())
+                        .then(allLeadsData => {
+                            renderAllLeads(allLeadsData);
+                        })
+                        .catch(error => {
+                            console.error('Error loading all leads:', error);
+                            // Fallback to newLeads if GetAllLeads fails
+                            renderAllLeads(data.newLeads || []);
+                        });
+                    renderRevenueExpensesChart(data.revenueExpenses);
+                    // Load all transactions separately
+                    fetch('/Home/GetAllTransactions')
+                        .then(response => response.json())
+                        .then(allTransactionsData => {
+                            renderAllTransactions(allTransactionsData);
+                        })
+                        .catch(error => {
+                            console.error('Error loading all transactions:', error);
+                            // Fallback to recentTransactions if GetAllTransactions fails
+                            renderAllTransactions(data.recentTransactions || []);
+                        });
+                })
+                .catch(error => console.error('Error:', error));
+        }
+
+        function updateStats(data) {
+            animateNumber('totalLeads', data.totalLeads);
+            animateNumber('facebookLeads', data.facebookLeads);
+            animateNumber('totalRevenue', data.totalRevenue, '₹');
+            animateNumber('totalProfit', data.totalProfit, '₹');
+        }
+
+        function animateNumber(elementId, targetValue, prefix = '') {
+            const element = document.getElementById(elementId);
+            const duration = 2000;
+            const startTime = performance.now();
+            const startValue = 0;
+
+            function updateNumber(currentTime) {
+                const elapsed = currentTime - startTime;
+                const progress = Math.min(elapsed / duration, 1);
+                const easeOutQuart = 1 - Math.pow(1 - progress, 4);
+                const currentValue = Math.floor(startValue + (targetValue - startValue) * easeOutQuart);
+                
+                element.textContent = prefix + formatNumber(currentValue);
+                
+                if (progress < 1) {
+                    requestAnimationFrame(updateNumber);
+                }
+            }
+            
+            requestAnimationFrame(updateNumber);
+        }
+
+        function renderLeadGrowthChart(data) {
+            setTimeout(() => {
+                const ctx = document.getElementById('leadGrowthChart').getContext('2d');
+                if (charts.leadGrowth) charts.leadGrowth.destroy();
+                charts.leadGrowth = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: data?.map(d => d.month) || ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+                        datasets: [{
+                            label: 'Leads',
+                            data: data?.map(d => d.count) || [10, 15, 12, 20, 18, 25],
+                            borderColor: '#4f46e5',
+                            backgroundColor: 'rgba(79, 70, 229, 0.1)',
+                            tension: 0.4,
+                            fill: true
+                        }]
+                    },
+                    options: { 
+                        responsive: true, 
+                        maintainAspectRatio: false,
+                        plugins: { legend: { display: false } },
+                        scales: { y: { beginAtZero: true } },
+                        animation: {
+                            duration: 2000,
+                            easing: 'easeInOutQuart'
+                        }
+                    }
+                });
+            }, 500);
+        }
+
+        function renderTrafficSourcesChart(data) {
+            setTimeout(() => {
+                const ctx = document.getElementById('trafficSourcesChart').getContext('2d');
+                if (charts.trafficSources) charts.trafficSources.destroy();
+                const colors = ['#4f46e5', '#7c3aed', '#ec4899', '#f59e0b', '#10b981', '#3b82f6'];
+                const chartData = data?.length ? data : [
+                    {source: 'Website', count: 45},
+                    {source: 'Social Media', count: 25},
+                    {source: 'Referrals', count: 20},
+                    {source: 'Direct', count: 10}
+                ];
+                charts.trafficSources = new Chart(ctx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: chartData.map(d => d.source),
+                        datasets: [{
+                            data: chartData.map(d => d.count),
+                            backgroundColor: colors,
+                            borderWidth: 2,
+                            borderColor: '#fff'
+                        }]
+                    },
+                    options: { 
+                        responsive: true, 
+                        maintainAspectRatio: true,
+                        aspectRatio: 1,
+                        animation: {
+                            animateRotate: true,
+                            animateScale: true,
+                            duration: 2500,
+                            easing: 'easeOutQuart'
+                        },
+                        plugins: {
+                            legend: {
+                                position: 'bottom',
+                                labels: {
+                                    padding: 15,
+                                    usePointStyle: true,
+                                    pointStyle: 'circle',
+                                    font: { size: 12 }
+                                }
+                            }
+                        }
+                    }
+                });
+            }, 600);
+        }
+
+        function renderPipeline(data) {
+            const container = document.getElementById('pipelineContainer');
+            const total = data.reduce((sum, d) => sum + d.count, 0);
+            const colors = ['#4f46e5', '#7c3aed', '#ec4899', '#f59e0b', '#10b981', '#3b82f6', '#8b5cf6', '#06b6d4'];
+            
+            container.innerHTML = '';
+            
+            data.forEach((d, i) => {
+                const percentage = total > 0 ? (d.count / total * 100).toFixed(1) : 0;
+                
+                setTimeout(() => {
+                    const pipelineItem = document.createElement('div');
+                    pipelineItem.className = 'mb-3';
+                    pipelineItem.style.animation = 'slideInLeft 0.6s ease-out';
+                    pipelineItem.innerHTML = `
+                        <div class="d-flex justify-content-between mb-1">
+                            <span>${d.stage}</span>
+                            <span><strong>${d.count}</strong> (${percentage}%)</span>
+                        </div>
+                        <div class="progress progress-thin">
+                            <div class="progress-bar animated-progress" style="--target-width: ${percentage}%; background-color: ${colors[i]}; width: 0%;"></div>
+                        </div>
+                    `;
+                    container.appendChild(pipelineItem);
+                    
+                    // Animate progress bar
+                    setTimeout(() => {
+                        const progressBar = pipelineItem.querySelector('.progress-bar');
+                        progressBar.style.width = percentage + '%';
+                    }, 100);
+                    
+                    // Match heights after last item is added
+                    if (i === data.length - 1) {
+                        setTimeout(() => {
+                            matchCardHeights();
+                        }, 300);
+                    }
+                }, i * 200);
+            });
+        }
+        
+        function matchCardHeights() {
+            // Match pipeline and leads cards
+            const pipelineCard = document.querySelector('.pipeline-card');
+            const leadsCard = document.querySelector('.chart-4');
+            
+            if (pipelineCard && leadsCard) {
+                const pipelineHeight = pipelineCard.offsetHeight;
+                leadsCard.style.height = pipelineHeight + 'px';
+            }
+            
+            // Match revenue and transactions cards
+            const revenueCard = document.querySelector('.chart-5');
+            const transactionsCard = document.querySelector('.chart-6');
+            
+            if (revenueCard && transactionsCard) {
+                const revenueHeight = revenueCard.offsetHeight;
+                transactionsCard.style.height = revenueHeight + 'px';
+            }
+        }
+
+        function renderAllLeads(data) {
+            const tbody = document.querySelector('#allLeadsTable tbody');
+            tbody.innerHTML = '';
+            
+            data.forEach((lead, index) => {
+                setTimeout(() => {
+                    const row = document.createElement('tr');
+                    row.className = 'animated-row';
+                    row.style.cursor = 'pointer';
+                    row.onclick = () => window.location.href = `/Leads/Details/${lead.leadId}`;
+                    
+                    let badgeClass = 'secondary';
+                    if (lead.stage === 'New') badgeClass = 'info';
+                    else if (lead.stage === 'Office Meeting') badgeClass = 'warning';
+                    else if (lead.stage === 'Site Visit Requested') badgeClass = 'primary';
+                    else if (lead.stage === 'Site Visit Done') badgeClass = 'success';
+                    else if (lead.stage === 'Quotation') badgeClass = 'info';
+                    else if (lead.stage === 'Quotation Sent') badgeClass = 'warning';
+                    else if (lead.stage === 'Negotiation') badgeClass = 'danger';
+                    else if (lead.stage === 'Booked') badgeClass = 'success';
+                    
+                    row.innerHTML = `
+                        <td><strong>${lead.name || 'N/A'}</strong></td>
+                        <td><small>${lead.contact || 'N/A'}</small></td>
+                        <td><span class="badge bg-${badgeClass}">${lead.stage || 'N/A'}</span></td>
+                        <td><small>${lead.createdOn || 'N/A'}</small></td>
+                    `;
+                    tbody.appendChild(row);
+                }, index * 30);
+            });
+        }
+        
+
+
+        function renderRevenueExpensesChart(data) {
+            setTimeout(() => {
+                const ctx = document.getElementById('revenueExpensesChart').getContext('2d');
+                if (charts.revenueExpenses) charts.revenueExpenses.destroy();
+                const chartData = data?.length ? data : [
+                    {month: 'Jan', revenue: 50000, expenses: 30000},
+                    {month: 'Feb', revenue: 60000, expenses: 35000},
+                    {month: 'Mar', revenue: 55000, expenses: 32000},
+                    {month: 'Apr', revenue: 70000, expenses: 40000},
+                    {month: 'May', revenue: 65000, expenses: 38000},
+                    {month: 'Jun', revenue: 80000, expenses: 45000}
+                ];
+                charts.revenueExpenses = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: chartData.map(d => d.month),
+                        datasets: [{
+                            label: 'Revenue',
+                            data: chartData.map(d => d.revenue),
+                            borderColor: '#10b981',
+                            backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                            tension: 0.4
+                        }, {
+                            label: 'Expenses',
+                            data: chartData.map(d => d.expenses),
+                            borderColor: '#ef4444',
+                            backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                            tension: 0.4
+                        }]
+                    },
+                    options: { 
+                        responsive: true, 
+                        maintainAspectRatio: false,
+                        scales: { y: { beginAtZero: true } },
+                        animation: {
+                            duration: 2000,
+                            easing: 'easeOutBounce'
+                        },
+                        onAnimationComplete: () => {
+                            setTimeout(matchCardHeights, 100);
+                        }
+                    }
+                });
+            }, 900);
+        }
+
+        function renderAllTransactions(data) {
+            const tbody = document.querySelector('#allTransactionsTable tbody');
+            tbody.innerHTML = '';
+            
+            data.forEach((transaction, index) => {
+                setTimeout(() => {
+                    const row = document.createElement('tr');
+                    row.className = 'animated-row';
+                    row.style.cursor = 'pointer';
+                    row.onclick = () => window.location.href = `/Payments/Index`;
+                    row.innerHTML = `
+                        <td><strong>₹${formatNumber(transaction.amount || 0)}</strong></td>
+                        <td><small>${transaction.paymentMethod || 'N/A'}</small></td>
+                        <td><small>${transaction.paymentDate || 'N/A'}</small></td>
+                    `;
+                    tbody.appendChild(row);
+                }, index * 30);
+            });
+        }
+
+        function formatNumber(num) {
+            return new Intl.NumberFormat('en-IN').format(num);
+        }
+    </script>
+}

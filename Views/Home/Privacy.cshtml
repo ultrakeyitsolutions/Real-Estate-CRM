@@ -1,0 +1,85 @@
+@{
+    ViewData["Title"] = "Privacy Policy";
+    var branding = ViewBag.Branding as CRM.Models.BrandingModel;
+    var settings = ViewBag.Settings as Dictionary<string, string>;
+    var companyName = settings?.GetValueOrDefault("CompanyName", "CRM Platform");
+    var privacyEmail = settings?.GetValueOrDefault("CompanyEmail", "privacy@company.com");
+    var companyAddress = settings?.GetValueOrDefault("CompanyAddress", "123 Business Street, City, State 12345");
+}
+
+<div class="container-fluid p-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-header bg-danger text-white">
+                    <div class="d-flex align-items-center">
+                        @if (!string.IsNullOrEmpty(branding?.CompanyLogo))
+                        {
+                            <img src="@branding.CompanyLogo" alt="@companyName" style="height: 40px; margin-right: 15px;">
+                        }
+                        <h1 class="mb-0"><i class="fas fa-shield-alt me-2"></i>Privacy Policy</h1>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <p class="lead">Last updated: January 2025</p>
+                    
+                    <h3 class="text-danger mb-3">Information We Collect</h3>
+                    <p>We collect information you provide directly to us, such as when you create an account, use our services, or contact us for support. This may include:</p>
+                    <ul>
+                        <li>Personal identification information (name, email address, phone number)</li>
+                        <li>Professional information (company name, job title, business address)</li>
+                        <li>Usage data and analytics to improve our services</li>
+                        <li>Communication preferences and settings</li>
+                    </ul>
+
+                    <h3 class="text-danger mb-3">How We Use Your Information</h3>
+                    <p>We use the information we collect to:</p>
+                    <ul>
+                        <li>Provide, maintain, and improve our CRM services</li>
+                        <li>Process transactions and send related information</li>
+                        <li>Send technical notices, updates, and support messages</li>
+                        <li>Respond to your comments, questions, and customer service requests</li>
+                        <li>Monitor and analyze trends, usage, and activities</li>
+                    </ul>
+
+                    <h3 class="text-danger mb-3">Information Sharing</h3>
+                    <p>We do not sell, trade, or otherwise transfer your personal information to third parties without your consent, except as described in this policy:</p>
+                    <ul>
+                        <li>With your explicit consent</li>
+                        <li>To comply with legal obligations</li>
+                        <li>To protect our rights and prevent fraud</li>
+                        <li>With service providers who assist in our operations</li>
+                    </ul>
+
+                    <h3 class="text-danger mb-3">Data Security</h3>
+                    <p>We implement appropriate technical and organizational measures to protect your personal information against unauthorized access, alteration, disclosure, or destruction. This includes:</p>
+                    <ul>
+                        <li>Encryption of data in transit and at rest</li>
+                        <li>Regular security assessments and updates</li>
+                        <li>Access controls and authentication measures</li>
+                        <li>Employee training on data protection</li>
+                    </ul>
+
+                    <h3 class="text-danger mb-3">Your Rights</h3>
+                    <p>You have the right to:</p>
+                    <ul>
+                        <li>Access and update your personal information</li>
+                        <li>Request deletion of your data</li>
+                        <li>Opt-out of marketing communications</li>
+                        <li>Request data portability</li>
+                        <li>Lodge a complaint with supervisory authorities</li>
+                    </ul>
+
+                    <h3 class="text-danger mb-3">Contact Us</h3>
+                    <p>If you have any questions about this Privacy Policy, please contact us at:</p>
+                    <div class="alert alert-danger">
+                        <strong>Company:</strong> @companyName<br>
+                        <strong>Email:</strong> <a href="mailto:@privacyEmail">@privacyEmail</a><br>
+                        <strong>Phone:</strong> @(settings?.GetValueOrDefault("SupportPhone") ?? "+91-9876543210")<br>
+                        <strong>Address:</strong> @companyAddress
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

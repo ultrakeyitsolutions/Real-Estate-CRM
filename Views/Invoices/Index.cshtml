@@ -1,0 +1,601 @@
+@model List<CRM.Models.InvoiceModel>
+@inject CRM.Services.ViewPermissionService _viewPermissionService
+@{
+    ViewData["Title"] = "Invoices";
+    var bookings = ViewBag.Bookings as List<CRM.Models.BookingModel> ?? new List<CRM.Models.BookingModel>();
+    var installments = ViewBag.Installments as List<CRM.Models.PaymentInstallmentModel> ?? new List<CRM.Models.PaymentInstallmentModel>();
+    
+    // Use ViewPermissionService for partner-aware permissions
+    bool canCreate = _viewPermissionService.HasPermission("Invoices", "Index", "Create");
+    bool canEdit = _viewPermissionService.HasPermission("Invoices", "Index", "Edit");
+    bool canDelete = _viewPermissionService.HasPermission("Invoices", "Index", "Delete");
+}
+
+<style>
+    .invoices-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 2rem;
+        border-radius: 12px;
+        margin-bottom: 2rem;
+    }
+
+    .stats-card {
+        background: rgba(255, 255, 255, 0.15);
+        backdrop-filter: blur(10px);
+        border-radius: 10px;
+        padding: 1.5rem;
+        text-align: center;
+    }
+
+    .stats-number {
+        font-size: 2rem;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+    }
+
+    .filter-card {
+        background: white;
+        border-radius: 12px;
+        padding: 1.5rem;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        margin-bottom: 2rem;
+    }
+
+    .invoice-card {
+        background: white;
+        border-radius: 12px;
+        padding: 1.5rem;
+        margin-bottom: 1rem;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: visible !important;
+        z-index: 1;
+    }
+
+        .invoice-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+        }
+
+        .invoice-card:has(.dropdown.show) {
+            z-index: 9999 !important;
+        }
+
+        .invoice-card .dropdown {
+            position: static !important;
+        }
+
+        .invoice-card .dropdown-menu {
+            z-index: 10000 !important;
+            position: absolute !important;
+        }
+        
+        .invoice-card:has(.dropdown.show) {
+            z-index: 9999 !important;
+        }
+        
+        .invoice-card.dropdown-active {
+            z-index: 99999 !important;
+        }
+        
+        .dropdown-menu.show {
+            z-index: 999999 !important;
+        }
+        
+        /* Force dropdown visibility */
+        .dropdown-menu {
+            z-index: 999999 !important;
+        }
+        
+        .invoice-card .dropdown.show .dropdown-menu {
+            z-index: 999999 !important;
+            position: absolute !important;
+            display: block !important;
+        }
+        
+        .invoice-card:hover {
+            z-index: 99999 !important;
+        }
+
+    .dropdown-toggle::after {
+        display: inline-block;
+        margin-left: 0.255em;
+        vertical-align: 0.255em;
+        content: "";
+        border-top: 0.3em solid;
+        border-right: 0.3em solid transparent;
+        border-bottom: 0;
+        border-left: 0.3em solid transparent;
+    }
+
+    .status-badge {
+        padding: 0.5rem 1rem;
+        border-radius: 20px;
+        font-weight: 600;
+        font-size: 0.875rem;
+    }
+
+    .status-generated {
+        background-color: #cfe2ff;
+        color: #084298;
+    }
+
+    .status-sent {
+        background-color: #d1e7dd;
+        color: #0a3622;
+    }
+
+    .status-paid {
+        background-color: #d1e7dd;
+        color: #0a3622;
+    }
+
+    .status-partial {
+        background-color: #fff3cd;
+        color: #997404;
+    }
+
+    .status-overdue {
+        background-color: #f8d7da;
+        color: #842029;
+    }
+
+    .status-cancelled {
+        background-color: #e9ecef;
+        color: #495057;
+    }
+
+    .create-btn {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border: none;
+        color: white;
+        padding: 0.75rem 2rem;
+        border-radius: 8px;
+        font-weight: 600;
+        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+        transition: all 0.3s ease;
+    }
+
+        .create-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+            color: white;
+        }
+
+    .empty-state {
+        text-align: center;
+        padding: 4rem 2rem;
+    }
+
+        .empty-state i {
+            font-size: 5rem;
+            color: #e9ecef;
+            margin-bottom: 1.5rem;
+        }
+
+    @@media (max-width: 768px) {
+        .invoice-card {
+            padding: 1rem;
+        }
+
+        .stats-number {
+            font-size: 1.5rem;
+        }
+    }
+</style>
+
+<div class="content">
+    <!-- Breadcrumb -->
+    <nav class="mb-3" aria-label="breadcrumb">
+        <ol class="breadcrumb mb-0">
+            <li class="breadcrumb-item"><a href="/Home/Index">Home</a></li>
+            <li class="breadcrumb-item active">Invoices</li>
+        </ol>
+    </nav>
+
+    <!-- Header with Stats -->
+    <div class="invoices-header">
+        <div class="row align-items-center mb-4">
+            <div class="col-md-6">
+                <h2 class="mb-0"><i class="fa-solid fa-file-invoice me-2"></i>Invoices</h2>
+                <p class="mb-0 mt-2 opacity-75">Manage payment invoices and track collections</p>
+            </div>
+@if (canCreate)
+{
+    <div class="col-md-6 text-md-end">
+        <a href="/Invoices/Create" class="btn create-btn">
+            <i class="fa-solid fa-plus me-2"></i>Generate Invoice
+        </a>
+    </div>
+}
+        </div>
+
+        <div class="row g-3">
+            <div class="col-md-3">
+                <div class="stats-card">
+                    <div class="stats-number">@Model.Count</div>
+                    <div>Total Invoices</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stats-card">
+                    <div class="stats-number">@Model.Count(i => i.Status == "Paid")</div>
+                    <div>Paid</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stats-card">
+                    <div class="stats-number">@Model.Count(i => i.Status == "Overdue")</div>
+                    <div>Overdue</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stats-card">
+                    <div class="stats-number">₹@Model.Sum(i => i.TotalAmount - i.PaidAmount).ToString("N0")</div>
+                    <div>Outstanding</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filter Section -->
+    <div class="filter-card">
+        <div class="row g-3 align-items-end">
+            <div class="col-md-4">
+                <div class="input-group">
+                    <label for="searchInput" class="form-label">Search</label>
+
+                    <input type="text" class="form-control" id="searchInput"
+                           placeholder="Search anything..."
+                           value="@ViewBag.SearchTerm">
+                </div>
+            </div>
+
+            <div class="col-md-3">
+                <label for="statusFilter" class="form-label">Status</label>
+                <select class="form-select" id="statusFilter">
+                    <option value="">All Status</option>
+                    <option value="Generated" selected="@(ViewBag.StatusFilter == "Generated")">Generated</option>
+                    <option value="Sent" selected="@(ViewBag.StatusFilter == "Sent")">Sent</option>
+                    <option value="Paid" selected="@(ViewBag.StatusFilter == "Paid")">Paid</option>
+                    <option value="Partial" selected="@(ViewBag.StatusFilter == "Partial")">Partial</option>
+                    <option value="Overdue" selected="@(ViewBag.StatusFilter == "Overdue")">Overdue</option>
+                </select>
+            </div>
+
+            <div class="col-md-3">
+                <button class="btn btn-primary" onclick="applyFilters()">
+                    <i class="fa-solid fa-filter me-2"></i>Filter
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Invoices List -->
+    @if (Model.Any())
+    {
+        foreach (var invoice in Model)
+        {
+            var booking = bookings.FirstOrDefault(b => b.BookingId == invoice.BookingId);
+            var installment = installments.FirstOrDefault(i => i.InstallmentId == invoice.InstallmentId);
+
+            <div class="card invoice-card paginated-item">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col-md-4">
+                            <h5 class="mb-2">
+                                <i class="fa-solid fa-file-invoice-dollar text-primary me-2"></i>
+                                @invoice.InvoiceNumber
+                            </h5>
+                            <p class="mb-1 text-muted">
+                                <i class="fa-solid fa-user me-2"></i>
+                                <strong>@booking?.Lead?.Name</strong>
+                            </p>
+                            <p class="mb-1 text-muted">
+                                <i class="fa-solid fa-building me-2"></i>
+                                @booking?.Property?.PropertyName
+                            </p>
+                            @if (installment != null)
+                            {
+                                <p class="mb-0">
+                                    <span class="badge bg-info">@installment.MilestoneName</span>
+                                </p>
+                            }
+                        </div>
+
+                        <div class="col-md-3">
+                            <small class="text-muted d-block">Invoice Date</small>
+                            <p class="mb-2">
+                                <i class="fa-solid fa-calendar me-1"></i>
+                                @invoice.InvoiceDate.ToString("MMM dd, yyyy")
+                            </p>
+                            <small class="text-muted d-block">Due Date</small>
+                            <p class="mb-0">
+                                <i class="fa-solid fa-calendar-days me-1"></i>
+                                @invoice.DueDate.ToString("MMM dd, yyyy")
+                            </p>
+                        </div>
+
+                        <div class="col-md-2 text-center">
+                            <small class="text-muted d-block mb-1">Total Amount</small>
+                            <h4 class="text-primary mb-0">₹@invoice.TotalAmount.ToString("N0")</h4>
+                            <small class="text-success">
+                                Paid: ₹@invoice.PaidAmount.ToString("N0")
+                            </small>
+                        </div>
+
+                        <div class="col-md-2 text-center">
+                            <span class="status-badge status-@invoice.Status.ToLower()">
+                                @invoice.Status
+                            </span>
+                        </div>
+
+                        <div class="col-md-1 text-end">
+                            <div class="dropdown">
+                                <button class="btn btn-sm btn-outline-primary"
+                                        type="button" data-bs-toggle="dropdown">
+                                    <i class="fa-solid fa-ellipsis-vertical"></i>
+                                </button>
+                                <ul class="dropdown-menu dropdown-menu-end">
+                                    <li>
+                                        <a class="dropdown-item" href="/Invoices/Details/@invoice.InvoiceId">
+                                            <i class="fa-solid fa-eye me-2"></i>View Details
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item" href="/Invoices/Details/@invoice.InvoiceId">
+                                            <i class="fa-solid fa-download me-2"></i>Download PDF
+                                        </a>
+                                    </li>
+                                    @if (canEdit && invoice.Status != "Paid" && invoice.Status != "Cancelled")
+                                    {
+                                        <li><hr class="dropdown-divider"></li>
+                                        <li>
+                                            <a class="dropdown-item" href="/Payments/Create?invoiceId=@invoice.InvoiceId">
+                                                <i class="fa-solid fa-credit-card me-2"></i>Record Payment
+                                            </a>
+                                        </li>
+                                        <li>
+                                            <a class="dropdown-item" href="#"
+                                               onclick="updateStatus(@invoice.InvoiceId, 'Sent')">
+                                                <i class="fa-solid fa-paper-plane me-2"></i>Mark as Sent
+                                            </a>
+                                        </li>
+                                        <li>
+                                            <a class="dropdown-item text-danger" href="#"
+                                               onclick="updateStatus(@invoice.InvoiceId, 'Cancelled')">
+                                                <i class="fa-solid fa-times me-2"></i>Cancel
+                                            </a>
+                                        </li>
+                                    }
+                                    @if (canDelete)
+                                    {
+                                        <li><hr class="dropdown-divider"></li>
+                                        <li>
+                                            <a class="dropdown-item text-danger" href="#"
+                                               onclick="deleteInvoice(@invoice.InvoiceId)">
+                                                <i class="fa-solid fa-trash me-2"></i>Delete
+                                            </a>
+                                        </li>
+                                    }
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+        
+        <!-- Pagination -->
+        <div id="pagination-container" class="mt-4"></div>
+    }
+    else
+    {
+        <div class="empty-state">
+            <i class="fa-solid fa-file-invoice"></i>
+            <h3>No Invoices Found</h3>
+            <p class="text-muted">Start by generating your first invoice</p>
+@if (canCreate)
+{
+    <a href="/Invoices/Create" class="btn create-btn mt-3">
+        <i class="fa-solid fa-plus me-2"></i>Generate Invoice
+    </a>
+}
+        </div>
+    }
+</div>
+
+<script>
+    setTimeout(function() {
+        if (typeof $ === 'undefined') {
+            console.log('jQuery not loaded yet');
+            return;
+        }
+        function applyFilters() {
+            var search = $('#searchInput').val().toLowerCase();
+            var status = $('#statusFilter').val();
+            var anyVisible = false;
+            $('.invoice-card').each(function () {
+                var card = $(this);
+                var cardText = card.text().toLowerCase();
+                var cardStatus = card.find('.status-badge').text().trim();
+                var matchesSearch = !search || cardText.includes(search);
+                var matchesStatus = !status || cardStatus === status;
+                if (matchesSearch && matchesStatus) {
+                    card.show();
+                    anyVisible = true;
+                } else {
+                    card.hide();
+                }
+            });
+            if (!anyVisible) {
+                $('.empty-state').show();
+            } else {
+                $('.empty-state').hide();
+            }
+        }
+        
+        $('#searchInput').on('input', applyFilters);
+        $('#statusFilter').on('change', applyFilters);
+        $('#searchInput').on('keypress', function (e) {
+            if (e.which === 13) {
+                applyFilters();
+            }
+        });
+        applyFilters();
+        
+        console.log('=== INITIAL DEBUG ===');
+        $('.invoice-card').each(function(i) {
+            console.log('Card ' + i + ' z-index:', $(this).css('z-index'));
+        });
+        
+        $('.invoice-card .dropdown').on('show.bs.dropdown', function (e) {
+            var $dropdown = $(this);
+            var $card = $dropdown.closest('.invoice-card');
+            var $menu = $dropdown.find('.dropdown-menu');
+            
+            console.log('=== DROPDOWN SHOW DEBUG ===');
+            console.log('Dropdown element:', $dropdown[0]);
+            console.log('Card element:', $card[0]);
+            console.log('Menu element:', $menu[0]);
+            
+            // Check all parent elements for z-index/overflow issues
+            $card.parents().each(function(i) {
+                var $parent = $(this);
+                console.log('Parent ' + i + ':', {
+                    element: this,
+                    tagName: this.tagName,
+                    className: this.className,
+                    zIndex: $parent.css('z-index'),
+                    overflow: $parent.css('overflow'),
+                    position: $parent.css('position')
+                });
+            });
+            
+            // Reset all cards
+            $('.invoice-card').removeClass('dropdown-active').css('z-index', '1');
+            console.log('Reset all cards to z-index 1');
+            
+            // Set current card to highest z-index
+            $card.addClass('dropdown-active').css('z-index', '99999');
+            console.log('Set active card z-index to 99999');
+            
+            setTimeout(function() {
+                console.log('=== AFTER TIMEOUT ===');
+                console.log('Card z-index:', $card.css('z-index'));
+                console.log('Card position:', $card.css('position'));
+                console.log('Card overflow:', $card.css('overflow'));
+                console.log('Menu z-index:', $menu.css('z-index'));
+                console.log('Menu position:', $menu.css('position'));
+                console.log('Menu display:', $menu.css('display'));
+                console.log('Menu visibility:', $menu.css('visibility'));
+                console.log('Menu has show class:', $menu.hasClass('show'));
+                
+                // Check if menu is actually visible
+                var menuRect = $menu[0].getBoundingClientRect();
+                console.log('Menu bounding rect:', menuRect);
+                console.log('Menu is visible:', menuRect.width > 0 && menuRect.height > 0);
+            }, 100);
+        });
+
+        $('.invoice-card .dropdown').on('hide.bs.dropdown', function () {
+            console.log('=== DROPDOWN HIDE ===');
+            $(this).closest('.invoice-card').removeClass('dropdown-active').css('z-index', '1');
+        });
+        
+        // Debug: Monitor all dropdown events
+        $('.invoice-card .dropdown').on('shown.bs.dropdown', function() {
+            console.log('=== DROPDOWN FULLY SHOWN ===');
+            var $menu = $(this).find('.dropdown-menu');
+            console.log('Final menu styles:', {
+                zIndex: $menu.css('z-index'),
+                position: $menu.css('position'),
+                display: $menu.css('display'),
+                visibility: $menu.css('visibility'),
+                top: $menu.css('top'),
+                left: $menu.css('left')
+            });
+        });
+    }, 1000);
+
+    function updateStatus(invoiceId, status) {
+        Swal.fire({
+            title: 'Are you sure?',
+            text: `Do you want to change the status to ${status}?`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#667eea',
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: 'Yes, update it!'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                $(document).ready(function() {
+                    $.ajax({
+                        url: '/Invoices/UpdateStatus',
+                        type: 'POST',
+                        data: { invoiceId, status },
+                        success: function (response) {
+                            if (response.success) {
+                                Swal.fire({
+                                    icon: 'success',
+                                    title: 'Success!',
+                                    text: response.message,
+                                    timer: 2000,
+                                    showConfirmButton: false
+                                }).then(() => location.reload());
+                            } else {
+                                Swal.fire('Error', response.message, 'error');
+                            }
+                        },
+                        error: function () {
+                            Swal.fire('Error', 'Failed to update status', 'error');
+                        }
+                    });
+                });
+            }
+        });
+    }
+
+    function deleteInvoice(invoiceId) {
+        Swal.fire({
+            title: 'Are you sure?',
+            text: "You won't be able to revert this!",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: 'Yes, delete it!'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                $(document).ready(function() {
+                    $.ajax({
+                        url: '/Invoices/Delete/' + invoiceId,
+                        type: 'POST',
+                        success: function (response) {
+                            if (response.success) {
+                                Swal.fire({
+                                    icon: 'success',
+                                    title: 'Deleted!',
+                                    text: response.message,
+                                    timer: 2000,
+                                    showConfirmButton: false
+                                }).then(() => location.reload());
+                            } else {
+                                Swal.fire('Error', response.message, 'error');
+                            }
+                        },
+                        error: function () {
+                            Swal.fire('Error', 'Failed to delete invoice', 'error');
+                        }
+                    });
+                });
+            }
+        });
+    }
+
+
+
+
+</script>

@@ -1,0 +1,525 @@
+@model CRM.Models.InvoiceModel
+@{
+    ViewData["Title"] = "Invoice Details";
+    var booking = Model.Booking;
+    var lead = booking?.Lead;
+    var property = booking?.Property;
+    var flat = booking?.Flat;
+    var installment = Model.Installment;
+    var items = ViewBag.Items as List<CRM.Models.InvoiceItemModel> ?? new List<CRM.Models.InvoiceItemModel>();
+    var payments = ViewBag.Payments as List<CRM.Models.PaymentModel> ?? new List<CRM.Models.PaymentModel>();
+    
+    var companyName = ViewBag.CompanyName?.ToString() ?? "Company Name";
+    var companyAddress = ViewBag.CompanyAddress?.ToString() ?? "Company Address";
+    var companyPhone = ViewBag.CompanyPhone?.ToString() ?? "Phone";
+    var companyEmail = ViewBag.CompanyEmail?.ToString() ?? "Email";
+    var companyGst = ViewBag.CompanyGST?.ToString() ?? "GST Number";
+    var gstRate = (decimal)(ViewBag.GSTRate ?? 5);
+}
+
+<style>
+    .invoice-container {
+        max-width: 900px;
+        margin: 0 auto;
+        background: white;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    }
+
+    .dark-mode .invoice-container {
+        background: #222639 !important;
+        box-shadow: 0 4px 20px rgba(255, 255, 255, 0.05) !important;
+    }
+
+    .action-bar {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        padding: 1rem 2rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .print-section {
+        padding: 3rem;
+    }
+
+    .dark-mode .print-section {
+        background: #222639 !important;
+        color: #e4e6eb !important;
+    }
+
+    .company-header {
+        text-align: center;
+        border-bottom: 3px solid #667eea;
+        padding-bottom: 1.5rem;
+        margin-bottom: 2rem;
+    }
+
+    .company-header h1 {
+        color: #667eea;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+    }
+
+    .dark-mode .company-header h1 {
+        color: #667eea !important;
+    }
+
+    .dark-mode .company-header p {
+        color: #e4e6eb !important;
+    }
+
+    .invoice-number {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 1rem 2rem;
+        border-radius: 8px;
+        font-size: 1.5rem;
+        font-weight: 700;
+        text-align: center;
+        margin-bottom: 2rem;
+    }
+
+    .status-badge {
+        display: inline-block;
+        padding: 0.5rem 1rem;
+        border-radius: 20px;
+        font-weight: 600;
+        font-size: 0.875rem;
+    }
+
+    .status-generated { background-color: #cfe2ff; color: #084298; }
+    .status-sent { background-color: #d1e7dd; color: #0a3622; }
+    .status-paid { background-color: #d1e7dd; color: #0a3622; }
+    .status-partial { background-color: #fff3cd; color: #997404; }
+    .status-overdue { background-color: #f8d7da; color: #842029; }
+    .status-cancelled { background-color: #e9ecef; color: #495057; }
+
+    .info-section {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 2rem;
+        margin-bottom: 2rem;
+    }
+
+    .info-box h5 {
+        color: #667eea;
+        font-weight: 600;
+        margin-bottom: 1rem;
+    }
+
+    .dark-mode .info-box p {
+        color: #e4e6eb !important;
+    }
+
+    .items-table {
+        width: 100%;
+        margin-bottom: 2rem;
+        border-collapse: collapse;
+    }
+
+    .items-table th {
+        background-color: #667eea;
+        color: white;
+        padding: 0.75rem;
+        text-align: left;
+        font-weight: 600;
+    }
+
+    .items-table td {
+        padding: 0.75rem;
+        border-bottom: 1px solid #dee2e6;
+        color: #333;
+    }
+
+    .dark-mode .items-table {
+        color: #e4e6eb !important;
+    }
+
+    .dark-mode .items-table td {
+        border-bottom: 1px solid #2c3049 !important;
+        color: #e4e6eb !important;
+    }
+
+    .totals-section {
+        margin-left: auto;
+        width: 350px;
+    }
+
+    .total-row {
+        display: flex;
+        justify-content: space-between;
+        padding: 0.5rem 0;
+        border-bottom: 1px solid #dee2e6;
+        color: #333;
+    }
+
+    .dark-mode .total-row {
+        border-bottom: 1px solid #2c3049 !important;
+        color: #e4e6eb !important;
+    }
+
+    .total-row.grand-total {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 1rem;
+        border-radius: 6px;
+        font-size: 1.25rem;
+        font-weight: 700;
+        margin-top: 0.5rem;
+    }
+
+    .payment-history {
+        background: #f8f9fa;
+        padding: 1.5rem;
+        border-radius: 8px;
+        margin-bottom: 2rem;
+    }
+
+    .dark-mode .payment-history {
+        background: #2c3049 !important;
+    }
+
+    .payment-history h5 {
+        color: #667eea;
+        font-weight: 600;
+        margin-bottom: 1rem;
+    }
+
+    .payment-item {
+        background: white;
+        color: #333;
+        padding: 1rem;
+        border-radius: 6px;
+        margin-bottom: 0.5rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .dark-mode .payment-item {
+        background: #222639 !important;
+        color: #e4e6eb !important;
+    }
+
+    @@media print {
+        .action-bar, .no-print {
+            display: none !important;
+        }
+
+        .invoice-container {
+            box-shadow: none;
+            background: white !important;
+        }
+
+        .print-section {
+            padding: 1rem;
+            background: white !important;
+            color: black !important;
+        }
+
+        /* Force light colors for print */
+        .invoice-text,
+        .invoice-heading,
+        .invoice-footer {
+            color: black !important;
+        }
+
+        .items-table td {
+            color: black !important;
+            border-bottom: 1px solid #dee2e6 !important;
+        }
+
+        .total-row {
+            color: black !important;
+            border-bottom: 1px solid #dee2e6 !important;
+        }
+
+        .payment-history,
+        .payment-item,
+        .bank-details {
+            background: #f8f9fa !important;
+            color: black !important;
+        }
+
+        .terms-section {
+            border-top: 2px solid #e9ecef !important;
+        }
+
+        .terms-section li {
+            color: #666 !important;
+        }
+    }
+
+    @@media (max-width: 768px) {
+        .info-section {
+            grid-template-columns: 1fr;
+            gap: 1rem;
+        }
+
+        .totals-section {
+            width: 100%;
+        }
+
+        .print-section {
+            padding: 1.5rem;
+        }
+    }
+
+    /* Bank details section */
+    .bank-details {
+        background: #f8f9fa;
+        padding: 1.5rem;
+        border-radius: 8px;
+        margin-top: 2rem;
+    }
+
+    .dark-mode .bank-details {
+        background: #2c3049 !important;
+    }
+
+    /* Dark mode overrides for inline styles */
+    .dark-mode div[style*="color: #667eea"] {
+        color: #667eea !important;
+    }
+
+    .dark-mode p[style*="color"],
+    .dark-mode div[style*="color"] {
+        color: #e4e6eb !important;
+    }
+
+    .dark-mode p[style*="color: #999"] {
+        color: #a6adc8 !important;
+    }
+
+    .dark-mode p[style*="color: #666"] {
+        color: #a6adc8 !important;
+    }
+
+    /* Dark mode for invoice-specific classes */
+    .dark-mode .invoice-text {
+        color: #e4e6eb !important;
+    }
+
+    .dark-mode .invoice-heading {
+        color: #667eea !important;
+    }
+
+    .dark-mode .invoice-footer {
+        color: #a6adc8 !important;
+    }
+
+    .dark-mode .invoice-footer .invoice-text {
+        color: #a6adc8 !important;
+    }
+
+    /* Terms section dark mode */
+    .dark-mode .terms-section {
+        border-top: 2px solid #2c3049 !important;
+    }
+
+    .dark-mode .terms-section li {
+        color: #a6adc8 !important;
+    }
+</style>
+
+<div class="content">
+    <div class="invoice-container">
+        <!-- Action Bar -->
+        <div class="action-bar no-print">
+            <div>
+                <a href="/Invoices/Index" class="btn btn-light">
+                    <i class="fa-solid fa-arrow-left me-2"></i>Back to List
+                </a>
+            </div>
+            <div>
+                <button onclick="window.print()" class="btn btn-light">
+                    <i class="fa-solid fa-print me-2"></i>Print
+                </button>
+                <a href="/Invoices/DownloadPdf/@Model.InvoiceId" class="btn btn-light">
+                    <i class="fa-solid fa-download me-2"></i>Download PDF
+                </a>
+                @if (Model.Status != "Paid" && Model.Status != "Cancelled")
+                {
+                    <a href="/Payments/Create?invoiceId=@Model.InvoiceId" class="btn btn-success">
+                        <i class="fa-solid fa-credit-card me-2"></i>Record Payment
+                    </a>
+                }
+            </div>
+        </div>
+
+        <!-- Printable Section -->
+        <div class="print-section">
+            <!-- Company Header -->
+            <div class="company-header">
+                <h1>@companyName</h1>
+                <p class="mb-0">@companyAddress</p>
+                <p class="mb-0">Phone: @companyPhone | Email: @companyEmail</p>
+                <p class="mb-0"><strong>GSTIN: @companyGst</strong></p>
+            </div>
+
+            <!-- Invoice Number and Status -->
+            <div class="invoice-number">
+                TAX INVOICE: @Model.InvoiceNumber
+                <div class="float-end">
+                    <span class="status-badge status-@Model.Status.ToLower()">@Model.Status</span>
+                </div>
+            </div>
+
+            <!-- First Row - Bill To (Right Side) -->
+            <div style="display: grid; grid-template-columns: 1fr auto; margin-bottom: 2rem;">
+                <div></div>
+                <div style="padding-left: 2rem; min-width: 350px;">
+                    <h5 class="invoice-heading" style="color: #667eea; font-weight: 600; margin-bottom: 1rem;">
+                        <i class="fa-solid fa-user me-2"></i>Bill To
+                    </h5>
+                    <p class="invoice-text" style="margin-bottom: 0.3rem;"><strong>@lead?.Name</strong></p>
+                    <p class="invoice-text" style="margin-bottom: 0.3rem;">@lead?.Contact</p>
+                    <p class="invoice-text" style="margin-bottom: 0.3rem;">@lead?.Email</p>
+                    @if (!string.IsNullOrEmpty(booking?.BookingNumber))
+                    {
+                        <p class="invoice-text" style="margin-bottom: 0;"><strong>Booking:</strong> @booking.BookingNumber</p>
+                    }
+                </div>
+            </div>
+
+            <!-- Second Row - Invoice Details (Left Side) -->
+            <div style="display: grid; grid-template-columns: 1fr auto; margin-bottom: 2rem;">
+                <div style="padding-right: 2rem;">
+                    <h5 class="invoice-heading" style="color: #667eea; font-weight: 600; margin-bottom: 1rem;">
+                        <i class="fa-solid fa-calendar me-2"></i>Invoice Details
+                    </h5>
+                    <p class="invoice-text" style="margin-bottom: 0.3rem;"><strong>Invoice Date:</strong> @Model.InvoiceDate.ToString("MMM dd, yyyy")</p>
+                    <p class="invoice-text" style="margin-bottom: 0.3rem;"><strong>Due Date:</strong> @Model.DueDate.ToString("MMM dd, yyyy")</p>
+                    @if (installment != null)
+                    {
+                        <p class="invoice-text" style="margin-bottom: 0.3rem;"><strong>Installment:</strong> #@installment.InstallmentNumber - @installment.MilestoneName</p>
+                    }
+                    <p class="invoice-text" style="margin-bottom: 0.3rem;"><strong>Property:</strong> @property?.PropertyName</p>
+                    <p class="invoice-text" style="margin-bottom: 0;"><strong>Unit:</strong> @flat?.FlatName</p>
+                </div>
+                <div></div>
+            </div>
+
+            <!-- Items Table -->
+            <table class="items-table">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Description</th>
+                        <th class="text-center">Qty</th>
+                        <th class="text-end">Rate</th>
+                        <th class="text-end">Amount</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @for (int i = 0; i < items.Count; i++)
+                    {
+                        var item = items[i];
+                        <tr>
+                            <td>@(i + 1)</td>
+                            <td>@item.Description</td>
+                            <td class="text-center">@item.Quantity</td>
+                            <td class="text-end">₹@item.Rate.ToString("N2")</td>
+                            <td class="text-end">₹@item.Amount.ToString("N2")</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+
+            <!-- Totals Section -->
+            <div class="totals-section">
+                <div class="total-row">
+                    <span>Subtotal:</span>
+                    <strong>₹@Model.Amount.ToString("N2")</strong>
+                </div>
+                <div class="total-row">
+                    <span>GST (@gstRate%):</span>
+                    <strong>₹@Model.TaxAmount.ToString("N2")</strong>
+                </div>
+                <div class="total-row grand-total">
+                    <span>Total Amount:</span>
+                    <strong>₹@Model.TotalAmount.ToString("N2")</strong>
+                </div>
+                @if (Model.PaidAmount > 0)
+                {
+                    <div class="total-row" style="background: #d1e7dd; padding: 0.75rem; border-radius: 6px; margin-top: 0.5rem;">
+                        <span>Amount Paid:</span>
+                        <strong>₹@Model.PaidAmount.ToString("N2")</strong>
+                    </div>
+                    <div class="total-row" style="background: #fff3cd; padding: 0.75rem; border-radius: 6px; margin-top: 0.5rem;">
+                        <span>Balance Due:</span>
+                        <strong>₹@((Model.TotalAmount - Model.PaidAmount).ToString("N2"))</strong>
+                    </div>
+                }
+            </div>
+
+            <!-- Payment History -->
+            @if (payments.Any())
+            {
+                <div class="payment-history">
+                    <h5><i class="fa-solid fa-history me-2"></i>Payment History</h5>
+                    @foreach (var payment in payments)
+                    {
+                        <div class="payment-item">
+                            <div>
+                                <strong>@payment.ReceiptNumber</strong>
+                                <br />
+                                <small class="text-muted">
+                                    @payment.PaymentDate.ToString("MMM dd, yyyy") - @payment.PaymentMethod
+                                    @if (!string.IsNullOrEmpty(payment.TransactionReference))
+                                    {
+                                        <span> | Ref: @payment.TransactionReference</span>
+                                    }
+                                </small>
+                            </div>
+                            <div>
+                                <strong class="text-success">₹@payment.Amount.ToString("N2")</strong>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+
+            <!-- Notes -->
+            @if (!string.IsNullOrEmpty(Model.Notes))
+            {
+                <div class="mt-4">
+                    <h5 class="invoice-heading" style="color: #667eea; font-weight: 600;">Notes:</h5>
+                    <p class="invoice-text" style="color: #666;">@Model.Notes</p>
+                </div>
+            }
+
+            <!-- Terms and Conditions -->
+            <div class="terms-section" style="margin-top: 3rem; padding-top: 2rem; border-top: 2px solid #e9ecef;">
+                <h5 class="invoice-heading" style="color: #667eea; font-weight: 600;">Payment Terms:</h5>
+                <ul style="padding-left: 1.5rem;">
+                    <li style="margin-bottom: 0.5rem; color: #666;">Payment is due by the due date mentioned above.</li>
+                    <li style="margin-bottom: 0.5rem; color: #666;">Late payments may incur additional charges.</li>
+                    <li style="margin-bottom: 0.5rem; color: #666;">All amounts are in Indian Rupees (INR).</li>
+                    <li style="margin-bottom: 0.5rem; color: #666;">This is a computer-generated invoice.</li>
+                </ul>
+            </div>
+
+            <!-- Bank Details -->
+            <div class="bank-details" style="background: #f8f9fa; padding: 1.5rem; border-radius: 8px; margin-top: 2rem;">
+                <h5 class="invoice-heading" style="color: #667eea; font-weight: 600; margin-bottom: 1rem;">Bank Details for Payment:</h5>
+                <div class="row">
+                    <div class="col-md-6">
+                        <p class="invoice-text"><strong>Bank Name:</strong> [Your Bank Name]</p>
+                        <p class="invoice-text"><strong>Account Name:</strong> @companyName</p>
+                    </div>
+                    <div class="col-md-6">
+                        <p class="invoice-text"><strong>Account Number:</strong> [Account Number]</p>
+                        <p class="invoice-text"><strong>IFSC Code:</strong> [IFSC Code]</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Footer -->
+            <div class="text-center mt-4 invoice-footer" style="color: #999; font-size: 0.875rem;">
+                <p class="invoice-text">Thank you for your business!</p>
+                <p class="invoice-text">For any queries, please contact us at @companyPhone or @companyEmail</p>
+            </div>
+        </div>
+    </div>
+</div>

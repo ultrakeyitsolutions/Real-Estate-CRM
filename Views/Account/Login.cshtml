@@ -1,0 +1,134 @@
+﻿@model CRM.Models.LoginModel
+@{
+    ViewData["Title"] = "Login";
+    Layout = "_LayoutLogin";
+}
+
+<div class="login-left">
+    <div class="brand-content">
+        <div class="brand-logo">
+            @if (!string.IsNullOrEmpty(ViewBag.CompanyLogo))
+            {
+                <img src="@ViewBag.CompanyLogo" alt="Company Logo" style="max-height: 80px;max-width: 200px; object-fit: contain;" />
+            }
+            else
+            {
+                <i class="fas fa-chart-network"></i>
+            }
+        </div>
+        <h1>RealEstate CRM</h1>
+        <p>Streamline your customer relationships with our powerful platform designed for modern businesses.</p>
+        <div class="brand-features">
+            <i class="fas fa-chart-line"></i>
+            <i class="fas fa-users"></i>
+            <i class="fas fa-handshake"></i>
+        </div>
+    </div>
+</div>
+
+<div class="login-form-section">
+    <div class="login-header">
+        <h1>Welcome Back</h1>
+    </div>
+
+    @if (ViewBag.Message != null)
+    {
+        <div class="alert alert-danger" role="alert">
+            <i class="fas fa-exclamation-circle"></i>
+            <span>@ViewBag.Message</span>
+        </div>
+    }
+    
+    @if (TempData["PasswordResetSuccess"] != null)
+    {
+        <div class="alert alert-success" role="alert">
+            <i class="fas fa-check-circle"></i>
+            <span>@TempData["PasswordResetSuccess"]</span>
+        </div>
+    }
+    
+    @if (TempData["RegistrationMessage"] != null)
+    {
+        <div class="alert alert-info" role="alert">
+            <i class="fas fa-info-circle"></i>
+            <span>@TempData["RegistrationMessage"]</span>
+        </div>
+    }
+    
+    <form asp-action="Login" method="post">
+        @Html.AntiForgeryToken()
+        <div class="input-wrapper">
+            <label asp-for="Username" class="form-label">Username</label>
+            <i class="fas fa-user"></i>
+            <input asp-for="Username" class="form-control" placeholder="Enter your username" required autofocus />
+            <span asp-validation-for="Username" class="text-danger"></span>
+        </div>
+        
+        <div class="input-wrapper">
+            <label asp-for="Password" class="form-label">Password</label>
+            <i class="fas fa-lock"></i>
+            <input asp-for="Password" class="form-control" type="password" id="passwordInput" placeholder="Enter your password" required style="padding-right: 45px;" />
+            <button type="button" class="password-toggle" id="togglePassword">
+                <i class="fas fa-eye" id="toggleIcon"></i>
+            </button>
+            <span asp-validation-for="Password" class="text-danger"></span>
+        </div>
+        
+        <div class="form-options">
+            <div class="form-check">
+                <input class="form-check-input" type="checkbox" id="rememberMe" />
+                <label class="form-check-label" for="rememberMe">
+                    Remember me
+                </label>
+            </div>
+            <a href="/Account/ForgotPassword" class="forgot-link">
+                Forgot Password?
+            </a>
+        </div>
+        
+        <button type="submit" class="btn-primary">
+            <i class="fas fa-sign-in-alt"></i>Sign In
+        </button>
+        
+        <div class="divider" style="display: none;">
+            <span>OR CONTINUE WITH</span>
+        </div>
+        
+        <div class="social-login" style="display: none;">
+            <button type="button" class="social-btn google">
+                <i class="fab fa-google"></i>
+            </button>
+            <button type="button" class="social-btn facebook">
+                <i class="fab fa-facebook-f"></i>
+            </button>
+            <button type="button" class="social-btn linkedin">
+                <i class="fab fa-linkedin-in"></i>
+            </button>
+        </div>
+        
+        <p class="signup-text">
+            Don't have an account? <a href="/Account/Register">Create Account</a>
+        </p>
+    </form>
+</div>
+
+@section Scripts { 
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    <script>
+        document.getElementById('togglePassword').addEventListener('click', function () {
+            const passwordInput = document.getElementById('passwordInput');
+            const toggleIcon = document.getElementById('toggleIcon');
+            
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                toggleIcon.classList.remove('fa-eye');
+                toggleIcon.classList.add('fa-eye-slash');
+            } else {
+                passwordInput.type = 'password';
+                toggleIcon.classList.remove('fa-eye-slash');
+                toggleIcon.classList.add('fa-eye');
+            }
+        });
+    </script>
+}
+

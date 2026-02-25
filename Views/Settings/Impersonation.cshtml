@@ -1,0 +1,258 @@
+@model IEnumerable<CRM.Models.UserModel>
+@{
+    ViewData["Title"] = "User Impersonation";
+    var usersList = Model.ToList();
+}
+
+<style>
+    .impersonation-header {
+        background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+        color: white;
+        padding: 2rem;
+        border-radius: 12px;
+        margin-bottom: 2rem;
+    }
+
+    .role-section {
+        background: white;
+        border-radius: 12px;
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        border: 1px solid rgba(0, 0, 0, 0.05);
+    }
+
+    .role-header {
+        background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+        color: white;
+        padding: 1rem;
+        border-radius: 8px;
+        margin-bottom: 1rem;
+        font-weight: 600;
+    }
+
+    .user-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 1rem;
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        margin-bottom: 0.5rem;
+        transition: all 0.3s ease;
+    }
+
+    .user-item:hover {
+        background: #f8f9fa;
+        border-color: #4f46e5;
+    }
+
+    .user-info {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .user-name {
+        font-weight: 600;
+        color: #374151;
+    }
+
+    .user-email {
+        font-size: 0.875rem;
+        color: #6b7280;
+    }
+
+    /* .impersonate-btn { */
+    /*     background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%); */
+    /*     border: none; */
+    /*     color: white; */
+    /*     padding: 0.5rem 1rem; */
+    /*     border-radius: 6px; */
+    /*     font-weight: 600; */
+    /*     transition: all 0.3s ease; */
+    /* } */
+
+    /* .impersonate-btn:hover { */
+    /*     background: linear-gradient(135deg, #3730a3 0%, #6b21a8 100%); */
+    /*     transform: translateY(-1px); */
+    /* } */
+    .impersonate-btn {
+        background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+        border: none;
+        color: #ffffff;
+        padding: 0.5rem 1rem;
+        border-radius: 6px;
+        font-weight: 600;
+        transition: transform 0.2s ease;
+        outline: none;
+    }
+
+        /* Hover – color change lekunda */
+        .impersonate-btn:hover {
+            background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+            color: #ffffff;
+            transform: translateY(-1px);
+        }
+
+        /* Focus / Active / Bootstrap override */
+        .impersonate-btn:focus,
+        .impersonate-btn:active,
+        .impersonate-btn:visited {
+            background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+            color: #ffffff;
+            box-shadow: none;
+            outline: none;
+        }
+
+
+    .filter-section {
+        background: white;
+        border-radius: 12px;
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    }
+</style>
+
+<div class="content">
+    <!-- Header -->
+    <div class="impersonation-header">
+        <div class="d-flex align-items-center">
+            <i class="fa-solid fa-user-secret fa-3x me-3"></i>
+            <div>
+                <h1 class="mb-0">User Impersonation</h1>
+                <p class="mb-0 opacity-90">Login as any user to test their experience</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filter Section -->
+    <div class="filter-section">
+        <div class="row g-3">
+            <div class="col-md-6">
+                <label class="form-label fw-semibold">Filter by Role</label>
+                <select id="roleFilter" class="form-select">
+                    <option value="">All Roles</option>
+                    @foreach (var role in ViewBag.Roles as List<string> ?? new List<string>())
+                    {
+                        <option value="@role">@role</option>
+                    }
+                </select>
+            </div>
+            <div class="col-md-6">
+                <label class="form-label fw-semibold">Search Users</label>
+                <input type="text" id="searchBox" class="form-control" placeholder="Search by name or email...">
+            </div>
+        </div>
+    </div>
+
+    <!-- Users by Role -->
+    <div id="usersContainer">
+        @{
+            var groupedUsers = usersList.GroupBy(u => u.Role).OrderBy(g => g.Key);
+        }
+
+        @foreach (var roleGroup in groupedUsers)
+        {
+            <div class="role-section" data-role="@roleGroup.Key">
+                <div class="role-header">
+                    <i class="fa-solid fa-users me-2"></i>
+                    @roleGroup.Key (@roleGroup.Count() users)
+                </div>
+                
+                @foreach (var user in roleGroup.OrderBy(u => u.Username))
+                {
+                    <div class="user-item" data-username="@user.Username" data-email="@user.Email">
+                        <div class="user-info">
+                            <div class="user-name">@user.Username</div>
+                            <div class="user-email">@user.Email</div>
+                        </div>
+                        <button class="btn impersonate-btn" onclick="impersonateUser(@user.UserId, '@user.Username')">
+                            <i class="fa-solid fa-sign-in-alt me-1"></i>
+                            Impersonate
+                        </button>
+                    </div>
+                }
+            </div>
+        }
+    </div>
+</div>
+
+@section Scripts {
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+    // Filter functionality
+    $('#roleFilter, #searchBox').on('input change', function() {
+        var selectedRole = $('#roleFilter').val().toLowerCase();
+        var searchTerm = $('#searchBox').val().toLowerCase();
+        
+        $('.role-section').each(function() {
+            var $section = $(this);
+            var sectionRole = $section.data('role').toLowerCase();
+            var hasVisibleUsers = false;
+            
+            // Show/hide section based on role filter
+            if (selectedRole === '' || sectionRole === selectedRole) {
+                $section.find('.user-item').each(function() {
+                    var $user = $(this);
+                    var username = $user.data('username').toLowerCase();
+                    var email = $user.data('email').toLowerCase();
+                    
+                    // Show/hide user based on search term
+                    if (searchTerm === '' || username.includes(searchTerm) || email.includes(searchTerm)) {
+                        $user.show();
+                        hasVisibleUsers = true;
+                    } else {
+                        $user.hide();
+                    }
+                });
+                
+                // Show/hide entire section based on whether it has visible users
+                if (hasVisibleUsers) {
+                    $section.show();
+                } else {
+                    $section.hide();
+                }
+            } else {
+                $section.hide();
+            }
+        });
+    });
+
+    // Impersonation function
+    function impersonateUser(userId, username) {
+        Swal.fire({
+            title: 'Confirm Impersonation',
+            text: `Are you sure you want to login as ${username}?`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#4f46e5',
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: 'Yes, Impersonate',
+            cancelButtonText: 'Cancel'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                $.post('/Account/StartImpersonation', { userId: userId })
+                    .done(function(data) {
+                        if (data.success) {
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Impersonation Started',
+                                text: data.message,
+                                timer: 2000,
+                                showConfirmButton: false
+                            }).then(() => {
+                                window.location.href = '/Profile/Index';
+                            });
+                        } else {
+                            Swal.fire('Error', data.message, 'error');
+                        }
+                    })
+                    .fail(function() {
+                        Swal.fire('Error', 'Failed to start impersonation', 'error');
+                    });
+            }
+        });
+    }
+</script>
+}

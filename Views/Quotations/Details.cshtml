@@ -1,0 +1,480 @@
+@model CRM.Models.QuotationModel
+@{
+    ViewData["Title"] = "Quotation Details";
+    var lead = ViewBag.Lead as CRM.Models.LeadModel;
+    var property = ViewBag.Property as CRM.Models.PropertyModel;
+    var flat = ViewBag.Flat as CRM.Models.PropertyFlatModel;
+    var items = ViewBag.Items as List<CRM.Models.QuotationItemModel> ?? new List<CRM.Models.QuotationItemModel>();
+    
+    var companyName = ViewBag.CompanyName?.ToString() ?? "Company Name";
+    var companyAddress = ViewBag.CompanyAddress?.ToString() ?? "Company Address";
+    var companyPhone = ViewBag.CompanyPhone?.ToString() ?? "Phone";
+    var companyEmail = ViewBag.CompanyEmail?.ToString() ?? "Email";
+    var companyGst = ViewBag.CompanyGST?.ToString() ?? "GST Number";
+}
+
+<style>
+    .quotation-container {
+        max-width: 900px;
+        margin: 0 auto;
+        background: white;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    }
+
+    .dark-mode .quotation-container {
+        background: #222639 !important;
+        box-shadow: 0 4px 20px rgba(255, 255, 255, 0.05) !important;
+    }
+
+    .print-section {
+        padding: 3rem;
+    }
+
+    .dark-mode .print-section {
+        background: #222639 !important;
+        color: #e4e6eb !important;
+    }
+
+    .action-bar {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        padding: 1rem 2rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .action-bar .btn {
+        margin-left: 0.5rem;
+    }
+
+    .company-header {
+        text-align: center;
+        border-bottom: 3px solid #667eea;
+        padding-bottom: 1.5rem;
+        margin-bottom: 2rem;
+    }
+
+    .company-header h1 {
+        color: #667eea;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+    }
+
+    .dark-mode .company-header h1 {
+        color: #667eea !important;
+    }
+
+    .dark-mode .company-header p {
+        color: #e4e6eb !important;
+    }
+
+    .quotation-number {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 1rem 2rem;
+        border-radius: 8px;
+        font-size: 1.5rem;
+        font-weight: 700;
+        text-align: center;
+        margin-bottom: 2rem;
+    }
+
+    .info-section {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 2rem;
+        margin-bottom: 2rem;
+    }
+
+    .info-box h5 {
+        color: #667eea;
+        font-weight: 600;
+        margin-bottom: 1rem;
+        font-size: 1.1rem;
+    }
+
+    .info-box p {
+        margin-bottom: 0.5rem;
+        color: #333;
+    }
+
+    .dark-mode .info-box p {
+        color: #e4e6eb !important;
+    }
+
+    .property-details {
+        background: #f8f9fa;
+        padding: 1.5rem;
+        border-radius: 8px;
+        margin-bottom: 2rem;
+    }
+
+    .dark-mode .property-details {
+        background: #2c3049 !important;
+    }
+
+    .property-details h5 {
+        color: #667eea;
+        font-weight: 600;
+        margin-bottom: 1rem;
+    }
+
+    .items-table {
+        width: 100%;
+        margin-bottom: 2rem;
+        border-collapse: collapse;
+    }
+
+    .dark-mode .items-table {
+        color: #e4e6eb !important;
+    }
+
+    .items-table th {
+        background-color: #667eea;
+        color: white;
+        padding: 0.75rem;
+        text-align: left;
+        font-weight: 600;
+    }
+
+    .items-table td {
+        padding: 0.75rem;
+        border-bottom: 1px solid #dee2e6;
+    }
+
+    .dark-mode .items-table td {
+        border-bottom: 1px solid #2c3049 !important;
+        color: #e4e6eb !important;
+    }
+
+    .items-table tr:last-child td {
+        border-bottom: none;
+    }
+
+    .totals-section {
+        margin-left: auto;
+        width: 350px;
+    }
+
+    .total-row {
+        display: flex;
+        justify-content: space-between;
+        padding: 0.5rem 0;
+        border-bottom: 1px solid #dee2e6;
+    }
+
+    .dark-mode .total-row {
+        border-bottom: 1px solid #2c3049 !important;
+        color: #e4e6eb !important;
+    }
+
+    .total-row.grand-total {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 1rem;
+        border-radius: 6px;
+        font-size: 1.25rem;
+        font-weight: 700;
+        margin-top: 0.5rem;
+    }
+
+    .terms-section {
+        margin-top: 3rem;
+        padding-top: 2rem;
+        border-top: 2px solid #e9ecef;
+    }
+
+    .dark-mode .terms-section {
+        border-top: 2px solid #2c3049 !important;
+    }
+
+    .terms-section h5 {
+        color: #667eea;
+        font-weight: 600;
+        margin-bottom: 1rem;
+    }
+
+    .terms-section ul {
+        padding-left: 1.5rem;
+    }
+
+    .terms-section li {
+        margin-bottom: 0.5rem;
+        color: #666;
+    }
+
+    .dark-mode .terms-section li {
+        color: #a6adc8 !important;
+    }
+
+    .status-badge {
+        display: inline-block;
+        padding: 0.5rem 1rem;
+        border-radius: 20px;
+        font-weight: 600;
+        font-size: 0.875rem;
+    }
+
+    .status-draft { background-color: #e9ecef; color: #495057; }
+    .status-sent { background-color: #cfe2ff; color: #084298; }
+    .status-accepted { background-color: #d1e7dd; color: #0a3622; }
+    .status-rejected { background-color: #f8d7da; color: #842029; }
+    .status-expired { background-color: #fff3cd; color: #997404; }
+
+    /* Dark mode overrides for inline styles */
+    .dark-mode div[style*="color: #667eea"] {
+        color: #667eea !important;
+    }
+
+    .dark-mode p[style*="color"],
+    .dark-mode div[style*="color"] {
+        color: #e4e6eb !important;
+    }
+
+    .dark-mode p[style*="color: #999"] {
+        color: #a6adc8 !important;
+    }
+
+    /* Dark mode for quotation-specific classes */
+    .dark-mode .quotation-text {
+        color: #e4e6eb !important;
+    }
+
+    .dark-mode .quotation-heading {
+        color: #667eea !important;
+    }
+
+    .dark-mode .quotation-footer {
+        color: #a6adc8 !important;
+    }
+
+    .dark-mode .quotation-footer .quotation-text {
+        color: #a6adc8 !important;
+    }
+
+    @@media print {
+        .action-bar,
+        .no-print {
+            display: none !important;
+        }
+
+        .quotation-container {
+            box-shadow: none;
+            background: white !important;
+        }
+
+        .print-section {
+            padding: 1rem;
+            background: white !important;
+            color: black !important;
+        }
+
+        /* Force light colors for print */
+        .quotation-text,
+        .quotation-heading,
+        .quotation-footer {
+            color: black !important;
+        }
+
+        .items-table td {
+            color: black !important;
+            border-bottom: 1px solid #dee2e6 !important;
+        }
+
+        .total-row {
+            color: black !important;
+            border-bottom: 1px solid #dee2e6 !important;
+        }
+
+        .terms-section {
+            border-top: 2px solid #e9ecef !important;
+        }
+
+        .terms-section li {
+            color: #666 !important;
+        }
+    }
+
+    @@media (max-width: 768px) {
+        .info-section {
+            grid-template-columns: 1fr;
+            gap: 1rem;
+        }
+
+        .totals-section {
+            width: 100%;
+        }
+
+        .action-bar {
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .print-section {
+            padding: 1.5rem;
+        }
+    }
+</style>
+
+<div class="content">
+    <div class="quotation-container">
+        <!-- Action Bar -->
+        <div class="action-bar no-print">
+            <div>
+                <a href="/Quotations/Index" class="btn btn-light">
+                    <i class="fa-solid fa-arrow-left me-2"></i>Back to List
+                </a>
+            </div>
+            <div>
+                <button onclick="window.print()" class="btn btn-light">
+                    <i class="fa-solid fa-print me-2"></i>Print
+                </button>
+                <a href="/Quotations/DownloadPdf/@Model.QuotationId" class="btn btn-light">
+                    <i class="fa-solid fa-download me-2"></i>Download PDF
+                </a>
+                @if (Model.Status == "Draft")
+                {
+                    <a href="/Quotations/Edit/@Model.QuotationId" class="btn btn-warning">
+                        <i class="fa-solid fa-edit me-2"></i>Edit
+                    </a>
+                }
+            </div>
+        </div>
+
+        <!-- Printable Section -->
+        <div class="print-section">
+            <!-- Company Header -->
+            <div class="company-header">
+                <h1>@companyName</h1>
+                <p class="mb-0">@companyAddress</p>
+                <p class="mb-0">Phone: @companyPhone | Email: @companyEmail</p>
+                <p class="mb-0"><strong>GST: @companyGst</strong></p>
+            </div>
+
+            <!-- Quotation Number and Status -->
+            <div class="quotation-number">
+                QUOTATION: @Model.QuotationNumber
+                <div class="float-end">
+                    <span class="status-badge status-@Model.Status.ToLower()">@Model.Status</span>
+                </div>
+            </div>
+
+            <!-- Date Information on right side -->
+            <div style="display: grid; grid-template-columns: 1fr auto; margin-bottom: 2rem;">
+                <div></div>
+                <div style="padding-right: 2rem;">
+                    <p class="quotation-text" style="margin-bottom: 0.75rem;"><strong>Date:</strong> @Model.QuotationDate.ToString("MMM dd, yyyy")</p>
+                    @if (Model.ValidUntil.HasValue)
+                    {
+                        <p class="quotation-text" style="margin-bottom: 0.75rem;"><strong>Valid Until:</strong> @Model.ValidUntil.Value.ToString("MMM dd, yyyy")</p>
+                    }
+                </div>
+            </div>
+
+            <!-- Bill To on left side -->
+            <div style="margin-bottom: 2rem;">
+                <div style="padding-left: 2rem;">
+                    <h5 class="quotation-heading" style="color: #667eea; font-weight: 600; margin-bottom: 1rem;"><i class="fa-solid fa-user me-2"></i>Bill To</h5>
+                    <p class="quotation-text" style="margin-bottom: 0.5rem;"><strong>@lead?.Name</strong></p>
+                    <p class="quotation-text" style="margin-bottom: 0.5rem;">@lead?.Contact</p>
+                    <p class="quotation-text" style="margin-bottom: 0.5rem;">@lead?.Email</p>
+                </div>
+            </div>
+
+            <!-- Property Details -->
+            <div style="margin-bottom: 2rem;">
+                <div style="padding-left: 2rem;">
+                    <h5 class="quotation-heading" style="color: #667eea; font-weight: 600; margin-bottom: 1rem;"><i class="fa-solid fa-building me-2"></i>Property Details</h5>
+                    <p class="quotation-text" style="margin-bottom: 0.5rem;"><strong>Property:</strong> @property?.PropertyName</p>
+                    <p class="quotation-text" style="margin-bottom: 0.5rem;"><strong>Location:</strong> @property?.Location</p>
+                    @if (flat != null)
+                    {
+                        <p class="quotation-text" style="margin-bottom: 0.5rem;"><strong>Flat:</strong> @flat.FlatName</p>
+                        <p class="quotation-text" style="margin-bottom: 0.5rem;"><strong>Type:</strong> @flat.BHK</p>
+                        <p class="quotation-text" style="margin-bottom: 0.5rem;"><strong>Area:</strong> @flat.Area sq.ft</p>
+                        <p class="quotation-text" style="margin-bottom: 0.5rem;"><strong>Floor:</strong> @flat.FloorNumber</p>
+                    }
+                </div>
+            </div>
+
+            <!-- Items Table -->
+            <table class="items-table">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Description</th>
+                        <th>Type</th>
+                        <th class="text-end">Qty</th>
+                        <th class="text-end">Amount</th>
+                        <th class="text-end">Total</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @for (int i = 0; i < items.Count; i++)
+                    {
+                        var item = items[i];
+                        <tr>
+                            <td>@(i + 1)</td>
+                            <td>@item.Description</td>
+                            <td>@item.ItemType</td>
+                            <td class="text-end">@item.Quantity</td>
+                            <td class="text-end">₹@item.Amount.ToString("N2")</td>
+                            <td class="text-end">₹@item.Total.ToString("N2")</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+
+            <!-- Totals Section -->
+            <div class="totals-section">
+                <div class="total-row">
+                    <span>Subtotal:</span>
+                    <strong>₹@Model.BasePrice.ToString("N2")</strong>
+                </div>
+                @if (Model.DiscountAmount > 0)
+                {
+                    <div class="total-row">
+                        <span>Discount:</span>
+                        <strong class="text-success">- ₹@Model.DiscountAmount.ToString("N2")</strong>
+                    </div>
+                }
+                <div class="total-row">
+                    <span>GST (@((Model.TaxAmount / (Model.BasePrice - Model.DiscountAmount) * 100).ToString("N2"))%):</span>
+                    <strong>₹@Model.TaxAmount.ToString("N2")</strong>
+                </div>
+                <div class="total-row grand-total">
+                    <span>Grand Total:</span>
+                    <strong>₹@Model.GrandTotal.ToString("N2")</strong>
+                </div>
+            </div>
+
+            <!-- Notes -->
+            @if (!string.IsNullOrEmpty(Model.Notes))
+            {
+                <div class="mt-4">
+                    <h5 class="quotation-heading" style="color: #667eea; font-weight: 600;">Notes:</h5>
+                    <p class="quotation-text" style="color: #666;">@Model.Notes</p>
+                </div>
+            }
+
+            <!-- Terms and Conditions -->
+            <div class="terms-section">
+                <h5>Terms & Conditions:</h5>
+                <ul>
+                    <li>This quotation is valid for the period mentioned above.</li>
+                    <li>Payment terms and conditions as per the payment plan.</li>
+                    <li>All prices are inclusive of GST unless otherwise stated.</li>
+                    <li>Property specifications are subject to change as per approved plans.</li>
+                    <li>Booking will be confirmed only after receipt of booking amount.</li>
+                    <li>This is a computer-generated quotation and does not require a signature.</li>
+                </ul>
+            </div>
+
+            <!-- Footer -->
+            <div class="text-center mt-4 quotation-footer" style="color: #999; font-size: 0.875rem;">
+                <p class="quotation-text">Thank you for your interest in @companyName</p>
+                <p class="quotation-text">For any queries, please contact us at @companyPhone or @companyEmail</p>
+            </div>
+        </div>
+    </div>
+</div>

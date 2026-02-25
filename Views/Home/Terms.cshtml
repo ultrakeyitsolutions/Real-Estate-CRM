@@ -1,0 +1,90 @@
+@{
+    ViewData["Title"] = "Terms of Service";
+    var branding = ViewBag.Branding as CRM.Models.BrandingModel;
+    var settings = ViewBag.Settings as Dictionary<string, string>;
+    var companyName = settings?.GetValueOrDefault("CompanyName", "CRM Platform");
+    var legalEmail = settings?.GetValueOrDefault("CompanyEmail", "legal@company.com");
+    var companyAddress = settings?.GetValueOrDefault("CompanyAddress", "123 Business Street, City, State 12345");
+}
+
+<div class="container-fluid p-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-header bg-secondary text-white">
+                    <div class="d-flex align-items-center">
+                        @if (!string.IsNullOrEmpty(branding?.CompanyLogo))
+                        {
+                            <img src="@branding.CompanyLogo" alt="@companyName" style="height: 40px; margin-right: 15px;">
+                        }
+                        <h1 class="mb-0"><i class="fas fa-file-contract me-2"></i>Terms of Service</h1>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <p class="lead">Last updated: January 2025</p>
+                    
+                    <h3 class="text-secondary mb-3">Acceptance of Terms</h3>
+                    <p>By accessing and using @companyName's CRM platform, you accept and agree to be bound by the terms and provision of this agreement. If you do not agree to abide by the above, please do not use this service.</p>
+
+                    <h3 class="text-secondary mb-3">Service Description</h3>
+                    <p>Our CRM platform provides customer relationship management tools including:</p>
+                    <ul>
+                        <li>Lead and contact management</li>
+                        <li>Sales pipeline tracking</li>
+                        <li>Property and project management</li>
+                        <li>Team collaboration tools</li>
+                        <li>Analytics and reporting features</li>
+                        <li>Integration capabilities</li>
+                    </ul>
+
+                    <h3 class="text-secondary mb-3">User Responsibilities</h3>
+                    <p>As a user of our service, you agree to:</p>
+                    <ul>
+                        <li>Provide accurate and complete information</li>
+                        <li>Maintain the security of your account credentials</li>
+                        <li>Use the service in compliance with applicable laws</li>
+                        <li>Not attempt to gain unauthorized access to our systems</li>
+                        <li>Not use the service for illegal or harmful activities</li>
+                        <li>Respect intellectual property rights</li>
+                    </ul>
+
+                    <h3 class="text-secondary mb-3">Account Management</h3>
+                    <p>You are responsible for maintaining the confidentiality of your account and password. You agree to:</p>
+                    <ul>
+                        <li>Notify us immediately of any unauthorized use</li>
+                        <li>Ensure your account information is accurate and up-to-date</li>
+                        <li>Accept responsibility for all activities under your account</li>
+                        <li>Use strong passwords and enable security features</li>
+                    </ul>
+
+                    <h3 class="text-secondary mb-3">Service Availability</h3>
+                    <p>We strive to maintain high service availability, but we do not guarantee uninterrupted access. Service may be temporarily unavailable due to:</p>
+                    <ul>
+                        <li>Scheduled maintenance</li>
+                        <li>Technical difficulties</li>
+                        <li>Force majeure events</li>
+                        <li>Security incidents</li>
+                    </ul>
+
+                    <h3 class="text-secondary mb-3">Limitation of Liability</h3>
+                    <p>To the maximum extent permitted by law, we shall not be liable for any indirect, incidental, special, consequential, or punitive damages, including but not limited to loss of profits, data, or business interruption.</p>
+
+                    <h3 class="text-secondary mb-3">Termination</h3>
+                    <p>We may terminate or suspend your account and access to the service at our sole discretion, without prior notice, for conduct that we believe violates these Terms of Service or is harmful to other users, us, or third parties.</p>
+
+                    <h3 class="text-secondary mb-3">Changes to Terms</h3>
+                    <p>We reserve the right to modify these terms at any time. We will notify users of significant changes via email or through the platform. Continued use of the service after changes constitutes acceptance of the new terms.</p>
+
+                    <h3 class="text-secondary mb-3">Contact Information</h3>
+                    <p>For questions about these Terms of Service, please contact us:</p>
+                    <div class="alert alert-secondary">
+                        <strong>Company:</strong> @companyName<br>
+                        <strong>Email:</strong> <a href="mailto:@legalEmail">@legalEmail</a><br>
+                        <strong>Phone:</strong> @(settings?.GetValueOrDefault("SupportPhone") ?? "+91-9876543210")<br>
+                        <strong>Address:</strong> @companyAddress
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

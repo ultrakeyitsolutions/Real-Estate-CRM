@@ -1,0 +1,729 @@
+@{
+    ViewData["Title"] = "Agent Attendance Overview";
+    var agentStats = ViewBag.AgentStats as List<dynamic>;
+    var currentMonth = ViewBag.CurrentMonth as DateTime?;
+    var workingDays = ViewBag.WorkingDays as int?;
+}
+
+<style>
+    .modern-header {
+        background: linear-gradient(135deg, #9966cc 0%, #9966cc 100%);
+        
+        overflow: hidden;
+        border-radius: 16px;
+        box-shadow: 0 8px 32px rgba(79, 70, 229, 0.15);
+    }
+
+    .modern-header::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="50" cy="50" r="1" fill="%23ffffff" opacity="0.1"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>') repeat;
+        opacity: 0.3;
+    }
+
+    .header-content {
+        position: relative;
+        z-index: 2;
+        color: white;
+    }
+
+    .header-title {
+        font-size: 1.75rem;
+        font-weight: 700;
+        margin-bottom: 0.25rem;
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .header-subtitle {
+        font-size: 0.95rem;
+        opacity: 0.9;
+        margin-bottom: 1.25rem;
+        font-weight: 400;
+    }
+
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+        gap: 0.875rem;
+        margin-top: 1.25rem;
+    }
+
+    .stats-card {
+        background: rgba(255, 255, 255, 0.15);
+        backdrop-filter: blur(20px);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        border-radius: 10px;
+        padding: 1rem;
+        text-align: center;
+        transition: all 0.3s ease;
+    }
+
+    .stats-card:hover {
+        background: rgba(255, 255, 255, 0.25);
+        transform: translateY(-2px);
+    }
+
+    .stats-number {
+        font-size: 1.75rem;
+        font-weight: 800;
+        margin-bottom: 0.25rem;
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .stats-label {
+        font-size: 0.8rem;
+        opacity: 0.9;
+        font-weight: 500;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .agent-card {
+        background: white;
+        border-radius: 12px;
+        padding: 1.25rem;
+        margin-bottom: 0.875rem;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        border: 1px solid rgba(0, 0, 0, 0.05);
+        transition: all 0.3s ease;
+        cursor: pointer;
+    }
+
+    .agent-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+        border-color: rgba(79, 70, 229, 0.2);
+    }
+
+    .agent-name {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: #4f46e5;
+        text-decoration: none;
+        margin-bottom: 0.375rem;
+        display: block;
+    }
+
+    .agent-name:hover {
+        color: #7c3aed;
+        text-decoration: none;
+    }
+
+    .agent-info {
+        display: flex;
+        align-items: center;
+        gap: 0.375rem;
+        margin-bottom: 0.375rem;
+        color: #6b7280;
+        font-size: 0.85rem;
+    }
+
+    .attendance-badge {
+        padding: 0.375rem 0.75rem;
+        border-radius: 25px;
+        font-weight: 600;
+        font-size: 0.8rem;
+        border: 2px solid transparent;
+        transition: all 0.2s ease;
+    }
+
+    .attendance-excellent { background-color: #d1fae5; color: #065f46; border-color: #10b981; }
+    .attendance-good { background-color: #dbeafe; color: #1e40af; border-color: #3b82f6; }
+    .attendance-average { background-color: #fef3c7; color: #92400e; border-color: #f59e0b; }
+    .attendance-poor { background-color: #fee2e2; color: #991b1b; border-color: #ef4444; }
+
+    .role-badge {
+        padding: 0.25rem 0.625rem;
+        border-radius: 6px;
+        font-weight: 600;
+        font-size: 0.75rem;
+        background: #e0e7ff;
+        color: #4338ca;
+    }
+
+    .progress {
+        height: 8px;
+        border-radius: 10px;
+        background-color: #e2e8f0;
+    }
+
+    .progress-bar {
+        border-radius: 10px;
+    }
+
+    .filter-card {
+        background: white;
+        border-radius: 12px;
+        padding: 1.25rem;
+        margin-bottom: 1.5rem;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+        border: 1px solid rgba(0, 0, 0, 0.05);
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 4rem 2rem;
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+    }
+
+    .empty-state i {
+        font-size: 4rem;
+        color: #d1d5db;
+        margin-bottom: 1rem;
+    }
+
+    .empty-state h3 {
+        color: #374151;
+        margin-bottom: 0.5rem;
+    }
+
+    .pagination-wrapper {
+        background: white;
+        border-radius: 12px;
+        padding: 1.25rem;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+        border: 1px solid rgba(0, 0, 0, 0.05);
+    }
+
+    .pagination .page-link {
+        color: #4f46e5;
+        border: 1px solid #e5e7eb;
+        margin: 0 0.25rem;
+        border-radius: 8px;
+        padding: 0.5rem 0.75rem;
+        font-weight: 500;
+        transition: all 0.2s ease;
+    }
+
+    .pagination .page-link:hover {
+        background-color: #eef2ff;
+        border-color: #4f46e5;
+        color: #4f46e5;
+    }
+
+    .pagination .page-item.active .page-link {
+        background-color: #4f46e5;
+        border-color: #4f46e5;
+        color: white;
+    }
+
+    .pagination .page-item.disabled .page-link {
+        background-color: #f9fafb;
+        border-color: #e5e7eb;
+        color: #9ca3af;
+        cursor: not-allowed;
+    }
+    
+    /* Dark mode styles */
+    .dark-mode .agent-card {
+        background: #222639 !important;
+        color: #e4e6eb !important;
+        border-color: #4a5568 !important;
+        box-shadow: 0 4px 20px rgba(255, 255, 255, 0.05) !important;
+    }
+    
+    .dark-mode .agent-card:hover {
+        box-shadow: 0 8px 30px rgba(255, 255, 255, 0.1) !important;
+        border-color: rgba(102, 126, 234, 0.4) !important;
+    }
+    
+    .dark-mode .filter-card {
+        background: #222639 !important;
+        color: #e4e6eb !important;
+        border-color: #4a5568 !important;
+        box-shadow: 0 4px 20px rgba(255, 255, 255, 0.05) !important;
+    }
+    
+    .dark-mode .empty-state {
+        background: #222639 !important;
+        color: #e4e6eb !important;
+        box-shadow: 0 4px 20px rgba(255, 255, 255, 0.05) !important;
+    }
+    
+    .dark-mode .empty-state i {
+        color: #4a5568 !important;
+    }
+    
+    .dark-mode .pagination-wrapper {
+        background: #222639 !important;
+        color: #e4e6eb !important;
+        border-color: #4a5568 !important;
+        box-shadow: 0 4px 20px rgba(255, 255, 255, 0.05) !important;
+    }
+    
+    .dark-mode .form-control,
+    .dark-mode .form-select {
+        background: #2c3049 !important;
+        border-color: #4a5568 !important;
+        color: #e4e6eb !important;
+    }
+    
+    .dark-mode .form-control:focus,
+    .dark-mode .form-select:focus {
+        background: #2c3049 !important;
+        border-color: #667eea !important;
+        color: #e4e6eb !important;
+        box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25) !important;
+    }
+    
+    .dark-mode .form-control::placeholder {
+        color: #a6adc8 !important;
+    }
+    
+    .dark-mode .form-label {
+        color: #e4e6eb !important;
+    }
+    
+    .dark-mode .text-muted {
+        color: #a6adc8 !important;
+    }
+    
+    .dark-mode .agent-name {
+        color: #667eea !important;
+    }
+    
+    .dark-mode .agent-name:hover {
+        color: #7c3aed !important;
+    }
+    
+    .dark-mode .agent-info {
+        color: #a6adc8 !important;
+    }
+    
+    .dark-mode .role-badge {
+        background: #4a5568 !important;
+        color: #e4e6eb !important;
+    }
+    
+    .dark-mode .pagination .page-link {
+        background: #2c3049 !important;
+        border-color: #4a5568 !important;
+        color: #e4e6eb !important;
+    }
+    
+    .dark-mode .pagination .page-link:hover {
+        background: #4a5568 !important;
+        border-color: #667eea !important;
+        color: #e4e6eb !important;
+    }
+    
+    .dark-mode .pagination .page-item.active .page-link {
+        background: #667eea !important;
+        border-color: #667eea !important;
+        color: white !important;
+    }
+    
+    .dark-mode .pagination .page-item.disabled .page-link {
+        background: #1a1d2e !important;
+        border-color: #4a5568 !important;
+        color: #6c757d !important;
+    }
+    
+    .dark-mode .btn-outline-primary {
+        color: #667eea !important;
+        border-color: #667eea !important;
+    }
+    
+    .dark-mode .btn-outline-primary:hover {
+        background: #667eea !important;
+        border-color: #667eea !important;
+        color: white !important;
+    }
+</style>
+
+<div class="container-fluid p-0">
+    <!-- Modern Header with Gradient -->
+    <div class="modern-header mb-4">
+        <div class="header-content p-4">
+            <h1 class="header-title">
+                <i class="fa-solid fa-calendar-check me-2"></i>Agent Attendance Overview
+            </h1>
+            <p class="header-subtitle">
+                @(currentMonth.HasValue ? currentMonth.Value.ToString("MMMM yyyy") : DateTime.Now.ToString("MMMM yyyy")) - Monitor agent attendance and performance
+            </p>
+
+            <!-- Stats Grid -->
+            <div class="stats-grid">
+                <div class="stats-card">
+                    <div class="stats-number">@(agentStats?.Count ?? 0)</div>
+                    <div class="stats-label">Total Agents</div>
+                </div>
+                <div class="stats-card">
+                    <div class="stats-number">@(workingDays ?? 0)</div>
+                    <div class="stats-label">Working Days</div>
+                </div>
+                <div class="stats-card">
+                    <div class="stats-number">
+                        @{
+                            var avgAttendance = agentStats?.Any() == true ? agentStats.Average(a => (double)a.AttendancePercentage) : 0;
+                        }
+                        @avgAttendance.ToString("F1")%
+                    </div>
+                    <div class="stats-label">Avg Attendance</div>
+                </div>
+                <div class="stats-card">
+                    <div class="stats-number">@(currentMonth.HasValue ? currentMonth.Value.ToString("MMM") : DateTime.Now.ToString("MMM"))</div>
+                    <div class="stats-label">Current Month</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filter Section -->
+    <div class="filter-card">
+        <div class="row g-3">
+            <div class="col-md-6">
+                <label for="searchInput" class="form-label fw-semibold">Search</label>
+                <div class="input-group">
+                   
+                    <input type="text" id="searchInput" class="form-control border-start-0 ps-0" placeholder="Search by name, email...">
+                </div>
+            </div>
+            <div class="col-md-3">
+                <label for="roleFilter" class="form-label fw-semibold">Role</label>
+                <select id="roleFilter" class="form-select">
+                    <option value="">🔍 All Roles</option>
+                    <option value="Agent">👤 Agent</option>
+                    <option value="Sales">💼 Sales</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label for="attendanceFilter" class="form-label fw-semibold">Performance</label>
+                <select id="attendanceFilter" class="form-select">
+                    <option value="">🔍 All Performance</option>
+                    <option value="excellent">🟢 Excellent (90%+)</option>
+                    <option value="good">🔵 Good (75-89%)</option>
+                    <option value="average">🟡 Average (60-74%)</option>
+                    <option value="poor">🔴 Poor (&lt;60%)</option>
+                </select>
+            </div>
+        </div>
+        <div class="row mt-3">
+            <div class="col-md-6">
+                <button type="button" class="btn btn-outline-primary" id="clearFilters">
+                    <i class="fa-solid fa-refresh me-1"></i>Clear Filters
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Agent Cards - Full Width -->
+    <div id="agentCardsContainer">
+        @if (agentStats != null && agentStats.Any())
+        {
+            foreach (var stat in agentStats)
+            {
+                var agent = stat.Agent;
+                var percentage = (double)stat.AttendancePercentage;
+                var progressColor = percentage >= 90 ? "#10b981" : percentage >= 75 ? "#3b82f6" : percentage >= 60 ? "#f59e0b" : "#ef4444";
+                var performanceBadge = percentage >= 90 ? "Excellent" : percentage >= 75 ? "Good" : percentage >= 60 ? "Average" : "Poor";
+                var badgeClass = percentage >= 90 ? "attendance-excellent" : percentage >= 75 ? "attendance-good" : percentage >= 60 ? "attendance-average" : "attendance-poor";
+                var performanceClass = percentage >= 90 ? "excellent" : percentage >= 75 ? "good" : percentage >= 60 ? "average" : "poor";
+                
+                <div class="agent-card agent-card-wrapper" 
+                     data-name="@agent.Username.ToLower()" 
+                     data-email="@(agent.Email?.ToLower() ?? "")"
+                     data-role="@agent.Role" 
+                     data-attendance="@percentage"
+                     data-performance="@performanceClass"
+                     onclick="window.location.href='@Url.Action("Calendar", "Attendance", new { agentId = agent.UserId })'">
+                    <div class="row align-items-center">
+                        <!-- Column 1: Agent Info -->
+                        <div class="col-md-4">
+                            <div class="d-flex align-items-center mb-2">
+                                @if (!string.IsNullOrEmpty(stat.ProfileImage))
+                                {
+                                    <img src="@stat.ProfileImage" alt="@agent.Username" class="rounded-circle me-3" style="width: 50px; height: 50px; object-fit: cover; border: 2px solid #f0f0f0;">
+                                }
+                                else
+                                {
+                                    <div class="rounded-circle me-3 d-flex align-items-center justify-content-center" style="width: 50px; height: 50px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; font-weight: 600; font-size: 1.3rem; border: 2px solid #f0f0f0;">
+                                        @agent.Username.Substring(0, 1).ToUpper()
+                                    </div>
+                                }
+                                <div>
+                                    <div class="agent-name mb-1">@agent.Username</div>
+                                    <span class="role-badge">
+                                        <i class="fas fa-user-tag me-1"></i>@agent.Role
+                                    </span>
+                                </div>
+                            </div>
+                            @if (!string.IsNullOrEmpty(agent.Email))
+                            {
+                                <div class="agent-info">
+                                    <i class="fas fa-envelope"></i>
+                                    <span>@agent.Email</span>
+                                </div>
+                            }
+                        </div>
+
+                        <!-- Column 2: Attendance Progress -->
+                        <div class="col-md-4">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <span style="font-weight: 600; color: #64748b; font-size: 0.875rem;">Attendance Rate</span>
+                                <span style="font-weight: 700; font-size: 1.1rem; color: @progressColor;">@percentage.ToString("F1")%</span>
+                            </div>
+                            <div class="progress mb-2" style="height: 10px;">
+                                <div class="progress-bar" role="progressbar" style="width: @(percentage)%; background-color: @progressColor;" aria-valuenow="@percentage" aria-valuemin="0" aria-valuemax="100"></div>
+                            </div>
+                            <div class="row g-2 text-center">
+                                <div class="col-4">
+                                    <div style="font-size: 0.75rem; color: #6b7280; margin-bottom: 2px;">Present</div>
+                                    <div style="font-size: 1.1rem; font-weight: 700; color: #16a34a;">@stat.PresentDays</div>
+                                </div>
+                                <div class="col-4">
+                                    <div style="font-size: 0.75rem; color: #6b7280; margin-bottom: 2px;">Absent</div>
+                                    <div style="font-size: 1.1rem; font-weight: 700; color: #dc2626;">@stat.AbsentDays</div>
+                                </div>
+                                <div class="col-4">
+                                    <div style="font-size: 0.75rem; color: #6b7280; margin-bottom: 2px;">Total</div>
+                                    <div style="font-size: 1.1rem; font-weight: 700; color: #2563eb;">@stat.WorkingDays</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Column 3: Performance Badge & Action -->
+                        <div class="col-md-4">
+                            <div class="d-flex align-items-center justify-content-between">
+                                <div>
+                                    <span class="attendance-badge @badgeClass">
+                                        @performanceBadge
+                                    </span>
+                                </div>
+                                <div class="text-end">
+                                    <div class="d-flex align-items-center text-primary" style="font-weight: 500; font-size: 0.9rem;">
+                                        <i class="fas fa-calendar-alt me-2"></i>
+                                        View Calendar
+                                        <i class="fas fa-arrow-right ms-2"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        }
+        else
+        {
+            <div class="empty-state">
+                <i class="fas fa-users"></i>
+                <h3>No Agents Found</h3>
+                <p class="text-muted">There are no agents or sales users to display.</p>
+            </div>
+        }
+    </div>
+
+    <!-- Pagination -->
+    <div class="pagination-wrapper mt-4" id="paginationWrapper" style="display: none;">
+        <div class="row align-items-center">
+            <div class="col-md-6">
+                <p class="text-muted mb-0">Showing <span id="showingStart">0</span> to <span id="showingEnd">0</span> of <span id="totalRecords">0</span> entries</p>
+            </div>
+            <div class="col-md-6">
+                <nav>
+                    <ul class="pagination justify-content-end mb-0" id="pagination">
+                        <!-- Pagination will be generated by JavaScript -->
+                    </ul>
+                </nav>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            console.log('Initializing Agent List...');
+            
+            let allCards = [];
+            let filteredCards = [];
+        let currentPage = 1;
+        const pageSize = 10;
+
+        // Store original cards HTML
+        function initializeCards() {
+            allCards = [];
+            $('.agent-card-wrapper').each(function() {
+                const $card = $(this);
+                allCards.push({
+                    html: $card[0].outerHTML,
+                    name: $card.data('name') || '',
+                    email: $card.data('email') || '',
+                    role: $card.data('role') || '',
+                    performance: $card.data('performance') || ''
+                });
+            });
+            console.log('Total cards found:', allCards.length);
+            filteredCards = [...allCards];
+            renderPage();
+        }
+
+        // Filter cards
+        function filterCards() {
+            const searchTerm = $('#searchInput').val().toLowerCase().trim();
+            const roleFilter = $('#roleFilter').val();
+            const attendanceFilter = $('#attendanceFilter').val();
+
+            console.log('Filtering:', { searchTerm, roleFilter, attendanceFilter });
+
+            filteredCards = allCards.filter(card => {
+                const matchesSearch = !searchTerm || 
+                    card.name.includes(searchTerm) || 
+                    card.email.includes(searchTerm);
+                const matchesRole = !roleFilter || card.role === roleFilter;
+                const matchesAttendance = !attendanceFilter || card.performance === attendanceFilter;
+
+                return matchesSearch && matchesRole && matchesAttendance;
+            });
+
+            console.log('Filtered cards:', filteredCards.length);
+            currentPage = 1;
+            renderPage();
+        }
+
+        // Render current page
+        function renderPage() {
+            const container = $('#agentCardsContainer');
+            container.empty();
+
+            if (filteredCards.length === 0) {
+                container.html(`
+                    <div class="empty-state">
+                        <i class="fas fa-users"></i>
+                        <h3>No Agents Found</h3>
+                        <p class="text-muted">No agents match your current filters.</p>
+                    </div>
+                `);
+                $('#paginationWrapper').hide();
+                return;
+            }
+
+            const start = (currentPage - 1) * pageSize;
+            const end = start + pageSize;
+            const pageCards = filteredCards.slice(start, end);
+
+            pageCards.forEach(card => {
+                container.append(card.html);
+            });
+
+            updatePaginationInfo();
+            renderPagination();
+            
+            if (filteredCards.length > pageSize) {
+                $('#paginationWrapper').show();
+            } else {
+                $('#paginationWrapper').hide();
+            }
+        }
+
+        // Update pagination info
+        function updatePaginationInfo() {
+            const start = (currentPage - 1) * pageSize + 1;
+            const end = Math.min(currentPage * pageSize, filteredCards.length);
+            $('#showingStart').text(start);
+            $('#showingEnd').text(end);
+            $('#totalRecords').text(filteredCards.length);
+        }
+
+        // Render pagination buttons
+        function renderPagination() {
+            const totalPages = Math.ceil(filteredCards.length / pageSize);
+            const pagination = $('#pagination');
+            pagination.empty();
+
+            if (totalPages <= 1) return;
+
+            // Previous button
+            pagination.append(`
+                <li class="page-item ${currentPage === 1 ? 'disabled' : ''}">
+                    <a class="page-link" href="#" data-page="${currentPage - 1}">
+                        <i class="fas fa-chevron-left"></i>
+                    </a>
+                </li>
+            `);
+
+            // Page numbers
+            let startPage = Math.max(1, currentPage - 2);
+            let endPage = Math.min(totalPages, currentPage + 2);
+
+            if (startPage > 1) {
+                pagination.append(`<li class="page-item"><a class="page-link" href="#" data-page="1">1</a></li>`);
+                if (startPage > 2) {
+                    pagination.append(`<li class="page-item disabled"><span class="page-link">...</span></li>`);
+                }
+            }
+
+            for (let i = startPage; i <= endPage; i++) {
+                pagination.append(`
+                    <li class="page-item ${i === currentPage ? 'active' : ''}">
+                        <a class="page-link" href="#" data-page="${i}">${i}</a>
+                    </li>
+                `);
+            }
+
+            if (endPage < totalPages) {
+                if (endPage < totalPages - 1) {
+                    pagination.append(`<li class="page-item disabled"><span class="page-link">...</span></li>`);
+                }
+                pagination.append(`<li class="page-item"><a class="page-link" href="#" data-page="${totalPages}">${totalPages}</a></li>`);
+            }
+
+            // Next button
+            pagination.append(`
+                <li class="page-item ${currentPage === totalPages ? 'disabled' : ''}">
+                    <a class="page-link" href="#" data-page="${currentPage + 1}">
+                        <i class="fas fa-chevron-right"></i>
+                    </a>
+                </li>
+            `);
+
+            // Attach click handlers
+            pagination.find('a.page-link').off('click').on('click', function(e) {
+                e.preventDefault();
+                const page = parseInt($(this).data('page'));
+                if (page && page !== currentPage && page >= 1 && page <= totalPages) {
+                    currentPage = page;
+                    renderPage();
+                    $('html, body').animate({ scrollTop: $('#agentCardsContainer').offset().top - 100 }, 300);
+                }
+            });
+        }
+
+        // Event handlers
+        $('#searchInput').on('keyup', function() {
+            console.log('Search input changed:', $(this).val());
+            filterCards();
+        });
+        
+        $('#roleFilter').on('change', function() {
+            console.log('Role filter changed:', $(this).val());
+            filterCards();
+        });
+        
+        $('#attendanceFilter').on('change', function() {
+            console.log('Attendance filter changed:', $(this).val());
+            filterCards();
+        });
+
+        $('#clearFilters').on('click', function() {
+            console.log('Clearing filters');
+            $('#searchInput').val('');
+            $('#roleFilter').val('');
+            $('#attendanceFilter').val('');
+            filterCards();
+        });
+
+        // Initialize on page load
+            console.log('Starting initialization...');
+            setTimeout(function() {
+                initializeCards();
+            }, 100);
+        });
+    </script>
+}

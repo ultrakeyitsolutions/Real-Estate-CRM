@@ -1,0 +1,848 @@
+@{
+    ViewData["Title"] = "Tasks";
+}
+
+<style>
+    .modern-header {
+        background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+        position: relative;
+        overflow: hidden;
+        border-radius: 16px;
+        box-shadow: 0 8px 32px rgba(79, 70, 229, 0.15);
+        margin-bottom: 1.5rem;
+    }
+
+    .modern-header::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="50" cy="50" r="1" fill="%23ffffff" opacity="0.1"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>') repeat;
+        opacity: 0.3;
+    }
+
+    .header-content {
+        position: relative;
+        z-index: 2;
+        padding: 1.5rem 1.25rem;
+        color: white;
+    }
+
+    .header-title {
+        font-size: 1.75rem;
+        font-weight: 700;
+        margin-bottom: 0.25rem;
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .header-subtitle {
+        font-size: 0.95rem;
+        opacity: 0.9;
+        font-weight: 400;
+    }
+
+    .kanban-board {
+        display: flex;
+        gap: 15px;
+        overflow-x: auto;
+        padding-bottom: 20px;
+    }
+
+    .kanban-column {
+        background: #ffffff;
+        min-width: 280px;
+        flex: 1;
+        border-radius: 12px;
+        padding: 15px;
+        box-shadow: 0px 4px 10px rgba(0,0,0,0.08);
+        border: 1px solid rgba(0, 0, 0, 0.05);
+        display: flex;
+        flex-direction: column;
+    }
+
+    .kanban-column h3 {
+        text-align: center;
+        background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+        color: white;
+        padding: 8px;
+        border-radius: 8px;
+        font-size: 13px;
+        margin: 0 0 15px 0;
+        font-weight: 600;
+        box-shadow: 0 2px 8px rgba(79, 70, 229, 0.2);
+    }
+
+    .kanban-column.today h3 {
+        background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+        box-shadow: 0 2px 8px rgba(245, 158, 11, 0.3);
+    }
+
+    .week-navigation {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.5rem;
+        padding: 1rem;
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+
+    .week-info {
+        font-weight: 600;
+        color: #374151;
+        font-size: 1.1rem;
+    }
+
+    .nav-btn {
+        background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+        color: white;
+        border: none;
+        padding: 0.5rem 1rem;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.2s;
+        font-weight: 500;
+    }
+
+    .nav-btn:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
+    }
+
+    .kanban-cards {
+        flex: 1;
+        overflow-y: auto;
+        max-height: calc(100vh - 280px);
+        min-height: 200px;
+        padding-right: 5px;
+    }
+
+    .kanban-cards::-webkit-scrollbar {
+        width: 4px;
+    }
+
+    .kanban-cards::-webkit-scrollbar-track {
+        background: #f1f1f1;
+        border-radius: 10px;
+    }
+
+    .kanban-cards::-webkit-scrollbar-thumb {
+        background: #888;
+        border-radius: 10px;
+    }
+
+    .kanban-cards::-webkit-scrollbar-thumb:hover {
+        background: #555;
+    }
+
+    .kanban-card {
+        padding: 12px;
+        margin-bottom: 10px;
+        background: #f8f9fa;
+        border-radius: 10px;
+        cursor: grab;
+        transition: all 0.2s;
+        border: 2px solid transparent;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+
+    .kanban-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        border-color: #4f46e5;
+    }
+
+    .kanban-card:active {
+        cursor: grabbing;
+    }
+
+    .kanban-card.dragging {
+        opacity: 0.5;
+    }
+
+    .kanban-card.completed {
+        opacity: 0.7;
+        background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
+    }
+
+    .kanban-card.completed .card-name,
+    .kanban-card.completed .card-contact {
+        text-decoration: line-through;
+    }
+
+    .card-header {
+        display: flex;
+        justify-content: between;
+        align-items: flex-start;
+        margin-bottom: 8px;
+    }
+
+    .card-name {
+        font-weight: 600;
+        color: #2d3748;
+        margin-bottom: 6px;
+        font-size: 14px;
+        flex: 1;
+    }
+
+    .card-menu {
+        position: relative;
+    }
+
+    .menu-dots {
+        background: none;
+        border: none;
+        font-size: 16px;
+        color: #6b7280;
+        cursor: pointer;
+        padding: 2px 6px;
+        border-radius: 4px;
+        transition: all 0.2s;
+    }
+
+    .menu-dots:hover {
+        background: #f3f4f6;
+        color: #374151;
+    }
+
+    .dropdown-menu {
+        position: absolute;
+        top: 100%;
+        right: 0;
+        background: white;
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        z-index: 1000;
+        min-width: 120px;
+        display: none;
+    }
+
+    .card-menu {
+        position: relative;
+    }
+
+    .task-cards {
+        overflow: visible;
+    }
+
+    .date-column {
+        overflow: visible;
+    }
+
+    .dropdown-menu.show {
+        display: block;
+    }
+
+    .dropdown-item {
+        padding: 8px 12px;
+        cursor: pointer;
+        border: none;
+        background: none;
+        width: 100%;
+        text-align: left;
+        font-size: 13px;
+        color: #374151;
+        transition: background 0.2s;
+    }
+
+    .dropdown-item:hover {
+        background: #f3f4f6;
+    }
+
+    .card-contact {
+        font-size: 12px;
+        color: #6b7280;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        margin-bottom: 4px;
+    }
+
+    .card-status {
+        display: inline-block;
+        padding: 3px 8px;
+        border-radius: 12px;
+        font-size: 11px;
+        font-weight: 600;
+        margin-top: 6px;
+    }
+
+    .status-active { background-color: #d1fae5; color: #065f46; }
+    .status-hot { background-color: #fee2e2; color: #991b1b; }
+    .status-warm { background-color: #fef3c7; color: #92400e; }
+    .status-cold { background-color: #e5e7eb; color: #374151; }
+    .status-inactive { background-color: #f3f4f6; color: #1f2937; }
+
+    .kanban-column.drag-over .kanban-cards {
+        background: #e0e7ff;
+        border: 2px dashed #4f46e5;
+        border-radius: 8px;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 20px;
+        color: #9ca3af;
+        font-size: 13px;
+    }
+
+
+
+    /* Dark mode support */
+    .dark-mode .week-navigation {
+        background: #222639 !important;
+        border-color: #2c3049 !important;
+    }
+
+    .dark-mode .week-info {
+        color: #e4e6eb !important;
+    }
+
+    .dark-mode .kanban-column {
+        background: #222639 !important;
+        border-color: #2c3049 !important;
+    }
+
+    .dark-mode .kanban-card {
+        background: #2c3049 !important;
+        color: #e4e6eb !important;
+    }
+
+    .dark-mode .card-name {
+        color: #e4e6eb !important;
+    }
+
+    .dark-mode .card-contact {
+        color: #a6adc8 !important;
+    }
+
+    .swal2-dark .swal2-input {
+        background: #374151 !important;
+        color: #e4e6eb !important;
+        border: 1px solid #4b5563 !important;
+    }
+
+    .swal2-dark .swal2-input:focus {
+        border-color: #059669 !important;
+        box-shadow: 0 0 0 0.2rem rgba(5, 150, 105, 0.25) !important;
+    }
+
+    @@media (max-width: 768px) {
+        .kanban-board {
+            flex-direction: column;
+        }
+
+        .kanban-column {
+            min-width: 100%;
+        }
+
+        .kanban-cards {
+            max-height: 300px;
+        }
+    }
+</style>
+
+<div class="content">
+    <!-- Breadcrumb -->
+    <nav class="mb-3" aria-label="breadcrumb">
+        <ol class="breadcrumb mb-0">
+            <li class="breadcrumb-item"><a href="/Home/Index">Home</a></li>
+            <li class="breadcrumb-item active">Tasks</li>
+        </ol>
+    </nav>
+
+    @if (User.IsInRole("Admin") || User.IsInRole("Sales") || User.IsInRole("Agent"))
+    {
+        <!-- Modern Header -->
+        <div class="modern-header">
+            <div class="header-content">
+                <div class="d-flex align-items-center">
+                    <div class="me-3">
+                        <i class="fa-solid fa-tasks" style="font-size: 2.5rem; opacity: 0.9;"></i>
+                    </div>
+                    <div>
+                        <h1 class="header-title mb-0">Tasks Management</h1>
+                        <p class="header-subtitle mb-0">Organize tasks by dates, drag to reschedule, mark as complete</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="alert alert-warning">
+            <i class="fa-solid fa-exclamation-triangle me-2"></i>
+            You don't have permission to view tasks.
+        </div>
+    }
+
+    <!-- Week Navigation -->
+    <div class="week-navigation">
+        <button class="nav-btn" id="prevWeek">
+            <i class="fa-solid fa-chevron-left me-2"></i>Previous Week
+        </button>
+        <div class="week-info" id="weekInfo">Loading...</div>
+        <button class="nav-btn" id="nextWeek">
+            Next Week<i class="fa-solid fa-chevron-right ms-2"></i>
+        </button>
+    </div>
+
+    <!-- Kanban Board -->
+    <div class="kanban-board" id="kanbanBoard">
+        <!-- Columns will be dynamically generated -->
+    </div>
+    
+    @Html.AntiForgeryToken()
+</div>
+
+@section Scripts {
+    <script>
+        let currentWeekStart = null;
+        let draggedCard = null;
+        let draggedLeadId = null;
+
+        // Load tasks on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            loadTasks();
+            
+            document.getElementById('prevWeek').addEventListener('click', () => {
+                const newWeekStart = new Date(currentWeekStart);
+                newWeekStart.setDate(newWeekStart.getDate() - 7);
+                loadTasks(newWeekStart.toISOString().split('T')[0]);
+            });
+
+            document.getElementById('nextWeek').addEventListener('click', () => {
+                const newWeekStart = new Date(currentWeekStart);
+                newWeekStart.setDate(newWeekStart.getDate() + 7);
+                loadTasks(newWeekStart.toISOString().split('T')[0]);
+            });
+            
+            // Close task card dropdowns when clicking outside (but not navbar dropdowns)
+            document.addEventListener('click', function(e) {
+                if (!e.target.closest('.card-menu') && !e.target.closest('.navbar')) {
+                    document.querySelectorAll('.kanban-card .dropdown-menu').forEach(menu => {
+                        menu.classList.remove('show');
+                    });
+                }
+            });
+        });
+
+        function loadTasks(weekStart = null) {
+            const url = weekStart ? 
+                `@Url.Action("GetTasksByDate", "Tasks")?weekStart=${weekStart}` : 
+                '@Url.Action("GetTasksByDate", "Tasks")';
+
+            fetch(url)
+                .then(response => response.json())
+                .then(data => {
+                    console.log('Tasks data received:', data);
+                    console.log('Debug info:', data.debug);
+                    
+                    // Show debug info in UI temporarily
+                    if (data.debug) {
+                        console.log(`Total leads: ${data.debug.totalLeads}, Leads with follow-up: ${data.debug.leadsWithFollowUp}`);
+                        console.log('Sample lead:', data.debug.sampleLead);
+                        console.log('Sample task:', data.debug.sampleTask);
+                        console.log('Total tasks:', data.debug.totalTasks);
+                    }
+                    
+                    // Log actual tasks being rendered
+                    data.tasksByDate.forEach((dateGroup, index) => {
+                        if (dateGroup.tasks && dateGroup.tasks.length > 0) {
+                            console.log(`${dateGroup.dayName} (${dateGroup.displayDate}) has ${dateGroup.tasks.length} tasks:`, dateGroup.tasks);
+                        }
+                    });
+                    
+                    currentWeekStart = data.weekStart;
+                    updateWeekInfo(data.weekStart, data.weekEnd);
+                    renderTasksBoard(data.tasksByDate);
+                    attachDragEvents();
+                })
+                .catch(error => {
+                    console.error('Error loading tasks:', error);
+                    showToast('Error loading tasks', 'error');
+                });
+        }
+
+
+
+        function updateWeekInfo(weekStart, weekEnd) {
+            const startDate = new Date(weekStart);
+            const endDate = new Date(weekEnd);
+            const weekInfo = document.getElementById('weekInfo');
+            weekInfo.textContent = `${startDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - ${endDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`;
+        }
+
+        function renderTasksBoard(tasksByDate) {
+            const board = document.getElementById('kanbanBoard');
+            board.innerHTML = '';
+
+            tasksByDate.forEach(dateData => {
+                const column = document.createElement('div');
+                column.className = `kanban-column ${dateData.isToday ? 'today' : ''}`;
+                column.dataset.date = dateData.date;
+
+                const dayLabel = dateData.isToday ? 'Today' : dateData.dayName;
+
+                column.innerHTML = `
+                    <h3>${dateData.displayDate}<br><small style="font-size: 10px; opacity: 0.8;">${dayLabel} (${dateData.tasks.length})</small></h3>
+                    <div class="kanban-cards" data-date="${dateData.date}">
+                        ${dateData.tasks.length === 0 ? '<div class="empty-state">No tasks</div>' : ''}
+                    </div>
+                `;
+
+                const cardsContainer = column.querySelector('.kanban-cards');
+
+                dateData.tasks.forEach(task => {
+                    const card = createTaskCard(task);
+                    cardsContainer.appendChild(card);
+                });
+
+                board.appendChild(column);
+            });
+        }
+
+        function createTaskCard(task) {
+            const card = document.createElement('div');
+            card.className = `kanban-card ${task.isCompleted ? 'completed' : ''}`;
+            card.draggable = true;
+            card.dataset.leadId = task.leadId;
+
+            // Ensure we have proper data - use lowercase property names
+            const taskName = task.name && task.name.trim() !== '' ? task.name : 'Unnamed Lead';
+            const taskContact = task.contact && task.contact.trim() !== '' ? task.contact : 'No Contact';
+            const taskStage = task.stage && task.stage.trim() !== '' ? task.stage : 'New';
+            const taskComments = task.comments && task.comments.trim() !== '' ? task.comments : '';
+            const statusClass = task.status ? `status-${task.status.toLowerCase()}` : 'status-inactive';
+
+            card.innerHTML = `
+                <div class="card-header">
+                    <div class="card-name">${taskName}</div>
+                    <div class="card-menu">
+                        <button class="menu-dots" onclick="toggleDropdown(this)">⋮</button>
+                        <div class="dropdown-menu">
+                            <button class="dropdown-item" onclick="markComplete(${task.leadId}, ${!task.isCompleted})">
+                                <i class="fa-solid fa-${task.isCompleted ? 'undo' : 'check'} me-2"></i>
+                                ${task.isCompleted ? 'Mark Incomplete' : 'Mark Complete'}
+                            </button>
+                            <button class="dropdown-item" onclick="showDatePicker(${task.leadId})">
+                                <i class="fa-solid fa-calendar me-2"></i>Change Date
+                            </button>
+                            <button class="dropdown-item" onclick="viewLead(${task.leadId})">
+                                <i class="fa-solid fa-eye me-2"></i>View Lead
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-contact">
+                    <i class="fa-solid fa-phone" style="font-size: 10px;"></i>
+                    <span>${taskContact}</span>
+                </div>
+                <div class="card-status ${statusClass}">${task.status || 'Inactive'}</div>
+                ${taskComments ? `<div style="font-size: 11px; color: #6b7280; margin-top: 6px; font-style: italic;">${taskComments}</div>` : ''}
+            `;
+
+            // Add click handler to navigate to lead details
+            card.addEventListener('click', function(e) {
+                if (!e.target.closest('.card-menu')) {
+                    viewLead(task.leadId);
+                }
+            });
+
+            return card;
+        }
+
+        function toggleDropdown(button) {
+            event.stopPropagation();
+            const dropdown = button.nextElementSibling;
+            
+            // Close all other dropdowns
+            document.querySelectorAll('.dropdown-menu').forEach(menu => {
+                if (menu !== dropdown) {
+                    menu.classList.remove('show');
+                }
+            });
+            
+            dropdown.classList.toggle('show');
+        }
+
+        function markComplete(leadId, isCompleted) {
+            // Close dropdown first
+            document.querySelectorAll('.dropdown-menu').forEach(menu => {
+                menu.classList.remove('show');
+            });
+            
+            fetch('@Url.Action("MarkTaskComplete", "Tasks")', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    leadId: leadId,
+                    isCompleted: isCompleted
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showToast(`Task ${isCompleted ? 'completed' : 'reopened'} successfully`, 'success');
+                    loadTasks();
+                    
+                    // Immediately refresh navbar notifications
+                    if (typeof window.parent !== 'undefined' && window.parent.loadNotifications) {
+                        window.parent.loadNotifications();
+                    } else if (typeof parent !== 'undefined' && parent.loadNotifications) {
+                        parent.loadNotifications();
+                    } else {
+                        // Try to call the function directly if available
+                        $.get('/Tasks/GetTodayTaskNotifications', function(notifData) {
+                            $('#notificationCount').text(notifData.count || 0);
+                            $('#notificationHeader').text((notifData.count || 0) + ' New Notifications');
+                        });
+                    }
+                } else {
+                    showToast(data.message || 'Error updating task', 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showToast('Error updating task', 'error');
+            });
+        }
+
+        function viewLead(leadId) {
+            window.location.href = `/Leads/Details/${leadId}`;
+        }
+
+        function showDatePicker(leadId) {
+            // Close dropdown first
+            document.querySelectorAll('.dropdown-menu').forEach(menu => {
+                menu.classList.remove('show');
+            });
+            
+            const today = new Date().toISOString().split('T')[0];
+            
+            const isDarkMode = document.body.classList.contains('dark-mode');
+            
+            Swal.fire({
+                title: 'Select New Date',
+                html: `<input type="date" id="newTaskDate" class="swal2-input" min="${today}" value="${today}">`,
+                showCancelButton: true,
+                confirmButtonText: 'Move Task',
+                background: isDarkMode ? '#222639' : '#ffffff',
+                color: isDarkMode ? '#e4e6eb' : '#000000',
+                customClass: {
+                    popup: isDarkMode ? 'swal2-dark' : '',
+                    confirmButton: 'btn btn-success',
+                    cancelButton: 'btn btn-secondary'
+                },
+                preConfirm: () => {
+                    const newDate = document.getElementById('newTaskDate').value;
+                    if (!newDate) {
+                        Swal.showValidationMessage('Please select a date');
+                        return false;
+                    }
+                    return newDate;
+                }
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    const newDate = result.value;
+                    const taskCard = document.querySelector(`[data-lead-id="${leadId}"]`);
+                    
+                    if (taskCard) {
+                        // Check if new date is within current week
+                        const taskDate = new Date(newDate);
+                        const weekStart = new Date(currentWeekStart);
+                        const weekEnd = new Date(weekStart);
+                        weekEnd.setDate(weekEnd.getDate() + 6);
+                        
+                        if (taskDate >= weekStart && taskDate <= weekEnd) {
+                            // Move to target column within current week
+                            const targetColumn = document.querySelector(`[data-date="${newDate}"] .kanban-cards`);
+                            if (targetColumn) {
+                                targetColumn.appendChild(taskCard);
+                                // Remove empty state if exists
+                                const emptyState = targetColumn.querySelector('.empty-state');
+                                if (emptyState) emptyState.remove();
+                            }
+                        } else {
+                            // Remove if outside current week
+                            taskCard.remove();
+                        }
+                        
+                        updateEmptyStates();
+                        updateCounts();
+                    }
+                    
+                    // Then update the database
+                    updateTaskDate(leadId, newDate);
+                }
+            });
+        }
+
+        function attachDragEvents() {
+            // Card drag events
+            document.querySelectorAll('.kanban-card').forEach(card => {
+                card.addEventListener('dragstart', handleDragStart);
+                card.addEventListener('dragend', handleDragEnd);
+            });
+
+            // Column drop events
+            document.querySelectorAll('.kanban-cards').forEach(container => {
+                container.addEventListener('dragover', handleDragOver);
+                container.addEventListener('drop', handleDrop);
+                container.addEventListener('dragleave', handleDragLeave);
+            });
+        }
+
+        function handleDragStart(e) {
+            draggedCard = this;
+            draggedLeadId = parseInt(this.dataset.leadId);
+            this.classList.add('dragging');
+            e.dataTransfer.effectAllowed = 'move';
+        }
+
+        function handleDragEnd(e) {
+            this.classList.remove('dragging');
+            document.querySelectorAll('.kanban-column').forEach(col => {
+                col.classList.remove('drag-over');
+            });
+        }
+
+        function handleDragOver(e) {
+            e.preventDefault();
+            e.dataTransfer.dropEffect = 'move';
+            this.closest('.kanban-column').classList.add('drag-over');
+        }
+
+        function handleDragLeave(e) {
+            if (e.target.classList.contains('kanban-cards')) {
+                this.closest('.kanban-column').classList.remove('drag-over');
+            }
+        }
+
+        function handleDrop(e) {
+            e.preventDefault();
+            const column = this.closest('.kanban-column');
+            column.classList.remove('drag-over');
+
+            if (!draggedCard) return;
+
+            const newDate = this.dataset.date;
+            const oldDate = draggedCard.closest('.kanban-cards').dataset.date;
+
+            if (newDate === oldDate) return;
+
+            // Update UI immediately
+            this.appendChild(draggedCard);
+            updateEmptyStates();
+            updateCounts();
+
+            // Update database
+            updateTaskDate(draggedLeadId, newDate);
+        }
+
+        function updateTaskDate(leadId, newDate) {
+            console.log(`Updating task date for lead ${leadId} to ${newDate}`);
+            
+            // Get anti-forgery token
+            const token = document.querySelector('input[name="__RequestVerificationToken"]');
+            
+            fetch('@Url.Action("UpdateTaskDate", "Tasks")', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'RequestVerificationToken': token ? token.value : ''
+                },
+                body: JSON.stringify({
+                    leadId: leadId,
+                    newDate: newDate
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log('Update response:', data);
+                if (data.success) {
+                    showToast(data.message || 'Task date updated successfully', 'success');
+                    
+                    // Refresh notifications if moved to today
+                    if (data.movedToToday) {
+                        if (typeof window.loadNotifications === 'function') {
+                            window.loadNotifications();
+                        } else if (typeof window.parent !== 'undefined' && window.parent.loadNotifications) {
+                            window.parent.loadNotifications();
+                        }
+                    }
+                    
+                    // Check if task moved outside current week - remove immediately
+                    const taskDate = new Date(newDate);
+                    const weekStart = new Date(currentWeekStart);
+                    const weekEnd = new Date(weekStart);
+                    weekEnd.setDate(weekEnd.getDate() + 6);
+                    
+                    if (taskDate < weekStart || taskDate > weekEnd) {
+                        // Task moved outside current week, remove from UI immediately
+                        const taskCard = document.querySelector(`[data-lead-id="${leadId}"]`);
+                        if (taskCard) {
+                            taskCard.remove();
+                            updateEmptyStates();
+                            updateCounts();
+                        }
+                    }
+                } else {
+                    showToast(data.message || 'Error updating task date', 'error');
+                    loadTasks(); // Reload to revert changes
+                }
+            })
+            .catch(error => {
+                console.error('Error updating task date:', error);
+                showToast('Error updating task date', 'error');
+                loadTasks(); // Reload to revert changes
+            });
+        }
+
+        function updateEmptyStates() {
+            document.querySelectorAll('.kanban-cards').forEach(container => {
+                const cards = container.querySelectorAll('.kanban-card');
+                const emptyState = container.querySelector('.empty-state');
+
+                if (cards.length === 0 && !emptyState) {
+                    container.innerHTML = '<div class="empty-state">No tasks</div>';
+                } else if (cards.length > 0 && emptyState) {
+                    emptyState.remove();
+                }
+            });
+        }
+
+        function updateCounts() {
+            document.querySelectorAll('.kanban-column').forEach(column => {
+                const count = column.querySelectorAll('.kanban-card').length;
+                const badge = column.querySelector('h3 .badge');
+                if (badge) {
+                    badge.textContent = count;
+                }
+            });
+        }
+
+        function showToast(message, type) {
+            const alertDiv = document.createElement('div');
+            alertDiv.className = `alert alert-${type === 'success' ? 'success' : 'danger'} alert-dismissible fade show position-fixed`;
+            alertDiv.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+            alertDiv.innerHTML = `
+                <i class="fa-solid fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'} me-2"></i>
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            `;
+
+            document.body.appendChild(alertDiv);
+
+            setTimeout(() => {
+                alertDiv.remove();
+            }, 3000);
+        }
+    </script>
+}

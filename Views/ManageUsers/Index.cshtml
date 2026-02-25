@@ -1,0 +1,697 @@
+@model IEnumerable<CRM.Models.UserModel>
+@inject Microsoft.AspNetCore.Http.IHttpContextAccessor HttpContextAccessor
+@using System.IdentityModel.Tokens.Jwt
+@using System.Security.Claims
+@{
+    ViewData["Title"] = "Manage Users";
+    var usersList = Model.ToList();
+    var totalUsers = usersList.Count;
+    var activeUsers = usersList.Count(u => u.IsActive);
+    var inactiveUsers = totalUsers - activeUsers;
+    
+    // Get current user info from JWT token
+    var token = HttpContextAccessor.HttpContext?.Request.Cookies["jwtToken"];
+    string role = "";
+    string username = "";
+    
+    if (!string.IsNullOrEmpty(token))
+    {
+        try
+        {
+            var handler = new JwtSecurityTokenHandler();
+            var jwt = handler.ReadJwtToken(token);
+            role = jwt.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Role || c.Type == "role")?.Value ?? "";
+            username = jwt.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Name || c.Type == "name")?.Value ?? "";
+        }
+        catch { role = ""; username = ""; }
+    }
+}
+
+<style>
+    .modern-header {
+        background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+        position: relative;
+        overflow: hidden;
+        border-radius: 16px;
+        box-shadow: 0 8px 32px rgba(79, 70, 229, 0.15);
+    }
+
+    .modern-header::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="50" cy="50" r="1" fill="%23ffffff" opacity="0.1"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>') repeat;
+        opacity: 0.3;
+    }
+
+    .header-content {
+        position: relative;
+        z-index: 2;
+        padding: 2rem;
+        color: white;
+    }
+
+    .header-title {
+        font-size: 1.75rem;
+        font-weight: 700;
+        margin-bottom: 0.25rem;
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .header-subtitle {
+        font-size: 0.95rem;
+        opacity: 0.9;
+        margin-bottom: 1.25rem;
+        font-weight: 400;
+    }
+
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+        gap: 0.875rem;
+        margin-top: 1.25rem;
+    }
+
+    .stats-card {
+        background: rgba(255, 255, 255, 0.15);
+        backdrop-filter: blur(20px);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        border-radius: 10px;
+        padding: 1rem;
+        text-align: center;
+        transition: all 0.3s ease;
+    }
+
+    .stats-card:hover {
+        background: rgba(255, 255, 255, 0.25);
+        transform: translateY(-2px);
+    }
+
+    .stats-number {
+        font-size: 1.75rem;
+        font-weight: 800;
+        margin-bottom: 0.25rem;
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .stats-label {
+        font-size: 0.8rem;
+        opacity: 0.9;
+        font-weight: 500;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .action-btn {
+        background: rgba(255, 255, 255, 0.2);
+        border: 2px solid rgba(255, 255, 255, 0.3);
+        color: white;
+        padding: 0.625rem 1.25rem;
+        border-radius: 50px;
+        font-weight: 600;
+        font-size: 0.9rem;
+        backdrop-filter: blur(10px);
+        transition: all 0.3s ease;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.375rem;
+        margin: 0.25rem;
+    }
+
+    .action-btn:hover {
+        background: white;
+        color: #4f46e5;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+
+    .filter-section {
+        background: white;
+        border-radius: 12px;
+        padding: 1.5rem;
+        margin: 1.5rem 0;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        border: 1px solid rgba(0, 0, 0, 0.05);
+    }
+
+    .filter-title {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: #4f46e5;
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .user-card {
+        background: white;
+        border-radius: 12px;
+        padding: 1rem;
+        margin-bottom: 0.875rem;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        border: 1px solid rgba(0, 0, 0, 0.05);
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: visible !important;
+        z-index: 1;
+    }
+
+    .user-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+        border-color: rgba(79, 70, 229, 0.2);
+    }
+
+    .user-card:has(.dropdown.show) {
+        z-index: 9999 !important;
+        overflow: visible !important;
+    }
+
+    .user-card .dropdown {
+        position: static !important;
+    }
+
+    .user-card .dropdown-menu {
+        z-index: 10000 !important;
+        position: absolute !important;
+    }
+
+    .user-name {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: #4f46e5;
+        margin-bottom: 0.375rem;
+    }
+
+    .user-info {
+        display: flex;
+        align-items: center;
+        gap: 0.375rem;
+        margin-bottom: 0.375rem;
+        color: #6b7280;
+        font-size: 0.85rem;
+    }
+
+    .status-badge {
+        padding: 0.375rem 0.75rem;
+        border-radius: 25px;
+        font-weight: 600;
+        font-size: 0.8rem;
+        border: 2px solid transparent;
+    }
+
+    .status-active {
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        color: white;
+    }
+
+    .status-inactive {
+        background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%);
+        color: white;
+    }
+
+    .role-badge {
+        background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+        color: white;
+        padding: 0.25rem 0.5rem;
+        border-radius: 15px;
+        font-size: 0.75rem;
+        font-weight: 600;
+    }
+
+    /* Impersonation Styles */
+    .impersonate-user-btn {
+        color: #ff6b35 !important;
+    }
+
+    .impersonate-user-btn:hover {
+        background-color: rgba(255, 107, 53, 0.1) !important;
+        color: #ff6b35 !important;
+    }
+
+    .btn-warning {
+        background: linear-gradient(135deg, #ff6b35 0%, #f7931e 100%);
+        border: none;
+        color: white;
+        font-weight: 600;
+    }
+
+    .btn-warning:hover {
+        background: linear-gradient(135deg, #e55a2b 0%, #e8851a 100%);
+        color: white;
+    }
+
+    .alert-warning {
+        background: linear-gradient(135deg, rgba(255, 193, 7, 0.1) 0%, rgba(255, 107, 53, 0.1) 100%);
+        border: 1px solid rgba(255, 193, 7, 0.3);
+        color: #856404;
+    }
+
+    .alert-info {
+        background: linear-gradient(135deg, rgba(13, 202, 240, 0.1) 0%, rgba(79, 70, 229, 0.1) 100%);
+        border: 1px solid rgba(13, 202, 240, 0.3);
+        color: #055160;
+    }
+</style>
+
+<div class="content">
+    <!-- Breadcrumb -->
+    <nav class="mb-3" aria-label="breadcrumb">
+        <ol class="breadcrumb mb-0">
+            <li class="breadcrumb-item"><a href="/Home/Index">Home</a></li>
+            <li class="breadcrumb-item active">Manage Users</li>
+        </ol>
+    </nav>
+
+    <!-- Modern Header with Stats -->
+    <div class="modern-header">
+        <div class="header-content">
+            <div class="row align-items-center">
+                <div class="col-lg-8">
+                    <div class="d-flex align-items-center">
+                        <div class="me-3">
+                            <i class="fa-solid fa-user-shield" style="font-size: 2.5rem; opacity: 0.9;"></i>
+                        </div>
+                        <div>
+                            <h1 class="header-title mb-0">Manage Users</h1>
+                            <p class="header-subtitle mb-0">Control user access and manage system permissions</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Stats Grid -->
+            <div class="stats-grid">
+                <div class="stats-card">
+                    <div class="stats-number">@totalUsers</div>
+                    <div class="stats-label">Total Users</div>
+                </div>
+                <div class="stats-card">
+                    <div class="stats-number">@activeUsers</div>
+                    <div class="stats-label">Active</div>
+                </div>
+                <div class="stats-card">
+                    <div class="stats-number">@inactiveUsers</div>
+                    <div class="stats-label">Inactive</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filter Section -->
+    <div class="filter-section">
+        <div class="filter-title">
+            <i class="fa-solid fa-filter"></i>
+            <span>Filter & Search</span>
+        </div>
+        <div class="row g-3">
+            <div class="col-md-6">
+                <label for="searchBox" class="form-label fw-semibold">
+                    <i class="fa-solid fa-search text-muted me-2"></i>Search Users
+                </label>
+                <input type="text" class="form-control" id="searchBox" 
+                       placeholder="Search by name, email, phone...">
+            </div>
+            <div class="col-md-3">
+                <label for="filterRole" class="form-label fw-semibold">Role</label>
+                <select id="filterRole" class="form-select">
+                    <option value="">All Roles</option>
+                    @foreach (var roleOption in ViewBag.Roles as List<string> ?? new List<string>())
+                    {
+                        <option value="@roleOption">@roleOption</option>
+                    }
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label for="filterStatus" class="form-label fw-semibold">Status</label>
+                <select id="filterStatus" class="form-select">
+                    <option value="">All Status</option>
+                    <option value="Active">Active</option>
+                    <option value="Inactive">Inactive</option>
+                </select>
+            </div>
+        </div>
+        <div class="row mt-3">
+            <div class="col-md-12">
+                <button type="button" class="btn btn-outline-primary" id="clearFilters">
+                    <i class="fa-solid fa-refresh me-1"></i>Clear Filters
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Users List -->
+    <div id="usersContainer">
+        @foreach (var user in usersList)
+        {
+            <div class="user-card paginated-item" data-role="@user.Role" data-status="@(user.IsActive ? "Active" : "Inactive")">
+                <div class="row align-items-center">
+                    <div class="col-md-4">
+                        <div class="user-name">
+                            <i class="fa-solid fa-user me-2"></i>@user.Username
+                        </div>
+                        <div class="user-info">
+                            <i class="fa-solid fa-envelope"></i>
+                            <span>@user.Email</span>
+                        </div>
+                        <div class="user-info">
+                            <i class="fa-solid fa-phone"></i>
+                            <span>@user.Phone</span>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="user-info">
+                            <i class="fa-solid fa-user-tag"></i>
+                            <span class="role-badge">@user.Role</span>
+                        </div>
+                        <div class="user-info">
+                            <i class="fa-solid fa-calendar"></i>
+                            <span>Created: @user.CreatedDate.ToString("MMM dd, yyyy")</span>
+                        </div>
+                        @if (user.LastActivity.HasValue)
+                        {
+                            <div class="user-info">
+                                <i class="fa-solid fa-clock"></i>
+                                <span>Last Active: @user.LastActivity.Value.ToString("MMM dd, yyyy")</span>
+                            </div>
+                        }
+                    </div>
+                    <div class="col-md-3 text-center">
+                        <span class="status-badge status-@(user.IsActive ? "active" : "inactive")">
+                            @(user.IsActive ? "Active" : "Inactive")
+                        </span>
+                    </div>
+                    <div class="col-md-2 text-end">
+                        <div class="dropdown">
+                            <button class="btn btn-sm btn-outline-primary" type="button" data-bs-toggle="dropdown">
+                                <i class="fa-solid fa-ellipsis-vertical"></i>
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end">
+                                <li>
+                                    <a class="dropdown-item" href="/Attendance/Calendar?agentId=@user.UserId">
+                                        <i class="fa-solid fa-calendar-check me-2"></i>Attendance
+                                    </a>
+                                </li>
+                                <li>
+                                    <button class="dropdown-item edit-user-btn" data-user-id="@user.UserId">
+                                        <i class="fa-solid fa-pencil me-2"></i>Edit
+                                    </button>
+                                </li>
+                                <li><hr class="dropdown-divider"></li>
+                                @if (role?.ToLower() == "admin")
+                                {
+                                    <li>
+                                        <button class="dropdown-item impersonate-user-btn" data-user-id="@user.UserId" data-username="@user.Username">
+                                            <i class="fa-solid fa-user-secret me-2"></i>Impersonate
+                                        </button>
+                                    </li>
+                                }
+                                <li>
+                                    <button class="dropdown-item text-danger delete-user-btn" data-user-id="@user.UserId">
+                                        <i class="fa-solid fa-trash me-2"></i>Delete
+                                    </button>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+        
+        <!-- Pagination -->
+        <div id="pagination-container" class="mt-4"></div>
+    </div>
+</div>
+
+<!-- Add User Modal -->
+<div class="modal fade" id="addUserModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" style="max-width: 700px !important; width: 700px;">
+        <div class="modal-content">
+            <form id="addUserForm" method="post" action="/ManageUsers/AddUser">
+                <div class="modal-header">
+                    <h5 class="modal-title">Add New User</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Name</label>
+                            <input name="Username" class="form-control" placeholder="Enter full name" required />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Email</label>
+                            <input name="Email" type="email" class="form-control" placeholder="Enter email" required />
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Role</label>
+                            <select name="Role" class="form-select" required>
+                                <option value="">Choose</option>
+                                @foreach (var roleOption in ViewBag.Roles as List<string> ?? new List<string>())
+                                {
+                                    <option value="@roleOption">@roleOption</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Phone</label>
+                            <input name="Phone" class="form-control" placeholder="Primary number" />
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Password</label>
+                            <div class="input-group">
+                                <input name="Password" id="addPassword" type="password" class="form-control" placeholder="Enter password" required />
+                                <span class="input-group-text" id="toggleAddPassword" style="cursor:pointer;">
+                                    <i class="fa-solid fa-eye-slash" id="addPasswordIcon"></i>
+                                </span>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Status</label><br />
+                            <div class="form-check form-check-inline">
+                                <input name="IsActive" class="form-check-input" type="radio" value="true" checked>
+                                <label class="form-check-label">Active</label>
+                            </div>
+                            <div class="form-check form-check-inline">
+                                <input name="IsActive" class="form-check-input" type="radio" value="false">
+                                <label class="form-check-label">Inactive</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Create User</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Edit User Modal -->
+<div class="modal fade" id="editUserModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" style="max-width: 700px !important; width: 700px;">
+        <div class="modal-content">
+            <form id="editUserForm" method="post" action="/ManageUsers/EditUser">
+                <div class="modal-header">
+                    <h5 class="modal-title">Edit User</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" name="UserId" id="editUserId" />
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Name</label>
+                            <input name="Username" id="editUsername" class="form-control" required />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Email</label>
+                            <input name="Email" id="editEmail" type="email" class="form-control" required />
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Role</label>
+                            <select name="Role" id="editRole" class="form-select" required>
+                                <option value="">Choose</option>
+                                @foreach (var roleOption in ViewBag.Roles as List<string> ?? new List<string>())
+                                {
+                                    <option value="@roleOption">@roleOption</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Phone</label>
+                            <input name="Phone" id="editPhone" class="form-control" />
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Status</label><br />
+                            <div class="form-check form-check-inline">
+                                <input name="IsActive" id="editActive" class="form-check-input" type="radio" value="true">
+                                <label class="form-check-label">Active</label>
+                            </div>
+                            <div class="form-check form-check-inline">
+                                <input name="IsActive" id="editInactive" class="form-check-input" type="radio" value="false">
+                                <label class="form-check-label">Inactive</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-success">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <!-- SweetAlert2 for beautiful alerts -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <!-- Global subscription alerts -->
+    <script src="~/js/subscription-alerts.js"></script>
+<script>
+$(document).ready(function () {
+    // Handle dropdown z-index
+    $('.user-card .dropdown').on('show.bs.dropdown', function () {
+        $('.user-card').css('z-index', '1');
+        $(this).closest('.user-card').css('z-index', '9999');
+    });
+
+    $('.user-card .dropdown').on('hide.bs.dropdown', function () {
+        $(this).closest('.user-card').css('z-index', '1');
+    });
+
+    // Search and filter functionality
+    function applyFilters() {
+        var search = $('#searchBox').val().toLowerCase();
+        var role = $('#filterRole').val();
+        var status = $('#filterStatus').val();
+
+        $('.user-card').each(function () {
+            var card = $(this);
+            var text = card.text().toLowerCase();
+            var cardRole = card.data('role');
+            var cardStatus = card.data('status');
+
+            var matchSearch = !search || text.includes(search);
+            var matchRole = !role || cardRole === role;
+            var matchStatus = !status || cardStatus === status;
+
+            if (matchSearch && matchRole && matchStatus) {
+                card.show();
+            } else {
+                card.hide();
+            }
+        });
+    }
+
+    $('#searchBox, #filterRole, #filterStatus').on('input change', applyFilters);
+
+    $('#clearFilters').on('click', function () {
+        $('#searchBox').val('');
+        $('#filterRole').val('');
+        $('#filterStatus').val('');
+        applyFilters();
+    });
+
+    // Password toggle
+    $('#toggleAddPassword').on('click', function () {
+        var input = $('#addPassword');
+        var icon = $('#addPasswordIcon');
+        if (input.attr('type') === 'password') {
+            input.attr('type', 'text');
+            icon.removeClass('fa-eye-slash').addClass('fa-eye');
+        } else {
+            input.attr('type', 'password');
+            icon.removeClass('fa-eye').addClass('fa-eye-slash');
+        }
+    });
+
+    // Edit user button
+    $('.edit-user-btn').on('click', function () {
+        var userId = $(this).data('user-id');
+        $.getJSON('/ManageUsers/GetUser/' + userId, function (user) {
+            $('#editUserId').val(user.userId);
+            $('#editUsername').val(user.username);
+            $('#editEmail').val(user.email);
+            $('#editRole').val(user.role);
+            $('#editPhone').val(user.phone);
+            if (user.isActive) {
+                $('#editActive').prop('checked', true);
+            } else {
+                $('#editInactive').prop('checked', true);
+            }
+            $('#editUserModal').modal('show');
+        });
+    });
+
+    // Delete user button
+    $('.delete-user-btn').on('click', function () {
+        var userId = $(this).data('user-id');
+        if (confirm('Are you sure you want to delete this user?')) {
+            $.post('/ManageUsers/DeleteUser/' + userId, function () {
+                location.reload();
+            });
+        }
+    });
+
+    // Form submissions
+    $('#addUserForm').on('submit', function (e) {
+        e.preventDefault();
+        
+        var formData = new FormData(this);
+        
+        $.ajax({
+            url: $(this).attr('action'),
+            type: 'POST',
+            data: formData,
+            processData: false,
+            contentType: false,
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            success: function(response) {
+                if (response.success) {
+                    location.reload();
+                } else if (response.agentLimitReached) {
+                    SubscriptionAlerts.showAgentLimitAlert(response.message, response.availablePlans);
+                } else if (response.storageLimitReached) {
+                    SubscriptionAlerts.showStorageLimitAlert(response.message, response.currentUsageGB, response.limitGB, response.availablePlans);
+                } else {
+                    alert(response.message || 'Error occurred');
+                }
+            },
+            error: function() {
+                alert('Error occurred while adding user');
+            }
+        });
+    });
+
+    $('#editUserForm').on('submit', function (e) {
+        e.preventDefault();
+        $.post($(this).attr('action'), $(this).serialize(), function () {
+            location.reload();
+        });
+    });
+
+    // Load SweetAlert2 if not already loaded
+    if (typeof Swal === 'undefined') {
+        var script = document.createElement('script');
+        script.src = 'https://cdn.jsdelivr.net/npm/sweetalert2@11';
+        document.head.appendChild(script);
+    }
+});
+</script>
+}

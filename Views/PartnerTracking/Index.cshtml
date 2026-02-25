@@ -1,0 +1,260 @@
+@model IEnumerable<dynamic>
+@{
+    ViewData["Title"] = "Lead Tracking Dashboard";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1 class="h3 mb-0 text-gray-800">Lead Tracking Dashboard</h1>
+                <button class="btn btn-primary" onclick="refreshDashboard()">
+                    <i class="fas fa-sync-alt"></i> Refresh
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Commission Summary Cards -->
+    <div class="row mb-4" id="commissionSummary">
+        <!-- Will be populated by AJAX -->
+    </div>
+
+    <!-- Handed Over Leads Table -->
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">Handed Over Leads</h6>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-bordered" id="leadsTable">
+                    <thead>
+                        <tr>
+                            <th>Lead Name</th>
+                            <th>Contact</th>
+                            <th>Handover Date</th>
+                            <th>Status</th>
+                            <th>Admin Agent</th>
+                            <th>Commission Status</th>
+                            <th>Commission Amount</th>
+                            @* <th>Actions</th> *@
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var lead in Model)
+                        {
+                            <tr>
+                                <td>@lead.Name</td>
+                                <td>@lead.Contact</td>
+                                <td>@(lead.HandoverDate?.ToString("MMM dd, yyyy") ?? "-")</td>
+                                <td>
+                                    <span class="badge bg-@(lead.HandoverStatus == "HandedOver" ? "success" : "warning")">
+                                        @lead.HandoverStatus
+                                    </span>
+                                </td>
+                                <td>@(lead.AdminAgent ?? "Not Assigned")</td>
+                                <td>
+                                    @if (lead.CommissionStatus != null)
+                                    {
+                                        <span class="badge bg-@(lead.CommissionStatus == "Paid" ? "success" : lead.CommissionStatus == "Approved" ? "warning" : "secondary")">
+                                            @lead.CommissionStatus
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-secondary">Pending</span>
+                                    }
+                                </td>
+                                <td>
+                                    @if (lead.CommissionAmount != null)
+                                    {
+                                        <span class="fw-bold">₹@(((decimal)lead.CommissionAmount).ToString("N2"))</span>
+                                        <br><small class="text-muted">@lead.CommissionCalculation</small>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">-</span>
+                                    }
+                                </td>
+                                @* <td>
+                                    <button class="btn btn-sm btn-info" onclick="viewLeadDetails(@lead.LeadId)">
+                                        <i class="fas fa-eye"></i> View
+                                    </button>
+                                </td> *@
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Lead Details Modal -->
+<div class="modal fade" id="leadDetailsModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Lead Tracking Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="leadDetailsContent">
+                <!-- Content will be loaded here -->
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+    $(document).ready(function() {
+        loadCommissionSummary();
+    });
+
+    function loadCommissionSummary() {
+        $.get('/PartnerTracking/GetCommissionSummary', function(response) {
+            if (response.success) {
+                const data = response.data;
+                const html = `
+                    <div class="col-xl-3 col-md-6 mb-4">
+                        <div class="card border-left-primary shadow h-100 py-2">
+                            <div class="card-body">
+                                <div class="row no-gutters align-items-center">
+                                    <div class="col mr-2">
+                                        <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Total Commissions</div>
+                                        <div class="h5 mb-0 font-weight-bold text-gray-800">${data.totalCommissions}</div>
+                                    </div>
+                                    <div class="col-auto">
+                                        <i class="fas fa-dollar-sign fa-2x text-gray-300"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-xl-3 col-md-6 mb-4">
+                        <div class="card border-left-success shadow h-100 py-2">
+                            <div class="card-body">
+                                <div class="row no-gutters align-items-center">
+                                    <div class="col mr-2">
+                                        <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Paid Amount</div>
+                                        <div class="h5 mb-0 font-weight-bold text-gray-800">₹${data.paidAmount.toLocaleString()}</div>
+                                    </div>
+                                    <div class="col-auto">
+                                        <i class="fas fa-check-circle fa-2x text-gray-300"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-xl-3 col-md-6 mb-4">
+                        <div class="card border-left-warning shadow h-100 py-2">
+                            <div class="card-body">
+                                <div class="row no-gutters align-items-center">
+                                    <div class="col mr-2">
+                                        <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">Pending Amount</div>
+                                        <div class="h5 mb-0 font-weight-bold text-gray-800">₹${data.pendingAmount.toLocaleString()}</div>
+                                    </div>
+                                    <div class="col-auto">
+                                        <i class="fas fa-clock fa-2x text-gray-300"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-xl-3 col-md-6 mb-4">
+                        <div class="card border-left-info shadow h-100 py-2">
+                            <div class="card-body">
+                                <div class="row no-gutters align-items-center">
+                                    <div class="col mr-2">
+                                        <div class="text-xs font-weight-bold text-info text-uppercase mb-1">Commission Rate</div>
+                                        <div class="h5 mb-0 font-weight-bold text-gray-800">${data.commissionPercentage}%</div>
+                                    </div>
+                                    <div class="col-auto">
+                                        <i class="fas fa-percentage fa-2x text-gray-300"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                $('#commissionSummary').html(html);
+            }
+        });
+    }
+
+    function viewLeadDetails(leadId) {
+        $.get('/PartnerTracking/GetLeadTracking', { leadId: leadId }, function(response) {
+            if (response.success) {
+                const data = response.data;
+                let html = `
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6>Lead Information</h6>
+                            <p><strong>Name:</strong> ${data.Lead.Name}</p>
+                            <p><strong>Contact:</strong> ${data.Lead.Contact}</p>
+                            <p><strong>Status:</strong> ${data.Lead.HandoverStatus}</p>
+                            <p><strong>Admin Agent:</strong> ${data.Lead.AdminAgent || 'Not Assigned'}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <h6>Booking Information</h6>
+                `;
+                
+                if (data.Booking) {
+                    html += `
+                        <p><strong>Status:</strong> ${data.Booking.Status}</p>
+                        <p><strong>Amount:</strong> ₹${data.Booking.BookingAmount.toLocaleString()}</p>
+                        <p><strong>Date:</strong> ${new Date(data.Booking.CreatedOn).toLocaleDateString()}</p>
+                    `;
+                } else {
+                    html += '<p class="text-muted">No booking yet</p>';
+                }
+                
+                html += `
+                        </div>
+                    </div>
+                    <hr>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6>Commission Information</h6>
+                `;
+                
+                if (data.Commission) {
+                    html += `
+                        <p><strong>Status:</strong> <span class="badge badge-${data.Commission.Status === 'Paid' ? 'success' : data.Commission.Status === 'Approved' ? 'warning' : 'secondary'}">${data.Commission.Status}</span></p>
+                        <p><strong>Amount:</strong> ₹${data.Commission.CommissionAmount.toLocaleString()}</p>
+                        <p><strong>Rate:</strong> ${data.Commission.CommissionPercentage}%</p>
+                        ${data.Commission.PaidOn ? `<p><strong>Paid On:</strong> ${new Date(data.Commission.PaidOn).toLocaleDateString()}</p>` : ''}
+                    `;
+                } else {
+                    html += '<p class="text-muted">Commission not calculated yet</p>';
+                }
+                
+                html += `
+                        </div>
+                        <div class="col-md-6">
+                            <h6>Payment History</h6>
+                `;
+                
+                if (data.Payments && data.Payments.length > 0) {
+                    html += '<div class="table-responsive"><table class="table table-sm"><thead><tr><th>Date</th><th>Amount</th><th>Method</th></tr></thead><tbody>';
+                    data.Payments.forEach(payment => {
+                        html += `<tr><td>${new Date(payment.PaymentDate).toLocaleDateString()}</td><td>₹${payment.Amount.toLocaleString()}</td><td>${payment.PaymentMethod}</td></tr>`;
+                    });
+                    html += '</tbody></table></div>';
+                } else {
+                    html += '<p class="text-muted">No payments yet</p>';
+                }
+                
+                html += '</div></div>';
+                
+                $('#leadDetailsContent').html(html);
+                $('#leadDetailsModal').modal('show');
+            }
+        });
+    }
+
+    function refreshDashboard() {
+        location.reload();
+    }
+</script>
+}

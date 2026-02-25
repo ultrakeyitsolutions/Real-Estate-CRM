@@ -1,0 +1,98 @@
+@model CRM.Models.UserModel
+@{
+    ViewData["Title"] = "Register";
+    Layout = "_LayoutLogin";
+}
+
+<div class="login-left">
+    <div class="brand-content">
+        <div class="brand-logo">
+            @if (!string.IsNullOrEmpty(ViewBag.CompanyLogo))
+            {
+                <img src="@ViewBag.CompanyLogo" alt="Company Logo" style="max-height: 80px; max-width: 200px; object-fit: contain;" />
+            }
+            else
+            {
+                <i class="fas fa-chart-network" style="color: white;"></i>
+            }
+        </div>
+        <h1>RealEstate CRM</h1>
+        <p>Join our platform today.</p>
+    </div>
+</div>
+
+<div class="login-form-section">
+    <div class="login-header">
+        <h1>Create Account</h1>
+    </div>
+
+    @if (ViewBag.Message != null)
+    {
+        <div class="alert alert-danger" role="alert">
+            <i class="fas fa-exclamation-circle"></i>
+            <span>@ViewBag.Message</span>
+        </div>
+    }
+    
+    <form asp-action="Register" method="post">
+        <div class="input-wrapper">
+            <label asp-for="Username" class="form-label">Username</label>
+            <i class="fas fa-user"></i>
+            <input asp-for="Username" class="form-control" placeholder="Username" />
+            <span asp-validation-for="Username" class="text-danger"></span>
+        </div>
+
+        <div class="input-wrapper">
+            <label asp-for="Email" class="form-label">Email</label>
+            <i class="fas fa-envelope"></i>
+            <input asp-for="Email" class="form-control" placeholder="Email" />
+            <span asp-validation-for="Email" class="text-danger"></span>
+        </div>
+
+        <div class="input-wrapper">
+            <label asp-for="Phone" class="form-label">Phone</label>
+            <i class="fas fa-phone"></i>
+            <input asp-for="Phone" class="form-control" placeholder="Phone" />
+            <span asp-validation-for="Phone" class="text-danger"></span>
+        </div>
+
+        <div class="input-wrapper">
+            <label asp-for="Password" class="form-label">Password</label>
+            <i class="fas fa-lock"></i>
+            <input asp-for="Password" type="password" class="form-control" placeholder="Password" />
+            <span asp-validation-for="Password" class="text-danger"></span>
+        </div>
+
+        <div class="input-wrapper">
+            <label asp-for="Role" class="form-label">Role</label>
+            <i class="fas fa-user-tag"></i>
+            <select asp-for="Role" class="form-control"
+                    asp-items="@(new SelectList(ViewBag.Roles as List<string> ?? new List<string>(), Model?.Role))">
+                <option value="">Select role</option>
+            </select>
+            <span asp-validation-for="Role" class="text-danger"></span>
+        </div>
+        
+        <button type="submit" class="btn-primary">
+            <i class="fas fa-user-plus"></i> Create Account
+        </button>
+        
+        <p class="signup-text">
+            Already have an account? <a href="/Account/Login">Sign In</a>
+        </p>
+    </form>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+
+    <script>
+        // Clear the form if user navigates back to this page
+        window.addEventListener("pageshow", function (event) {
+            if (event.persisted || (performance.getEntriesByType("navigation")[0] &&
+                performance.getEntriesByType("navigation")[0].type === "back_forward")) {
+                document.querySelector("form").reset();
+            }
+        });
+    </script>
+}

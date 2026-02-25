@@ -1,0 +1,875 @@
+@{
+    ViewData["Title"] = "Home";
+    Layout = "_LandingLayout";
+}
+
+<!-- Floating Background Elements -->
+<div class="floating-shapes">
+    <div class="shape"></div>
+    <div class="shape"></div>
+    <div class="shape"></div>
+</div>
+
+<!-- Spinner Start -->
+<div id="spinner" class="show bg-white position-fixed translate-middle w-100 vh-100 top-50 start-50 d-flex align-items-center justify-content-center">
+    <div class="spinner-border text-primary" style="width: 3rem; height: 3rem;" role="status">
+        <span class="sr-only">Loading...</span>
+    </div>
+</div>
+<!-- Spinner End -->
+<!-- Navbar Start -->
+<nav class="navbar navbar-expand-lg bg-white navbar-light shadow sticky-top p-0">
+    <a href="#" class="navbar-brand d-flex align-items-center px-4 px-lg-5">
+        <h2 class="m-0 text-primary"><i class="fa fa-book me-3"></i>RealEstate CRM</h2>
+    </a>
+    <button type="button" class="navbar-toggler me-4" data-bs-toggle="collapse" data-bs-target="#navbarCollapse">
+        <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarCollapse">
+        <div class="navbar-nav ms-auto p-4 p-lg-0">
+            <a href="#home" class="nav-item nav-link active">Home</a>
+            <a href="#about" class="nav-item nav-link">About</a>
+            <a href="#projects" class="nav-item nav-link">Projects</a>
+            <a href="#contact" class="nav-item nav-link">Contact</a>
+        </div>
+        <a href="/Account/Login" class="btn btn-primary py-4 px-lg-5 d-none d-lg-block">Login<i class="fa fa-arrow-right ms-3"></i></a>
+    </div>
+</nav>
+<!-- Navbar End -->
+<!-- Scrolling Quotes Start -->
+<div class="container-fluid p-0">
+    <div class="scrolling-quotes-container">
+        <div class="quote-slide active" style="background-image: url('https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=1920&h=400&fit=crop');">
+            <div class="quote-overlay">
+                <h2 class="quote-text">"Your Dream House is Our Dream"</h2>
+            </div>
+        </div>
+        <div class="quote-slide" style="background-image: url('https://images.unsplash.com/photo-1582268611958-ebfd161ef9cf?w=1920&h=400&fit=crop');">
+            <div class="quote-overlay">
+                <h2 class="quote-text">"Building Homes, Creating Memories"</h2>
+            </div>
+        </div>
+        <div class="quote-slide" style="background-image: url('https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=1920&h=400&fit=crop');">
+            <div class="quote-overlay">
+                <h2 class="quote-text">"Quality Construction, Lifetime Satisfaction"</h2>
+            </div>
+        </div>
+        <div class="quote-slide" style="background-image: url('https://images.unsplash.com/photo-1449824913935-59a10b8d2000?w=1920&h=400&fit=crop');">
+            <div class="quote-overlay">
+                <h2 class="quote-text">"Where Luxury Meets Affordability"</h2>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Scrolling Quotes End -->
+<!-- Carousel Start -->
+<div class="container-fluid p-0 mb-5" id="home">
+    <div class="owl-carousel header-carousel position-relative">
+        <div class="owl-carousel-item position-relative">
+            <img class="img-fluid" src="https://images.unsplash.com/photo-1556761175-b413da4baf72?w=1920&h=1080&fit=crop" alt="">
+            <div class="position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center" style="background: rgba(24, 29, 56, .7);">
+                <div class="container">
+                    <div class="row justify-content-start">
+                        <div class="col-sm-10 col-lg-8">
+                            <h5 class="text-primary text-uppercase mb-3 animated slideInDown">Best CRM Solution</h5>
+                            <h1 class="display-3 text-white animated slideInDown">Manage Your Business Relationships</h1>
+                            <p class="fs-5 text-white mb-4 pb-2">Transform your business with our comprehensive CRM platform. Streamline your sales, manage customer relationships, and grow your business efficiently.</p>
+                            <a href="#projects" class="btn btn-primary py-md-3 px-md-5 me-3 animated slideInLeft">Explore Projects</a>
+                            @* <a href="#contact" class="btn btn-light py-md-3 px-md-5 animated slideInRight">Get Started</a> *@
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="owl-carousel-item position-relative">
+            <img class="img-fluid" src="https://images.unsplash.com/photo-1541888946425-d81bb19240f5?w=1920&h=1080&fit=crop" alt="">
+            <div class="position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center" style="background: rgba(24, 29, 56, .7);">
+                <div class="container">
+                    <div class="row justify-content-start">
+                        <div class="col-sm-10 col-lg-8">
+                            <h5 class="text-primary text-uppercase mb-3 animated slideInDown">Property Solutions</h5>
+                            <h1 class="display-3 text-white animated slideInDown">Premium Real Estate Projects</h1>
+                            <p class="fs-5 text-white mb-4 pb-2">Discover our exclusive collection of residential and commercial properties. Find your perfect space with modern amenities and prime locations.</p>
+                            <a href="#projects" class="btn btn-primary py-md-3 px-md-5 me-3 animated slideInLeft">View Properties</a>
+                            @* <a href="#contact" class="btn btn-light py-md-3 px-md-5 animated slideInRight">Contact Us</a> *@
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Carousel End -->
+<!-- Service Start -->
+<div class="container-xxl py-5" id="about">
+    <div class="container">
+        <div class="row g-4">
+            <div class="col-lg-3 col-sm-6 wow fadeInUp" data-wow-delay="0.1s">
+                <div class="service-item text-center pt-3">
+                    <div class="p-4">
+                        <i class="fa fa-3x fa-hard-hat text-primary mb-4"></i>
+                        <h5 class="mb-3">Quality Construction</h5>
+                        <p>Premium construction with high-grade materials and modern building techniques for lasting durability</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-sm-6 wow fadeInUp" data-wow-delay="0.3s">
+                <div class="service-item text-center pt-3">
+                    <div class="p-4">
+                        <i class="fa fa-3x fa-map-marker-alt text-primary mb-4"></i>
+                        <h5 class="mb-3">Prime Locations</h5>
+                        <p>Strategically located properties with excellent connectivity to business hubs and entertainment centers</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-sm-6 wow fadeInUp" data-wow-delay="0.5s">
+                <div class="service-item text-center pt-3">
+                    <div class="p-4">
+                        <i class="fa fa-3x fa-swimming-pool text-primary mb-4"></i>
+                        <h5 class="mb-3">Modern Amenities</h5>
+                        <p>World-class amenities including swimming pool, gym, clubhouse, and landscaped gardens</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-sm-6 wow fadeInUp" data-wow-delay="0.7s">
+                <div class="service-item text-center pt-3">
+                    <div class="p-4">
+                        <i class="fa fa-3x fa-shield-alt text-primary mb-4"></i>
+                        <h5 class="mb-3">Trusted Developer</h5>
+                        <p>Backed by years of experience and a proven track record of delivering quality projects on time</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Service End -->
+<!-- Testimonial Start -->
+<div class="container-xxl py-5 wow fadeInUp" data-wow-delay="0.1s">
+    <div class="container">
+        <div class="text-center">
+            <h6 class="section-title bg-white text-center text-primary px-3">Testimonials</h6>
+            <h1 class="mb-5">What Our Customers Say!</h1>
+        </div>
+        <div class="testimonial-slider">
+            <div class="testimonial-track">
+                <div class="testimonial-card">
+                    <div class="card h-100 border-0 shadow">
+                        <div class="card-body text-center p-4">
+                            <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop&crop=face" class="rounded-circle mb-3" width="80" height="80" alt="Customer">
+                            <p class="mb-3">"Excellent service and beautiful construction quality. The amenities are world-class and the location is perfect for our family."</p>
+                            <h6 class="fw-bold mb-1">Rajesh Sharma</h6>
+                            <small class="text-muted">Property Owner</small>
+                            <div class="mt-2">
+                                <i class="fa fa-star text-warning"></i>
+                                <i class="fa fa-star text-warning"></i>
+                                <i class="fa fa-star text-warning"></i>
+                                <i class="fa fa-star text-warning"></i>
+                                <i class="fa fa-star text-warning"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="testimonial-card">
+                    <div class="card h-100 border-0 shadow">
+                        <div class="card-body text-center p-4">
+                            <img src="https://images.unsplash.com/photo-1494790108755-2616b612b786?w=100&h=100&fit=crop&crop=face" class="rounded-circle mb-3" width="80" height="80" alt="Customer">
+                            <p class="mb-3">"Amazing project with timely delivery. The construction quality exceeded our expectations. Great investment opportunity."</p>
+                            <h6 class="fw-bold mb-1">Priya Kapoor</h6>
+                            <small class="text-muted">Happy Customer</small>
+                            <div class="mt-2">
+                                <i class="fa fa-star text-warning"></i>
+                                <i class="fa fa-star text-warning"></i>
+                                <i class="fa fa-star text-warning"></i>
+                                <i class="fa fa-star text-warning"></i>
+                                <i class="fa fa-star text-warning"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="testimonial-card">
+                    <div class="card h-100 border-0 shadow">
+                        <div class="card-body text-center p-4">
+                            <img src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop&crop=face" class="rounded-circle mb-3" width="80" height="80" alt="Customer">
+                            <p class="mb-3">"Professional team and transparent dealings. The property has all modern amenities and excellent connectivity."</p>
+                            <h6 class="fw-bold mb-1">Amit Mehta</h6>
+                            <small class="text-muted">Investor</small>
+                            <div class="mt-2">
+                                <i class="fa fa-star text-warning"></i>
+                                <i class="fa fa-star text-warning"></i>
+                                <i class="fa fa-star text-warning"></i>
+                                <i class="fa fa-star text-warning"></i>
+                                <i class="fa fa-star text-warning"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="testimonial-card">
+                    <div class="card h-100 border-0 shadow">
+                        <div class="card-body text-center p-4">
+                            <img src="https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=100&h=100&fit=crop&crop=face" class="rounded-circle mb-3" width="80" height="80" alt="Customer">
+                            <p class="mb-3">"Outstanding construction quality and beautiful interiors. The project was completed on schedule and service is excellent."</p>
+                            <h6 class="fw-bold mb-1">Sunita Gupta</h6>
+                            <small class="text-muted">Homeowner</small>
+                            <div class="mt-2">
+                                <i class="fa fa-star text-warning"></i>
+                                <i class="fa fa-star text-warning"></i>
+                                <i class="fa fa-star text-warning"></i>
+                                <i class="fa fa-star text-warning"></i>
+                                <i class="fa fa-star text-warning"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="testimonial-card">
+                    <div class="card h-100 border-0 shadow">
+                        <div class="card-body text-center p-4">
+                            <img src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&h=100&fit=crop&crop=face" class="rounded-circle mb-3" width="80" height="80" alt="Customer">
+                            <p class="mb-3">"Best decision we made! The property has appreciated well and the community is very well-maintained. Excellent amenities."</p>
+                            <h6 class="fw-bold mb-1">Vikram Tiwari</h6>
+                            <small class="text-muted">Satisfied Customer</small>
+                            <div class="mt-2">
+                                <i class="fa fa-star text-warning"></i>
+                                <i class="fa fa-star text-warning"></i>
+                                <i class="fa fa-star text-warning"></i>
+                                <i class="fa fa-star text-warning"></i>
+                                <i class="fa fa-star text-warning"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Testimonial End -->
+<!-- Statistics Start -->
+<div class="container-xxl py-5">
+    <div class="container">
+        <div class="row g-4">
+            <div class="col-lg-4 col-md-6 wow fadeInUp" data-wow-delay="0.1s">
+                <div class="fact-item bg-light rounded text-center h-100 p-5">
+                    <i class="fa fa-users fa-4x text-primary mb-4"></i>
+                    <h1 class="display-5 mb-3">
+                        <span class="counter fw-bold text-primary" data-target="@(ViewBag.LeadsCount ?? 150)">0</span><span class="fw-bold text-primary">+</span>
+                    </h1>
+                    <h5 class="mb-3 fw-bold">Happy Leads</h5>
+                    <p class="mb-0">Customers who trusted us with their dream home requirements</p>
+                </div>
+            </div>
+            <div class="col-lg-4 col-md-6 wow fadeInUp" data-wow-delay="0.3s">
+                <div class="fact-item bg-light rounded text-center h-100 p-5">
+                    <i class="fa fa-building fa-4x text-primary mb-4"></i>
+                    <h1 class="display-5 mb-3">
+                        <span class="counter fw-bold text-primary" data-target="@(ViewBag.ProjectsCount ?? 25)">0</span><span class="fw-bold text-primary">+</span>
+                    </h1>
+                    <h5 class="mb-3 fw-bold">Completed Projects</h5>
+                    <p class="mb-0">Successfully delivered residential and commercial projects</p>
+                </div>
+            </div>
+            <div class="col-lg-4 col-md-6 wow fadeInUp" data-wow-delay="0.5s">
+                <div class="fact-item bg-light rounded text-center h-100 p-5">
+                    <i class="fa fa-smile fa-4x text-primary mb-4"></i>
+                    <h1 class="display-5 mb-3">
+                        <span class="counter fw-bold text-primary" data-target="98">0</span><span class="fw-bold text-primary">%</span>
+                    </h1>
+                    <h5 class="mb-3 fw-bold">Customer Satisfaction</h5>
+                    <p class="mb-0">Clients satisfied with our quality and timely delivery</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Statistics End -->
+<!-- Projects Start -->
+<div class="container-xxl py-5" id="projects">
+    <div class="container">
+        <div class="text-center wow fadeInUp" data-wow-delay="0.1s">
+            <h6 class="section-title bg-white text-center text-primary px-3">Projects</h6>
+            <h1 class="mb-5">Our Featured Projects</h1>
+        </div>
+        <div class="row g-4 justify-content-center">
+            @if (ViewBag.Properties != null)
+            {
+                @foreach (var property in ViewBag.Properties)
+                {
+                    <div class="col-lg-4 col-md-6 wow fadeInUp" data-wow-delay="0.1s">
+                        <div class="course-item bg-light">
+                            <div class="position-relative overflow-hidden">
+                                @if (property.Images != null && property.Images.Count > 0)
+                                {
+                                    @if (property.Images.Count == 1)
+                                    {
+                                        <img class="img-fluid" src="/Home/GetPropertyImage/@property.Images[0]" alt="@property.PropertyName" style="height: 250px; object-fit: cover;">
+                                    }
+                                    else
+                                    {
+                                        <div id="carousel@(property.PropertyId)" class="carousel slide" data-bs-ride="carousel">
+                                            <div class="carousel-inner">
+                                                @for (int i = 0; i < property.Images.Count; i++)
+                                                {
+                                                    <div class="carousel-item @(i == 0 ? "active" : "")">
+                                                        <img class="img-fluid w-100" src="/Home/GetPropertyImage/@property.Images[i]" alt="@property.PropertyName" style="height: 250px; object-fit: cover;">
+                                                    </div>
+                                                }
+                                            </div>
+                                            <button class="carousel-control-prev" type="button" data-bs-target="#carousel@(property.PropertyId)" data-bs-slide="prev">
+                                                <span class="carousel-control-prev-icon"></span>
+                                            </button>
+                                            <button class="carousel-control-next" type="button" data-bs-target="#carousel@(property.PropertyId)" data-bs-slide="next">
+                                                <span class="carousel-control-next-icon"></span>
+                                            </button>
+                                        </div>
+                                    }
+                                }
+                                else
+                                {
+                                    <img class="img-fluid" src="https://via.placeholder.com/400x300/06BBCC/ffffff?text=@Uri.EscapeDataString(property.PropertyName)" alt="@property.PropertyName" style="height: 250px; object-fit: cover;">
+                                }
+                                <div class="w-100 d-flex justify-content-center position-absolute bottom-0 start-0 mb-4">
+                                    <a href="#" class="flex-shrink-0 btn btn-sm btn-primary px-3 border-end" style="border-radius: 30px 0 0 30px;" onclick="showInterestForm('@property.PropertyName')">Show Interest</a>
+                                    <a href="/Home/ProjectDetails/@property.PropertyId" class="flex-shrink-0 btn btn-sm btn-primary px-3" style="border-radius: 0 30px 30px 0;">Learn More</a>
+                                </div>
+                            </div>
+                            <div class="text-center p-4 pb-0">
+                                <h3 class="mb-0">₹@(property.MinPrice.ToString("N0"))</h3>
+                                <div class="mb-3">
+                                    <small class="fa fa-star text-primary"></small>
+                                    <small class="fa fa-star text-primary"></small>
+                                    <small class="fa fa-star text-primary"></small>
+                                    <small class="fa fa-star text-primary"></small>
+                                    <small class="fa fa-star text-primary"></small>
+                                    <small>(@property.FlatsCount)</small>
+                                </div>
+                                <h5 class="mb-4">@property.PropertyName</h5>
+                            </div>
+                            <div class="d-flex border-top">
+                                <small class="flex-fill text-center border-end py-2"><i class="fa fa-map-marker-alt text-primary me-2"></i>@(property.Location ?? "Location")</small>
+                                <small class="flex-fill text-center border-end py-2"><i class="fa fa-building text-primary me-2"></i>@(property.AreaSqft ?? 0) Sqft</small>
+                                <small class="flex-fill text-center py-2"><i class="fa fa-home text-primary me-2"></i>@property.AvailableFlats Available</small>
+                            </div>
+                        </div>
+                    </div>
+                }
+            }
+        </div>
+    </div>
+</div>
+<!-- Projects End -->
+<!-- Contact Start -->
+<div class="container-xxl py-5" id="contact">
+    <div class="container">
+        <div class="text-center wow fadeInUp" data-wow-delay="0.1s">
+            <h6 class="section-title bg-white text-center text-primary px-3">Contact Us</h6>
+            <h1 class="mb-5">Contact For Any Query</h1>
+        </div>
+        <div class="row g-4">
+            <div class="col-lg-4 col-md-6 wow fadeInUp" data-wow-delay="0.1s">
+                <h5>Get In Touch</h5>
+                <p class="mb-4">Ready to start your next project? Contact us today for a free consultation and quote.</p>
+                <div class="d-flex align-items-center mb-3">
+                    <div class="d-flex align-items-center justify-content-center flex-shrink-0 bg-primary" style="width: 50px; height: 50px;">
+                        <i class="fa fa-map-marker-alt text-white"></i>
+                    </div>
+                    <div class="ms-3">
+                        <h5 class="text-primary">Office</h5>
+                        <p class="mb-0">123 Business Street, Tech City, TC 12345</p>
+                    </div>
+                </div>
+                <div class="d-flex align-items-center mb-3">
+                    <div class="d-flex align-items-center justify-content-center flex-shrink-0 bg-primary" style="width: 50px; height: 50px;">
+                        <i class="fa fa-phone-alt text-white"></i>
+                    </div>
+                    <div class="ms-3">
+                        <h5 class="text-primary">Mobile</h5>
+                        <p class="mb-0">+91 9876543210</p>
+                    </div>
+                </div>
+                <div class="d-flex align-items-center">
+                    <div class="d-flex align-items-center justify-content-center flex-shrink-0 bg-primary" style="width: 50px; height: 50px;">
+                        <i class="fa fa-envelope-open text-white"></i>
+                    </div>
+                    <div class="ms-3">
+                        <h5 class="text-primary">Email</h5>
+                        <p class="mb-0">info@crm.com</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-8 col-md-6 wow fadeInUp" data-wow-delay="0.3s">
+                <form>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <div class="form-floating">
+                                <input type="text" class="form-control" id="name" placeholder="Your Name">
+                                <label for="name">Your Name</label>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-floating">
+                                <input type="email" class="form-control" id="email" placeholder="Your Email">
+                                <label for="email">Your Email</label>
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <div class="form-floating">
+                                <input type="text" class="form-control" id="subject" placeholder="Subject">
+                                <label for="subject">Subject</label>
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <div class="form-floating">
+                                <textarea class="form-control" placeholder="Leave a message here" id="message" style="height: 150px"></textarea>
+                                <label for="message">Message</label>
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <button class="btn btn-primary w-100 py-3" type="submit">Send Message</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Contact End -->
+<!-- Footer Start -->
+<div class="container-fluid bg-dark text-light footer pt-5 mt-5 wow fadeIn" data-wow-delay="0.1s">
+    <div class="container py-5">
+        <div class="row g-5">
+            <div class="col-lg-3 col-md-6">
+                <h4 class="text-white mb-3">Quick Link</h4>
+                <a class="btn btn-link" href="#about">About Us</a>
+                <a class="btn btn-link" href="#contact">Contact Us</a>
+                <a class="btn btn-link" href="#projects">Our Projects</a>
+                <a class="btn btn-link" href="">Privacy Policy</a>
+                <a class="btn btn-link" href="">Terms & Condition</a>
+            </div>
+            <div class="col-lg-3 col-md-6">
+                <h4 class="text-white mb-3">Contact</h4>
+                <p class="mb-2"><i class="fa fa-map-marker-alt me-3"></i>123 Business Street, Tech City, TC 12345</p>
+                <p class="mb-2"><i class="fa fa-phone-alt me-3"></i>+91 9876543210</p>
+                <p class="mb-2"><i class="fa fa-envelope me-3"></i>info@crm.com</p>
+                <div class="d-flex pt-2">
+                    <a class="btn btn-outline-light btn-social" href=""><i class="fab fa-twitter"></i></a>
+                    <a class="btn btn-outline-light btn-social" href=""><i class="fab fa-facebook-f"></i></a>
+                    <a class="btn btn-outline-light btn-social" href=""><i class="fab fa-youtube"></i></a>
+                    <a class="btn btn-outline-light btn-social" href=""><i class="fab fa-linkedin-in"></i></a>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6">
+                <h4 class="text-white mb-3">Gallery</h4>
+                <div class="row g-2 pt-2">
+                    <div class="col-4">
+                        <img class="img-fluid bg-light p-1" src="https://via.placeholder.com/100x100/06BBCC/ffffff?text=1" alt="">
+                    </div>
+                    <div class="col-4">
+                        <img class="img-fluid bg-light p-1" src="https://via.placeholder.com/100x100/28a745/ffffff?text=2" alt="">
+                    </div>
+                    <div class="col-4">
+                        <img class="img-fluid bg-light p-1" src="https://via.placeholder.com/100x100/ffc107/ffffff?text=3" alt="">
+                    </div>
+                    <div class="col-4">
+                        <img class="img-fluid bg-light p-1" src="https://via.placeholder.com/100x100/dc3545/ffffff?text=4" alt="">
+                    </div>
+                    <div class="col-4">
+                        <img class="img-fluid bg-light p-1" src="https://via.placeholder.com/100x100/6f42c1/ffffff?text=5" alt="">
+                    </div>
+                    <div class="col-4">
+                        <img class="img-fluid bg-light p-1" src="https://via.placeholder.com/100x100/17a2b8/ffffff?text=6" alt="">
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6">
+                <h4 class="text-white mb-3">Newsletter</h4>
+                <p>Stay updated with our latest projects and offers.</p>
+                <div class="position-relative mx-auto" style="max-width: 400px;">
+                    <input class="form-control border-0 w-100 py-3 ps-4 pe-5" type="text" placeholder="Your email">
+                    <button type="button" class="btn btn-primary py-2 position-absolute top-0 end-0 mt-2 me-2">SignUp</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="container">
+        <div class="copyright">
+            <div class="row">
+                <div class="col-md-6 text-center text-md-start mb-3 mb-md-0">
+                    &copy; <a class="border-bottom" href="#">RealEstate CRM</a>, All Right Reserved.
+                </div>
+                <div class="col-md-6 text-center text-md-end">
+                    <div class="footer-menu">
+                        <a href="">Home</a>
+                        <a href="">Cookies</a>
+                        <a href="">Help</a>
+                        <a href="">FQAs</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Footer End -->
+<!-- Back to Top -->
+<a href="#" class="btn btn-lg btn-primary btn-lg-square back-to-top"><i class="fa fa-arrow-up"></i></a>
+
+<!-- Interest Modal -->
+<div class="modal fade" id="interestModal" tabindex="-1" aria-labelledby="interestModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="interestModalLabel">Project Interest</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="interestForm">
+                <div class="modal-body">
+                    <input type="hidden" id="projectName" name="ProjectName">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <div class="form-floating">
+                                <input type="text" class="form-control" name="FullName" id="fullName" placeholder="Your Name" required>
+                                <label for="fullName">Full Name *</label>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-floating">
+                                <input type="email" class="form-control" name="Email" id="emailAddress" placeholder="Your Email" required>
+                                <label for="emailAddress">Email Address *</label>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-floating">
+                                <input type="tel" class="form-control" name="Phone" id="phoneNumber" placeholder="Your Phone" required>
+                                <label for="phoneNumber">Phone Number *</label>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-floating">
+                                <input type="text" class="form-control" name="Company" id="companyName" placeholder="Company Name">
+                                <label for="companyName">Company Name</label>
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <div class="form-floating">
+                                <textarea class="form-control" name="Message" id="projectMessage" placeholder="Tell us about your requirements" style="height: 100px"></textarea>
+                                <label for="projectMessage">Project Requirements</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-primary">Submit Interest</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <style>
+        /* Quote Slider */
+        .scrolling-quotes-container {
+            position: relative;
+            height: 120px;
+            overflow: hidden;
+        }
+
+        .quote-slide {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-size: cover;
+            background-position: center;
+            opacity: 0;
+            transition: opacity 1s ease-in-out;
+        }
+
+            .quote-slide.active {
+                opacity: 1;
+            }
+
+        .quote-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(6, 187, 204, 0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .quote-text {
+            color: white;
+            font-size: 24px;
+            font-weight: bold;
+            text-align: center;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+        }
+
+        /* Testimonial Cards */
+        .testimonial-slider {
+            overflow: hidden;
+            padding: 20px 0;
+        }
+
+        .testimonial-track {
+            display: flex;
+            animation: slide-testimonials 30s linear infinite;
+        }
+
+        .testimonial-card {
+            min-width: 280px;
+            max-width: 280px;
+            margin-right: 20px;
+            flex-shrink: 0;
+        }
+
+        @@keyframes slide-testimonials {
+            0% {
+                transform: translateX(0);
+            }
+
+            100% {
+                transform: translateX(-100%);
+            }
+        }
+
+        .testimonial-track:hover {
+            animation-play-state: paused;
+        }
+
+        /* Counter Animation */
+        .counter {
+            display: inline-block;
+            transition: all 0.3s ease;
+        }
+
+        /* Page Background & Styling */
+        body {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 50%, #dee2e6 100%);
+            min-height: 100vh;
+        }
+        /* Navbar Enhancement */
+        .navbar {
+            background: white !important;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .navbar-brand h2 {
+            background: linear-gradient(45deg, #06BBCC, #0056b3);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        /* Section Backgrounds */
+        .container-xxl {
+            position: relative;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        /* Card Enhancements */
+        .service-item, .fact-item, .course-item {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%) !important;
+            border: 1px solid rgba(6, 187, 204, 0.2);
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+            .service-item:hover, .fact-item:hover, .course-item:hover {
+                background: linear-gradient(135deg, #06BBCC 0%, #0056b3 100%) !important;
+                transform: translateY(-5px);
+                box-shadow: 0 10px 30px rgba(6, 187, 204, 0.3);
+            }
+
+                .service-item:hover h3,
+                .service-item:hover h4,
+                .service-item:hover h5,
+                .service-item:hover p,
+                .service-item:hover .text-primary,
+                .service-item:hover .text-white,
+                .service-item:hover * {
+                    color: white !important;
+                }
+
+                .service-item:hover i {
+                    color: white !important;
+                }
+
+                /* Statistics Cards Hover */
+                .fact-item:hover h1,
+                .fact-item:hover h2,
+                .fact-item:hover h3,
+                .fact-item:hover h4,
+                .fact-item:hover h5,
+                .fact-item:hover p,
+                .fact-item:hover small,
+                .fact-item:hover .text-muted,
+                .fact-item:hover * {
+                    color: white !important;
+                }
+
+        /* Testimonial Cards */
+        .testimonial-card .card {
+            background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%) !important;
+            border: 1px solid rgba(6, 187, 204, 0.2) !important;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        /* Footer Enhancement */
+        .footer {
+            background: linear-gradient(135deg, #181d38 0%, #0f1419 100%) !important;
+        }
+
+        /* Professional Sections */
+        .py-5 {
+            padding: 3rem 0 !important;
+        }
+
+        .bg-light {
+            background-color: #f8f9fa !important;
+        }
+
+        /* Hero Section */
+        .hero-section {
+            background: linear-gradient(135deg, #06BBCC 0%, #0056b3 100%);
+            color: white;
+            padding: 100px 0;
+        }
+
+        /* Section Alternating Colors */
+        .container-xxl:nth-child(even) {
+            background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+        }
+
+        .container-xxl:nth-child(odd) {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        }
+    </style>
+
+    <script>
+        // Counter Animation
+        function animateCounter(element) {
+            const target = parseInt(element.getAttribute('data-target'));
+            const duration = 2000;
+            const step = target / (duration / 16);
+            let current = 0;
+
+            const timer = setInterval(() => {
+                current += step;
+                if (current >= target) {
+                    current = target;
+                    clearInterval(timer);
+                }
+                element.textContent = Math.floor(current);
+            }, 16);
+        }
+
+        // Intersection Observer for counters
+        const observerOptions = {
+            threshold: 0.5,
+            rootMargin: '0px 0px -100px 0px'
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const counters = entry.target.querySelectorAll('.counter');
+                    counters.forEach(counter => {
+                        if (!counter.classList.contains('animated')) {
+                            counter.classList.add('animated');
+                            animateCounter(counter);
+                        }
+                    });
+                }
+            });
+        }, observerOptions);
+
+        document.addEventListener('DOMContentLoaded', function () {
+            // Quote Slider
+            const slides = document.querySelectorAll('.quote-slide');
+            let currentSlide = 0;
+
+            function showNextSlide() {
+                slides[currentSlide].classList.remove('active');
+                currentSlide = (currentSlide + 1) % slides.length;
+                slides[currentSlide].classList.add('active');
+            }
+
+            setInterval(showNextSlide, 3000);
+
+            // Observe statistics section
+            const statsSection = document.querySelector('.container-xxl:has(.counter)');
+            if (statsSection) {
+                observer.observe(statsSection);
+            }
+
+            // Keep counters at original values - no fluctuation
+        });
+
+        // Interest Form Functions
+        function showInterestForm(projectName) {
+            document.getElementById('projectName').value = projectName;
+            document.getElementById('interestModalLabel').textContent = 'Interest in: ' + projectName;
+            var modal = new bootstrap.Modal(document.getElementById('interestModal'));
+            modal.show();
+        }
+
+        document.getElementById('interestForm').addEventListener('submit', function (e) {
+            e.preventDefault();
+
+            const formData = new FormData(this);
+
+            fetch('/Home/SubmitInterest', {
+                method: 'POST',
+                body: formData
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert('Thank you for your interest! We will contact you soon.');
+                        bootstrap.Modal.getInstance(document.getElementById('interestModal')).hide();
+                        this.reset();
+                    } else {
+                        alert('Error submitting form. Please try again.');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Error submitting form. Please try again.');
+                });
+        });
+
+        // Initialize Owl Carousel
+        if (typeof $.fn.owlCarousel !== 'undefined') {
+            $('.header-carousel').owlCarousel({
+                items: 1,
+                loop: true,
+                autoplay: true,
+                autoplayTimeout: 5000,
+                autoplayHoverPause: true,
+                nav: true,
+                dots: false,
+                navText: ['<i class="fa fa-chevron-left"></i>', '<i class="fa fa-chevron-right"></i>']
+            });
+        }
+
+        // Smooth scrolling for navigation links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+            });
+        });
+    </script>
+}

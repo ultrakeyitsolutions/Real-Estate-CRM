@@ -1,0 +1,365 @@
+<div class="modal fade" id="addPropertyModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" style="max-width: 700px !important; width: 700px;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalTitle">Add New Property</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="propertyForm" novalidate>
+                <div class="modal-body">
+                    <input type="hidden" id="propertyId" value="0">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Property Name <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="propertyName" required>
+                            <div class="invalid-feedback">Please enter property name</div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Builder <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="builderName" placeholder="Enter builder name" required>
+                            <div class="invalid-feedback">Please enter builder name</div>
+                        </div>
+                        <div class="col-md-12 mb-3">
+                            <label class="form-label">Location</label>
+                            <input type="text" class="form-control" id="location">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Area (Sqft)</label>
+                            <input type="number" step="0.01" class="form-control" id="areaSqft">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Avg. Price (Approx)</label>
+                            <input type="number" step="0.01" class="form-control" id="price" placeholder="Enter approximate average price">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Purchase Type</label>
+                            <select class="form-select" id="purchaseType">
+                                <option value="">Select Purchase Type</option>
+                                <option value="Sale">Sale</option>
+                                <option value="Rent">Rent</option>
+                                <option value="Lease">Lease</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Property Image</label>
+                            <input type="file" class="form-control" id="propertyImage" accept="image/*" onchange="previewPropertyImage(this)">
+                            <div id="imagePreviewContainer" class="mt-2" style="display: none;">
+                                <img id="imagePreview" src="" alt="Preview" style="max-width: 200px; max-height: 150px; border-radius: 4px; border: 1px solid #ddd;">
+                                <div class="mt-1">
+                                    <small class="text-muted">Current/Selected Image</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-12 mb-3">
+                            <label class="form-label">Assigned To (Sales Person)</label>
+                            <div class="position-relative">
+                                <input type="text" class="form-control" id="assignedToSearch" placeholder="@(ViewBag.Executives != null && ((IEnumerable<dynamic>)ViewBag.Executives).Any() ? "Search sales person..." : "No Agents available")" autocomplete="off" @(ViewBag.Executives == null || !((IEnumerable<dynamic>)ViewBag.Executives).Any() ? "readonly" : "")>
+                                <input type="hidden" id="assignedTo" value="">
+                                <div class="dropdown-menu w-100" id="assignedToDropdown" style="max-height: 200px; overflow-y: auto; display: none;">
+                                    @if (ViewBag.Executives != null && ((IEnumerable<dynamic>)ViewBag.Executives).Any())
+                                    {
+                                        <div class="dropdown-item" data-value="">Select Sales Person</div>
+                                        foreach (var exec in ViewBag.Executives)
+                                        {
+                                            <div class="dropdown-item" data-value="@exec.UserId" data-name="@exec.Username">@exec.Username</div>
+                                        }
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary" id="savePropertyBtn">
+                        <span class="spinner-border spinner-border-sm d-none" id="saveSpinner"></span>
+                        Save Property
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Assigned To Search Dropdown Styles */
+    .position-relative .dropdown-menu {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        z-index: 1000;
+        border: 1px solid #dee2e6;
+        border-radius: 0.375rem;
+        background-color: #fff;
+        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+    }
+
+    .position-relative .dropdown-item {
+        padding: 0.5rem 1rem;
+        cursor: pointer;
+        border-bottom: 1px solid #f8f9fa;
+    }
+
+    .position-relative .dropdown-item:hover {
+        background-color: #f8f9fa;
+    }
+
+    .position-relative .dropdown-item:last-child {
+        border-bottom: none;
+    }
+
+    .dark-mode .position-relative .dropdown-menu {
+        background-color: #2c3049 !important;
+        border-color: #3a3f5c !important;
+    }
+
+    .dark-mode .position-relative .dropdown-item {
+        color: #e4e6eb !important;
+        border-bottom-color: #3a3f5c !important;
+    }
+
+    .dark-mode .position-relative .dropdown-item:hover {
+        background-color: #3a3f5c !important;
+    }
+</style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const propertyForm = document.getElementById('propertyForm');
+        const addPropertyModal = document.getElementById('addPropertyModal');
+
+        // Initialize assigned to search
+        initializeAssignedToSearch();
+
+        // Form submission
+        if (propertyForm) {
+            propertyForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+
+                if (!propertyForm.checkValidity()) {
+                    propertyForm.classList.add('was-validated');
+                    return;
+                }
+
+                saveProperty();
+            });
+        }
+
+        // Reset form when modal is closed
+        if (addPropertyModal) {
+            addPropertyModal.addEventListener('hidden.bs.modal', function() {
+                resetPropertyForm();
+            });
+        }
+    });
+
+    function initializeAssignedToSearch() {
+        const searchInput = document.getElementById('assignedToSearch');
+        const hiddenInput = document.getElementById('assignedTo');
+        const dropdown = document.getElementById('assignedToDropdown');
+        const dropdownItems = dropdown.querySelectorAll('.dropdown-item');
+
+        // Show dropdown on focus
+        searchInput.addEventListener('focus', function() {
+            dropdown.style.display = 'block';
+            filterAssignedTo('');
+        });
+
+        // Hide dropdown when clicking outside
+        document.addEventListener('click', function(e) {
+            if (!searchInput.contains(e.target) && !dropdown.contains(e.target)) {
+                dropdown.style.display = 'none';
+            }
+        });
+
+        // Filter on input
+        searchInput.addEventListener('input', function() {
+            const searchTerm = this.value.toLowerCase();
+            filterAssignedTo(searchTerm);
+        });
+
+        // Handle dropdown item selection
+        dropdownItems.forEach(item => {
+            item.addEventListener('click', function() {
+                const value = this.getAttribute('data-value');
+                const name = this.getAttribute('data-name') || this.textContent;
+                
+                hiddenInput.value = value;
+                searchInput.value = name;
+                dropdown.style.display = 'none';
+            });
+        });
+
+        function filterAssignedTo(searchTerm) {
+            dropdownItems.forEach(item => {
+                const text = item.textContent.toLowerCase();
+                if (text.includes(searchTerm)) {
+                    item.style.display = 'block';
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+        }
+    }
+
+    function saveProperty() {
+        const form = document.getElementById('propertyForm');
+        const saveBtn = document.getElementById('savePropertyBtn');
+        const spinner = document.getElementById('saveSpinner');
+
+        // Disable button and show spinner
+        saveBtn.disabled = true;
+        spinner.classList.remove('d-none');
+
+        const formData = new FormData();
+        formData.append('propertyId', document.getElementById('propertyId').value);
+        formData.append('propertyName', document.getElementById('propertyName').value);
+        formData.append('builderName', document.getElementById('builderName').value);
+        formData.append('location', document.getElementById('location').value || '');
+        formData.append('areaSqft', document.getElementById('areaSqft').value || '');
+        formData.append('price', document.getElementById('price').value || '');
+        formData.append('purchaseType', document.getElementById('purchaseType').value || '');
+        formData.append('assignedTo', document.getElementById('assignedTo').value || '');
+
+        // Add anti-forgery token
+        const token = document.querySelector('input[name="__RequestVerificationToken"]');
+        if (token) {
+            formData.append('__RequestVerificationToken', token.value);
+        }
+
+        const imageFile = document.getElementById('propertyImage').files[0];
+        if (imageFile) {
+            formData.append('propertyImage', imageFile);
+        }
+
+        fetch('/Properties/SaveProperty', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            saveBtn.disabled = false;
+            spinner.classList.add('d-none');
+
+            if (data.success) {
+                showToast(data.message || 'Property saved successfully!', 'success');
+                bootstrap.Modal.getInstance(document.getElementById('addPropertyModal')).hide();
+                resetPropertyForm();
+                
+                // Dispatch event to reload properties
+                window.dispatchEvent(new Event('property-saved'));
+            } else {
+                showToast(data.message || 'Error saving property', 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            saveBtn.disabled = false;
+            spinner.classList.add('d-none');
+            showToast('Error saving property', 'error');
+        });
+    }
+
+    function resetPropertyForm() {
+        const form = document.getElementById('propertyForm');
+        if (form) {
+            form.reset();
+            form.classList.remove('was-validated');
+            document.getElementById('propertyId').value = '0';
+            document.getElementById('modalTitle').textContent = 'Add New Property';
+            
+            // Reset assigned to search
+            document.getElementById('assignedToSearch').value = '';
+            document.getElementById('assignedTo').value = '';
+            
+            // Hide image preview
+            document.getElementById('imagePreviewContainer').style.display = 'none';
+        }
+    }
+
+    // Function to preview image when file is selected
+    function previewPropertyImage(input) {
+        const preview = document.getElementById('imagePreview');
+        const container = document.getElementById('imagePreviewContainer');
+        
+        if (input.files && input.files[0]) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                preview.src = e.target.result;
+                container.style.display = 'block';
+            };
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
+
+    // Function to populate modal for editing (called from Index.cshtml)
+    window.populatePropertyModal = function(data) {
+        document.getElementById('modalTitle').textContent = 'Edit Property';
+        document.getElementById('propertyId').value = data.propertyId;
+        document.getElementById('propertyName').value = data.propertyName || '';
+        document.getElementById('builderName').value = data.builderName || '';
+        document.getElementById('location').value = data.location || '';
+        document.getElementById('areaSqft').value = data.areaSqft || '';
+        document.getElementById('price').value = data.price || '';
+        document.getElementById('purchaseType').value = data.purchaseType || '';
+        document.getElementById('assignedTo').value = data.assignedTo || '';
+        
+        // Set assigned to search field
+        if (data.assignedTo) {
+            const assignedToName = getExecutiveNameById(data.assignedTo);
+            document.getElementById('assignedToSearch').value = assignedToName;
+        } else {
+            document.getElementById('assignedToSearch').value = '';
+        }
+        
+        // Show existing image if available
+        if (data.propertyImage && data.propertyImage.length > 0) {
+            try {
+                const bytes = new Uint8Array(data.propertyImage);
+                let binary = '';
+                for (let i = 0; i < bytes.length; i++) {
+                    binary += String.fromCharCode(bytes[i]);
+                }
+                const base64 = btoa(binary);
+                const preview = document.getElementById('imagePreview');
+                const container = document.getElementById('imagePreviewContainer');
+                preview.src = 'data:image/jpeg;base64,' + base64;
+                container.style.display = 'block';
+            } catch (e) {
+                console.error('Error displaying image:', e);
+            }
+        }
+    };
+
+    function getExecutiveNameById(executiveId) {
+        const dropdown = document.getElementById('assignedToDropdown');
+        const items = dropdown.querySelectorAll('.dropdown-item');
+        for (let item of items) {
+            if (item.getAttribute('data-value') == executiveId) {
+                return item.getAttribute('data-name') || item.textContent;
+            }
+        }
+        return '';
+    }
+
+    function showToast(message, type) {
+        const alertDiv = document.createElement('div');
+        alertDiv.className = `alert alert-${type === 'success' ? 'success' : 'danger'} alert-dismissible fade show position-fixed`;
+        alertDiv.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+        alertDiv.innerHTML = `
+            <i data-feather="${type === 'success' ? 'check-circle' : 'alert-circle'}" class="me-2"></i>
+            ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        `;
+        
+        document.body.appendChild(alertDiv);
+        if (typeof feather !== 'undefined') {
+            feather.replace();
+        }
+        
+        setTimeout(() => {
+            alertDiv.remove();
+        }, 5000);
+    }
+</script>

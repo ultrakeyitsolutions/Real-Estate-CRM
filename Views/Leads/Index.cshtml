@@ -1,0 +1,1755 @@
+﻿@model List<CRM.Models.LeadModel>
+@inject CRM.AppDbContext _context
+@{
+    ViewData["Title"] = "Leads Management";
+}
+
+<style>
+    .modern-header {
+        background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+        position: relative;
+        overflow: hidden;
+        border-radius: 16px;
+        /* margin-bottom: 1rem; */
+        box-shadow: 0 8px 32px rgba(79, 70, 229, 0.15);
+    }
+
+    .modern-header::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="50" cy="50" r="1" fill="%23ffffff" opacity="0.1"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>') repeat;
+        opacity: 0.3;
+    }
+
+    .header-content {
+        position: relative;
+        z-index: 2;
+        /* padding: 1.5rem 1.25rem; */
+        color: white;
+    }
+
+    .header-title {
+        font-size: 1.75rem;
+        font-weight: 700;
+        margin-bottom: 0.25rem;
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .header-subtitle {
+        font-size: 0.95rem;
+        opacity: 0.9;
+        margin-bottom: 1.25rem;
+        font-weight: 400;
+    }
+
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+        gap: 0.875rem;
+        margin-top: 1.25rem;
+    }
+
+    .stats-card {
+        background: rgba(255, 255, 255, 0.15);
+        backdrop-filter: blur(20px);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        border-radius: 10px;
+        padding: 1rem;
+        text-align: center;
+        transition: all 0.3s ease;
+    }
+
+    .stats-card:hover {
+        background: rgba(255, 255, 255, 0.25);
+        transform: translateY(-2px);
+    }
+
+    .stats-number {
+        font-size: 1.75rem;
+        font-weight: 800;
+        margin-bottom: 0.25rem;
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .stats-label {
+        font-size: 0.8rem;
+        opacity: 0.9;
+        font-weight: 500;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .action-btn {
+        background: rgba(255, 255, 255, 0.2);
+        border: 2px solid rgba(255, 255, 255, 0.3);
+        color: white;
+        padding: 0.625rem 1.25rem;
+        border-radius: 50px;
+        font-weight: 600;
+        font-size: 0.9rem;
+        backdrop-filter: blur(10px);
+        transition: all 0.3s ease;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.375rem;
+        margin: 0.25rem;
+    }
+
+    .action-btn:hover {
+        background: rgba(255, 255, 255, 0.3);
+        border-color: rgba(255, 255, 255, 0.5);
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+        color: white;
+    }
+
+    .filter-section {
+        background: white;
+        border-radius: 12px;
+        padding: 1.25rem;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        margin-bottom: 1.5rem;
+        border: 1px solid rgba(0, 0, 0, 0.05);
+    }
+
+    .filter-title {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: #2d3748;
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .lead-card {
+        background: white;
+        border-radius: 12px;
+        padding: 1rem;
+        margin-bottom: 0.875rem;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        border: 1px solid rgba(0, 0, 0, 0.05);
+        transition: all 0.3s ease;
+    }
+
+    .lead-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+        border-color: rgba(79, 70, 229, 0.2);
+    }
+
+    .lead-name {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: #4f46e5;
+        text-decoration: none;
+        margin-bottom: 0.375rem;
+        display: block;
+    }
+
+    .lead-name:hover {
+        color: #7c3aed;
+        text-decoration: none;
+    }
+
+    .lead-info {
+        display: flex;
+        align-items: center;
+        gap: 0.375rem;
+        margin-bottom: 0.375rem;
+        color: #6b7280;
+        font-size: 0.85rem;
+    }
+
+    .status-badge {
+        padding: 0.375rem 0.75rem;
+        border-radius: 25px;
+        font-weight: 600;
+        font-size: 0.8rem;
+        border: 2px solid transparent;
+        transition: all 0.2s ease;
+    }
+
+    .status-active { background-color: #d1fae5; color: #065f46; border-color: #10b981; }
+    .status-hot { background-color: #fee2e2; color: #991b1b; border-color: #ef4444; }
+    .status-warm { background-color: #fef3c7; color: #92400e; border-color: #f59e0b; }
+    .status-cold { background-color: #e5e7eb; color: #374151; border-color: #6b7280; }
+    .status-inactive { background-color: #f3f4f6; color: #1f2937; border-color: #9ca3af; }
+
+    .stage-badge {
+        padding: 0.3rem 0.625rem;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        background-color: #ddd6fe;
+        color: #5b21b6;
+        border: 1px solid #c4b5fd;
+    }
+
+    .action-buttons {
+        display: flex;
+        gap: 0.5rem;
+        justify-content: flex-end;
+    }
+
+    .btn-action {
+        padding: 0.4rem 0.75rem;
+        border-radius: 8px;
+        font-size: 0.8rem;
+        font-weight: 500;
+        border: none;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.25rem;
+    }
+
+    .btn-edit {
+        background-color: #3b82f6;
+        color: white;
+    }
+
+    .btn-edit:hover {
+        background-color: #2563eb;
+        transform: translateY(-1px);
+    }
+
+    .btn-delete {
+        background-color: #ef4444;
+        color: white;
+    }
+
+    .btn-delete:hover {
+        background-color: #dc2626;
+        transform: translateY(-1px);
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 3rem 2rem;
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        border: 1px solid rgba(0, 0, 0, 0.05);
+    }
+
+    .empty-state i {
+        font-size: 4rem;
+        color: #e5e7eb;
+        margin-bottom: 1.5rem;
+    }
+
+    .pagination-wrapper {
+        background: white;
+        border-radius: 12px;
+        padding: 1rem;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        border: 1px solid rgba(0, 0, 0, 0.05);
+        margin-top: 1.5rem;
+    }
+
+    @@media (max-width: 768px) {
+        .header-content {
+            padding: 2rem 1.5rem;
+        }
+        
+        .header-title {
+            font-size: 2rem;
+        }
+        
+        .stats-grid {
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+        }
+        
+        .stats-number {
+            font-size: 1.8rem;
+        }
+        
+        .filter-section {
+            padding: 1.5rem;
+        }
+
+        .lead-card {
+            padding: 1rem;
+        }
+
+        .action-buttons {
+            justify-content: center;
+            margin-top: 1rem;
+        }
+    }
+    
+    @@media (max-width: 576px) {
+        .stats-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .action-btn {
+            width: 100%;
+            justify-content: center;
+            margin: 0.25rem 0;
+        }
+    }
+
+    .dark-mode .filter-section {
+        background: #222639 !important;
+        border-color: #2c3049 !important;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3) !important;
+    }
+    
+    .dark-mode .filter-title {
+        color: #e4e6eb !important;
+    }
+    
+    .dark-mode .lead-card {
+        background: #222639 !important;
+        border-color: #2c3049 !important;
+        color: #e4e6eb !important;
+    }
+    
+    .dark-mode .lead-name {
+        color: #a78bfa !important;
+    }
+    
+    .dark-mode .lead-info {
+        color: #a6adc8 !important;
+    }
+    
+    .dark-mode .empty-state {
+        background: #222639 !important;
+        border-color: #2c3049 !important;
+        color: #e4e6eb !important;
+    }
+    
+    .dark-mode .pagination-wrapper {
+        background: #222639 !important;
+        border-color: #2c3049 !important;
+    }
+
+    /* Executive Search Dropdown Styles */
+    .position-relative .dropdown-menu {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        z-index: 1000;
+        border: 1px solid #dee2e6;
+        border-radius: 0.375rem;
+        background-color: #fff;
+        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+    }
+
+    .position-relative .dropdown-item {
+        padding: 0.5rem 1rem;
+        cursor: pointer;
+        border-bottom: 1px solid #f8f9fa;
+    }
+
+    .position-relative .dropdown-item:hover {
+        background-color: #f8f9fa;
+    }
+
+    .position-relative .dropdown-item:last-child {
+        border-bottom: none;
+    }
+
+    .dark-mode .position-relative .dropdown-menu {
+        background-color: #2c3049 !important;
+        border-color: #3a3f5c !important;
+    }
+
+    .dark-mode .position-relative .dropdown-item {
+        color: #e4e6eb !important;
+        border-bottom-color: #3a3f5c !important;
+    }
+
+    .dark-mode .position-relative .dropdown-item:hover {
+        background-color: #3a3f5c !important;
+    }
+
+    /* Sweet Alert Custom Styles */
+    .plan-expired-alert .swal2-html-container {
+        text-align: left !important;
+    }
+    
+    .plan-expired-alert .card {
+        transition: all 0.2s ease;
+    }
+    
+    .plan-expired-alert .card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+    
+    .plan-expired-alert .btn-primary {
+        background-color: #4f46e5;
+        border-color: #4f46e5;
+    }
+    
+    .plan-expired-alert .btn-primary:hover {
+        background-color: #3730a3;
+        border-color: #3730a3;
+    }
+</style>
+<!-- Success/Error Messages -->
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        <i class="fas fa-check-circle me-2"></i>@TempData["Success"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        <i class="fas fa-exclamation-circle me-2"></i>@TempData["Error"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+<div class="content">
+    <!-- Breadcrumb -->
+    <nav class="mb-3" aria-label="breadcrumb">
+        <ol class="breadcrumb mb-0">
+            <li class="breadcrumb-item"><a href="/Home/Index">Home</a></li>
+            <li class="breadcrumb-item active">Leads</li>
+        </ol>
+    </nav>
+
+    <!-- Modern Header with Stats -->
+    <div class="modern-header">
+        <div class="header-content">
+            <div class="row align-items-center">
+                <div class="col-lg-8">
+                    <div class="d-flex align-items-center">
+                        <div class="me-3">
+                            <i class="fa-solid fa-users" style="font-size: 2.5rem; opacity: 0.9;"></i>
+                        </div>
+                        <div>
+                            <h1 class="header-title mb-0">Leads Management</h1>
+                            <p class="header-subtitle mb-0">Track and manage all your potential customers efficiently</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-4 text-lg-end">
+                    @{
+                        var permissionService = ViewContext.HttpContext.RequestServices.GetService<CRM.Services.ViewPermissionService>();
+                        bool canCreate = permissionService.HasPermission("Leads", "Index", "Create");
+                        bool canBulkUpload = permissionService.HasPermission("Leads", "Index", "BulkUpload");
+                        bool hasActiveSubscription = ViewBag.HasActiveSubscription ?? true;
+                    }
+                    @if (canCreate)
+                    {
+                        <button type="button" class="action-btn" data-bs-toggle="modal" data-bs-target="#addLeadModal">
+                            <i class="fa-solid fa-plus"></i>
+                            <span>Add Lead</span>
+                        </button>
+                    }
+                    @if (canBulkUpload && hasActiveSubscription)
+                    {
+                        <button type="button" class="action-btn" data-bs-toggle="modal" data-bs-target="#bulkUploadModal">
+                            <i class="fa-solid fa-upload"></i>
+                            <span>Bulk Upload</span>
+                        </button>
+                    }
+                    @{
+                        var currentRole = User?.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value;
+                    }
+                    @if (currentRole == "Admin" || currentRole == "Partner")
+                    {
+                        <button type="button" class="action-btn" id="syncFacebookBtn">
+                            <i class="fa-solid fa-sync"></i>
+                            <span>Sync Facebook</span>
+                        </button>
+                    }
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filter Section -->
+    <div class="filter-section">
+        <div class="filter-title">
+            <i class="fa-solid fa-filter"></i>
+            <span>Filter & Search</span>
+        </div>
+        <div class="row g-3">
+            <div class="col-md-4">
+                <label for="searchBox" class="form-label fw-semibold">
+                    <i class="fa-solid fa-search text-muted me-2"></i>Search Leads
+                </label>
+                <input type="text" class="form-control" id="searchBox" 
+                       placeholder="Search by name, email, contact...">
+            </div>
+            <div class="col-md-2">
+                <label for="filterStage" class="form-label fw-semibold">Stage</label>
+                <select id="filterStage" class="form-select">
+                    <option value="">🔍 All Stages</option>
+                    <option value="New">🆕 New</option>
+                    <option value="Contacted">📞 Contacted</option>
+                    <option value="Qualified">✅ Qualified</option>
+                    <option value="Site Visit Requested">🏠 Site Visit Requested</option>
+                    <option value="Site Visit Done">✔️ Site Visit Done</option>
+                    <option value="Quotation">✔️ Site Visit Done</option>
+                    <option value="Quotation Sent">✔️ Site Visit Done</option>
+                    <option value="Negotiation">💬 Negotiation</option>
+                    <option value="Booked">✔️ Site Visit Done</option>
+                    <option value="Closed">🎉 Closed</option>
+                    <option value="Lost">❌ Lost</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label for="filterStatus" class="form-label fw-semibold">Status</label>
+                <select id="filterStatus" class="form-select">
+                    <option value="">🔍 All Status</option>
+                    <option value="Active">🟢 Active</option>
+                    <option value="Hot">🔥 Hot</option>
+                    <option value="Warm">🟡 Warm</option>
+                    <option value="Cold">🔵 Cold</option>
+                    <option value="Inactive">⚫ Inactive</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label for="filterFromDate" class="form-label fw-semibold">From Date</label>
+                <input type="date" id="filterFromDate" class="form-control">
+            </div>
+            <div class="col-md-2">
+                <label for="filterToDate" class="form-label fw-semibold">To Date</label>
+                <input type="date" id="filterToDate" class="form-control">
+            </div>
+        </div>
+        <div class="row mt-3">
+            <div class="col-md-6">
+                <button type="button" class="btn btn-outline-primary" id="clearFilters">
+                    <i class="fa-solid fa-refresh me-1"></i>Clear Filters
+                </button>
+            </div>
+            <div class="col-md-6 text-end">
+                @{
+                    bool canExport = User.IsInRole("Admin");
+                    if (!canExport && !string.IsNullOrEmpty(User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value)) {
+                        var userRole = User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value;
+                        canExport = _context.RolePagePermissions
+                            .Include(rpp => rpp.Page)
+                            .Include(rpp => rpp.Permission)
+                            .Any(rpp => rpp.RoleName == userRole && 
+                                        rpp.Page.Controller == "Leads" && 
+                                        rpp.Page.Action == "Index" && 
+                                        rpp.Permission.PermissionName == "Export" && 
+                                        rpp.IsGranted);
+                    }
+                }
+                @if (canExport)
+                {
+                    <button type="button" class="btn btn-success me-2" id="exportExcel">
+                        <i class="fa-solid fa-file-excel me-1"></i>Export Excel
+                    </button>
+                    <button type="button" class="btn btn-info me-2" id="exportCSV">
+                        <i class="fa-solid fa-file-csv me-1"></i>Export CSV
+                    </button>
+                }
+            </div>
+        </div>
+    </div>
+
+    <!-- Leads List -->
+    <div id="leadsContainer">
+        <!-- Leads will be populated by JavaScript -->
+    </div>
+
+    <!-- Pagination -->
+    <div class="pagination-wrapper" id="paginationWrapper" style="display: none;">
+        <div class="row align-items-center">
+            <div class="col-md-6">
+                <p class="text-muted mb-0">Showing <span id="showingStart">0</span> to <span id="showingEnd">0</span> of <span id="totalRecords">0</span> entries</p>
+            </div>
+            <div class="col-md-6">
+                <nav>
+                    <ul class="pagination justify-content-end mb-0" id="pagination">
+                        <!-- Pagination will be generated by JavaScript -->
+                    </ul>
+                </nav>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add/Edit Lead Modal -->
+<div class="modal fade" id="addLeadModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" style="max-width: 700px !important; width: 700px;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalTitle">Add New Lead</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="leadForm">
+                @Html.AntiForgeryToken()
+                <div class="modal-body">
+                    <input type="hidden" id="leadId" value="0">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Name <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="leadName" required>
+                            <div class="invalid-feedback">Please enter lead name</div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Contact <span class="text-danger">*</span></label>
+                            <input type="tel" class="form-control" id="leadContact" pattern="[0-9]{10}" required>
+                            <div class="invalid-feedback">Please enter valid 10-digit contact</div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Email</label>
+                            <input type="email" class="form-control" id="leadEmail">
+                            <div class="invalid-feedback">Please enter valid email</div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Stage <span class="text-danger">*</span></label>
+                            <select class="form-select" id="leadStage" required>
+                                <option value="">Select Stage</option>
+                                <option value="New">New</option>
+                                <option value="Contacted">Contacted</option>
+                                <option value="Qualified">Qualified</option>
+                                <option value="Site Visit Requested">Site Visit Requested</option>
+                                <option value="Site Visit Done">Site Visit Done</option>
+                                <option value="Negotiation">Negotiation</option>
+                                <option value="Closed">Closed</option>
+                                <option value="Lost">Lost</option>
+                            </select>
+                            <div class="invalid-feedback">Please select stage</div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Status <span class="text-danger">*</span></label>
+                            <select class="form-select" id="leadStatus" required>
+                                <option value="">Select Status</option>
+                                <option value="Active">Active</option>
+                                <option value="Inactive">Inactive</option>
+                                <option value="Hot">Hot</option>
+                                <option value="Warm">Warm</option>
+                                <option value="Cold">Cold</option>
+                            </select>
+                            <div class="invalid-feedback">Please select status</div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Group Name</label>
+                            <input type="text" class="form-control" id="leadGroupName">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Source</label>
+                            <select class="form-select" id="leadSource">
+                                <option value="">Select Source</option>
+                                <option value="Website">Website</option>
+                                <option value="Referral">Referral</option>
+                                <option value="Walk-in">Walk-in</option>
+                                <option value="Social Media">Social Media</option>
+                                <option value="Advertisement">Advertisement</option>
+                                <option value="Other">Other</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Preferred Location</label>
+                            <input type="text" class="form-control" id="leadPreferredLocation">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Sqft</label>
+                            <input type="text" class="form-control" id="leadSqft">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Facing</label>
+                            <select class="form-select" id="leadFacing">
+                                <option value="">Select Facing</option>
+                                <option value="North">North</option>
+                                <option value="South">South</option>
+                                <option value="East">East</option>
+                                <option value="West">West</option>
+                                <option value="North-East">North-East</option>
+                                <option value="North-West">North-West</option>
+                                <option value="South-East">South-East</option>
+                                <option value="South-West">South-West</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Type</label>
+                            <select class="form-select" id="leadType">
+                                <option value="">Select Type</option>
+                                <option value="Residential">Residential</option>
+                                <option value="Commercial">Commercial</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Property Type</label>
+                            <select class="form-select" id="leadPropertyType">
+                                <option value="">Select Property Type</option>
+                                <option value="Apartment">Apartment</option>
+                                <option value="Villa">Villa</option>
+                                <option value="Plot">Plot</option>
+                                <option value="Office">Office</option>
+                                <option value="Shop">Shop</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">BHK</label>
+                            <select class="form-select" id="leadBHK">
+                                <option value="">Select BHK</option>
+                                <option value="1BHK">1BHK</option>
+                                <option value="2BHK">2BHK</option>
+                                <option value="3BHK">3BHK</option>
+                                <option value="4BHK">4BHK</option>
+                                <option value="5BHK">5BHK</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Location Distance</label>
+                            <input type="text" class="form-control" id="leadLocationDistance">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Requirement</label>
+                            <input type="text" class="form-control" id="leadRequirement">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Executive</label>
+                            <div class="position-relative">
+                                <input type="text" class="form-control" id="executiveSearch" placeholder="Search executives..." autocomplete="off">
+                                <input type="hidden" id="leadExecutiveId" value="">
+                                <div class="dropdown-menu w-100" id="executiveDropdown" style="max-height: 200px; overflow-y: auto; display: none;">
+                                    <div class="dropdown-item" data-value="">Select Executive</div>
+                                    @if (ViewBag.Executives != null)
+                                    {
+                                        foreach (var exec in ViewBag.Executives)
+                                        {
+                                            <div class="dropdown-item" data-value="@exec.UserId" data-name="@exec.Username">@exec.Username</div>
+                                        }
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Follow Up Date</label>
+                            <input type="date" class="form-control" id="leadFollowUpDate">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Rating</label>
+                            <select class="form-select" id="leadRating">
+                                <option value="">Select Rating</option>
+                                <option value="1">1 Star</option>
+                                <option value="2">2 Stars</option>
+                                <option value="3">3 Stars</option>
+                                <option value="4">4 Stars</option>
+                                <option value="5">5 Stars</option>
+                            </select>
+                        </div>
+                        <div class="col-md-12 mb-3">
+                            <label class="form-label">Comments</label>
+                            <textarea class="form-control" id="leadComments" rows="3"></textarea>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save Lead</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Bulk Upload Modal -->
+<div class="modal fade" id="bulkUploadModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" style="max-width: 500px !important; width: 500px;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Bulk Upload Leads</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="bulkUploadForm">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Upload Excel File <span class="text-danger">*</span></label>
+                        <input type="file" class="form-control" id="bulkUploadFile" accept=".xlsx,.xls" required>
+                        <div class="form-text">Upload Excel file with leads data</div>
+                    </div>
+                    <div class="p-3 mb-3 d-flex align-items-center justify-content-between" style="background-color: #e7f3ff; border: 1px solid #b3d9ff; border-radius: 8px;">
+                        <div style="color: #004085;">
+                            <i class="fa-solid fa-info-circle me-2"></i>Download sample template to see the required format
+                        </div>
+                        <button type="button" class="btn btn-sm btn-primary" id="downloadSample">
+                            <i class="fa-solid fa-download me-1"></i>Download
+                        </button>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-success">Upload Leads</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <!-- SweetAlert2 for beautiful alerts -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <!-- Global subscription alerts -->
+    <script src="~/js/subscription-alerts.js"></script>
+    <!-- SheetJS for Excel operations -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+    <script>
+        // Global variables
+        let allLeads = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model));
+        let filteredLeads = [...allLeads];
+        let currentPage = 1;
+        let pageSize = 10;
+        let isEditMode = false;
+        let userRole = '@User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value';
+
+        // Executives data from server
+        let executives = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(ViewBag.Executives));
+        
+        // Permission check functions
+        function canEdit() {
+            return userRole === 'Admin' || @Html.Raw(ViewContext.HttpContext.RequestServices.GetService<CRM.Services.ViewPermissionService>().HasPermission("Leads", "Index", "Edit").ToString().ToLower());
+        }
+        
+        function canDelete() {
+            return userRole === 'Admin' || @Html.Raw(ViewContext.HttpContext.RequestServices.GetService<CRM.Services.ViewPermissionService>().HasPermission("Leads", "Index", "Delete").ToString().ToLower());
+        }
+        
+        function getEditButton(leadId) {
+            if (canEdit()) {
+                return `<button class="btn-action btn-edit" onclick="editLead(${leadId})" title="Edit Lead">
+                    <i class="fa-solid fa-edit"></i>
+                </button>`;
+            }
+            return '';
+        }
+        
+        function getDeleteButton(leadId) {
+            if (canDelete()) {
+                return `<button class="btn-action btn-delete" onclick="deleteLead(${leadId})" title="Delete Lead">
+                    <i class="fa-solid fa-trash"></i>
+                </button>`;
+            }
+            return '';
+        }
+
+        // Helper function to get executive name
+        function getExecutiveName(executiveId) {
+            if (!executiveId) return '-';
+            const exec = executives.find(e => e.UserId === executiveId);
+            if (!exec) return '-';
+            return exec.Username;
+        }
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', function () {
+            initializeFeatherIcons();
+            renderTable();
+            attachEventListeners();
+            initializeExecutiveSearch();
+
+            // Auto-dismiss alerts
+            setTimeout(() => {
+                document.querySelectorAll('.alert').forEach(alert => {
+                    bootstrap.Alert.getOrCreateInstance(alert).close();
+                });
+            }, 5000);
+        });
+
+        function initializeFeatherIcons() {
+            if (typeof feather !== 'undefined') {
+                feather.replace();
+            }
+        }
+
+        function initializeExecutiveSearch() {
+            const searchInput = document.getElementById('executiveSearch');
+            const hiddenInput = document.getElementById('leadExecutiveId');
+            const dropdown = document.getElementById('executiveDropdown');
+            const dropdownItems = dropdown.querySelectorAll('.dropdown-item');
+
+            // Show dropdown on focus
+            searchInput.addEventListener('focus', function() {
+                dropdown.style.display = 'block';
+                filterExecutives('');
+            });
+
+            // Hide dropdown when clicking outside
+            document.addEventListener('click', function(e) {
+                if (!searchInput.contains(e.target) && !dropdown.contains(e.target)) {
+                    dropdown.style.display = 'none';
+                }
+            });
+
+            // Filter executives on input
+            searchInput.addEventListener('input', function() {
+                const searchTerm = this.value.toLowerCase();
+                filterExecutives(searchTerm);
+            });
+
+            // Handle dropdown item selection
+            dropdownItems.forEach(item => {
+                item.addEventListener('click', function() {
+                    const value = this.getAttribute('data-value');
+                    const name = this.getAttribute('data-name') || this.textContent;
+                    
+                    hiddenInput.value = value;
+                    searchInput.value = name;
+                    dropdown.style.display = 'none';
+                });
+            });
+
+            function filterExecutives(searchTerm) {
+                dropdownItems.forEach(item => {
+                    const text = item.textContent.toLowerCase();
+                    if (text.includes(searchTerm)) {
+                        item.style.display = 'block';
+                    } else {
+                        item.style.display = 'none';
+                    }
+                });
+            }
+        }
+
+        function attachEventListeners() {
+            // Search
+            document.getElementById('searchBox').addEventListener('input', applyFilters);
+
+            // Filters
+            document.getElementById('filterStage').addEventListener('change', applyFilters);
+            document.getElementById('filterStatus').addEventListener('change', applyFilters);
+            document.getElementById('filterFromDate').addEventListener('change', applyFilters);
+            document.getElementById('filterToDate').addEventListener('change', applyFilters);
+
+            // Clear filters
+            document.getElementById('clearFilters').addEventListener('click', clearFilters);
+
+            // Export buttons (check if they exist first)
+            const exportExcelBtn = document.getElementById('exportExcel');
+            if (exportExcelBtn) exportExcelBtn.addEventListener('click', exportToExcel);
+            
+            const exportCSVBtn = document.getElementById('exportCSV');
+            if (exportCSVBtn) exportCSVBtn.addEventListener('click', exportToCSV);
+            
+            const downloadSampleBtn = document.getElementById('downloadSample');
+            if (downloadSampleBtn) downloadSampleBtn.addEventListener('click', downloadSampleTemplate);
+
+            // Form submissions
+            document.getElementById('leadForm').addEventListener('submit', saveLead);
+            document.getElementById('bulkUploadForm').addEventListener('submit', handleBulkUpload);
+            
+            // Sync Facebook button
+            document.getElementById('syncFacebookBtn').addEventListener('click', syncFacebookLeads);
+            
+
+
+            // Modal events
+            document.getElementById('addLeadModal').addEventListener('hidden.bs.modal', resetForm);
+        }
+
+        function applyFilters() {
+            const searchText = document.getElementById('searchBox').value.toLowerCase();
+            const stage = document.getElementById('filterStage').value;
+            const status = document.getElementById('filterStatus').value;
+            const fromDate = document.getElementById('filterFromDate').value;
+            const toDate = document.getElementById('filterToDate').value;
+
+            filteredLeads = allLeads.filter(lead => {
+                // Search filter
+                const matchesSearch = !searchText ||
+                    (lead.Name && lead.Name.toLowerCase().includes(searchText)) ||
+                    (lead.Contact && lead.Contact.includes(searchText)) ||
+                    (lead.Email && lead.Email.toLowerCase().includes(searchText));
+
+                // Stage filter
+                const matchesStage = !stage || lead.Stage === stage;
+
+                // Status filter
+                const matchesStatus = !status || lead.Status === status;
+
+                // Date filter
+                let matchesDate = true;
+                if (fromDate || toDate) {
+                    const leadDate = new Date(lead.CreatedOn);
+                    if (fromDate) {
+                        matchesDate = matchesDate && leadDate >= new Date(fromDate);
+                    }
+                    if (toDate) {
+                        matchesDate = matchesDate && leadDate <= new Date(toDate + 'T23:59:59');
+                    }
+                }
+
+                return matchesSearch && matchesStage && matchesStatus && matchesDate;
+            });
+
+            currentPage = 1;
+            renderTable();
+        }
+
+        function clearFilters() {
+            document.getElementById('searchBox').value = '';
+            document.getElementById('filterStage').value = '';
+            document.getElementById('filterStatus').value = '';
+            document.getElementById('filterFromDate').value = '';
+            document.getElementById('filterToDate').value = '';
+            filteredLeads = [...allLeads];
+            currentPage = 1;
+            renderTable();
+        }
+
+        function renderTable() {
+            const container = document.getElementById('leadsContainer');
+            const start = (currentPage - 1) * pageSize;
+            const end = start + pageSize;
+            const paginatedLeads = filteredLeads.slice(start, end);
+
+            container.innerHTML = '';
+
+            if (paginatedLeads.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fa-solid fa-users"></i>
+                        <h3>No Leads Found</h3>
+                        <p class="text-muted">Start by adding your first lead or adjust your filters</p>
+                        <button type="button" class="btn btn-primary mt-3" data-bs-toggle="modal" data-bs-target="#addLeadModal">
+                            <i class="fa-solid fa-plus me-2"></i>Add Lead
+                        </button>
+                    </div>
+                `;
+                document.getElementById('paginationWrapper').style.display = 'none';
+            } else {
+                paginatedLeads.forEach(lead => {
+                    const leadCard = document.createElement('div');
+                    leadCard.className = 'lead-card';
+                    leadCard.innerHTML = `
+                        <div class="row align-items-center">
+                            <div class="col-md-4">
+                                <a href="/Leads/Details/${lead.LeadId}" class="lead-name">
+                                    ${lead.Name || 'Unnamed Lead'}
+                                </a>
+                                <div class="lead-info">
+                                    <i class="fa-solid fa-phone"></i>
+                                    <span>${lead.Contact || 'No contact'}</span>
+                                </div>
+                                <div class="lead-info">
+                                    <i class="fa-solid fa-envelope"></i>
+                                    <span>${lead.Email || 'No email'}</span>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="lead-info">
+                                    <i class="fa-solid fa-map-marker-alt"></i>
+                                    <span>${lead.PreferredLocation || 'No location'}</span>
+                                </div>
+                                <div class="lead-info">
+                                    <i class="fa-solid fa-tag"></i>
+                                    <span>${lead.Source || 'Unknown source'}</span>
+                                </div>
+                                <div class="lead-info">
+                                    <i class="fa-solid fa-user-tie"></i>
+                                    <span>${getExecutiveName(lead.ExecutiveId)}</span>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="mb-2">
+                                    <span class="stage-badge">${lead.Stage || 'No stage'}</span>
+                                </div>
+                                <div class="mb-2">
+                                    <span class="status-badge status-${(lead.Status || 'inactive').toLowerCase()}">
+                                        ${lead.Status || 'Inactive'}
+                                    </span>
+                                </div>
+                                <div class="lead-info">
+                                    <i class="fa-solid fa-home"></i>
+                                    <span>${lead.Type || 'No type'} ${lead.BHK ? '- ' + lead.BHK : ''}</span>
+                                </div>
+                            </div>
+                            <div class="col-md-2">
+                                <div class="action-buttons">
+                                    ${getHandoverButton(lead)}
+                                    ${getEditButton(lead.LeadId)}
+                                    ${getDeleteButton(lead.LeadId)}
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    container.appendChild(leadCard);
+                });
+                document.getElementById('paginationWrapper').style.display = 'block';
+            }
+
+            updatePaginationInfo();
+            renderPagination();
+            updateStats();
+        }
+
+        function updateStats() {
+            // Stats cards have been removed from the UI
+            // Keeping function for compatibility
+        }
+
+
+
+        function formatDate(dateString) {
+            if (!dateString) return '-';
+            const date = new Date(dateString);
+            return date.toLocaleDateString('en-GB');
+        }
+
+        function updatePaginationInfo() {
+            const total = filteredLeads.length;
+            const start = total === 0 ? 0 : (currentPage - 1) * pageSize + 1;
+            const end = Math.min(currentPage * pageSize, total);
+
+            document.getElementById('showingStart').textContent = start;
+            document.getElementById('showingEnd').textContent = end;
+            document.getElementById('totalRecords').textContent = total;
+        }
+
+        function renderPagination() {
+            const pagination = document.getElementById('pagination');
+            const totalPages = Math.ceil(filteredLeads.length / pageSize);
+
+            pagination.innerHTML = '';
+
+            if (totalPages <= 1) {
+                // Show single page indicator
+                const singleLi = document.createElement('li');
+                singleLi.className = 'page-item active';
+                singleLi.innerHTML = `<span class="page-link">1</span>`;
+                pagination.appendChild(singleLi);
+                return;
+            }
+
+            // Previous button
+            const prevLi = document.createElement('li');
+            prevLi.className = `page-item ${currentPage === 1 ? 'disabled' : ''}`;
+            prevLi.innerHTML = `<a class="page-link" href="#" onclick="changePage(${currentPage - 1}); return false;" aria-label="Previous">
+                        <span aria-hidden="true"><span class="d-none d-sm-inline">Previous</span><span class="d-inline d-sm-none">&laquo;</span></span>
+                    </a>`;
+            pagination.appendChild(prevLi);
+
+            // Page numbers
+            const startPage = Math.max(1, currentPage - 2);
+            const endPage = Math.min(totalPages, currentPage + 2);
+
+            if (startPage > 1) {
+                const firstLi = document.createElement('li');
+                firstLi.className = 'page-item';
+                firstLi.innerHTML = `<a class="page-link" href="#" onclick="changePage(1); return false;">1</a>`;
+                pagination.appendChild(firstLi);
+
+                if (startPage > 2) {
+                    const dotsLi = document.createElement('li');
+                    dotsLi.className = 'page-item disabled';
+                    dotsLi.innerHTML = `<span class="page-link">...</span>`;
+                    pagination.appendChild(dotsLi);
+                }
+            }
+
+            for (let i = startPage; i <= endPage; i++) {
+                const li = document.createElement('li');
+                li.className = `page-item ${i === currentPage ? 'active' : ''}`;
+                li.innerHTML = `<a class="page-link" href="#" onclick="changePage(${i}); return false;">${i}</a>`;
+                pagination.appendChild(li);
+            }
+
+            if (endPage < totalPages) {
+                if (endPage < totalPages - 1) {
+                    const dotsLi = document.createElement('li');
+                    dotsLi.className = 'page-item disabled';
+                    dotsLi.innerHTML = `<span class="page-link">...</span>`;
+                    pagination.appendChild(dotsLi);
+                }
+
+                const lastLi = document.createElement('li');
+                lastLi.className = 'page-item';
+                lastLi.innerHTML = `<a class="page-link" href="#" onclick="changePage(${totalPages}); return false;">${totalPages}</a>`;
+                pagination.appendChild(lastLi);
+            }
+
+            // Next button
+            const nextLi = document.createElement('li');
+            nextLi.className = `page-item ${currentPage === totalPages ? 'disabled' : ''}`;
+            nextLi.innerHTML = `<a class="page-link" href="#" onclick="changePage(${currentPage + 1}); return false;" aria-label="Next">
+                        <span aria-hidden="true"><span class="d-none d-sm-inline">Next</span><span class="d-inline d-sm-none">&raquo;</span></span>
+                    </a>`;
+            pagination.appendChild(nextLi);
+        }
+
+        function changePage(page) {
+            const totalPages = Math.ceil(filteredLeads.length / pageSize);
+            if (page < 1 || page > totalPages) return;
+            currentPage = page;
+            renderTable();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function saveLead(e) {
+            e.preventDefault();
+
+            const form = e.target;
+            if (!form.checkValidity()) {
+                form.classList.add('was-validated');
+                return;
+            }
+
+            const leadId = parseInt(document.getElementById('leadId').value);
+            const leadData = {
+                leadId: leadId,
+                name: document.getElementById('leadName').value,
+                contact: document.getElementById('leadContact').value,
+                email: document.getElementById('leadEmail').value,
+                stage: document.getElementById('leadStage').value,
+                status: document.getElementById('leadStatus').value,
+                groupName: document.getElementById('leadGroupName').value,
+                source: document.getElementById('leadSource').value,
+                preferredLocation: document.getElementById('leadPreferredLocation').value,
+                sqft: document.getElementById('leadSqft').value,
+                facing: document.getElementById('leadFacing').value,
+                type: document.getElementById('leadType').value,
+                propertyType: document.getElementById('leadPropertyType').value,
+                bhk: document.getElementById('leadBHK').value,
+                locationDistance: document.getElementById('leadLocationDistance').value,
+                requirement: document.getElementById('leadRequirement').value,
+                executiveId: document.getElementById('leadExecutiveId').value ? parseInt(document.getElementById('leadExecutiveId').value) : null,
+                followUpDate: document.getElementById('leadFollowUpDate').value || null,
+                rating: document.getElementById('leadRating').value,
+                comments: document.getElementById('leadComments').value,
+                createdOn: new Date().toISOString(),
+                modifiedOn: new Date().toISOString()
+            };
+
+            // Send to server
+            const url = '/Leads/SaveLead';
+            const formData = new FormData();
+
+            Object.keys(leadData).forEach(key => {
+                if (leadData[key] !== null && leadData[key] !== '') {
+                    formData.append(key, leadData[key]);
+                }
+            });
+
+            fetch(url, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value,
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Update client-side data
+                        if (leadId === 0) {
+                            // New lead
+                            leadData.LeadId = allLeads.length > 0 ? Math.max(...allLeads.map(l => l.LeadId)) + 1 : 1;
+                            // Convert to PascalCase for consistency with server data
+                            const newLead = {
+                                LeadId: leadData.LeadId,
+                                Name: leadData.name,
+                                Contact: leadData.contact,
+                                Email: leadData.email,
+                                Stage: leadData.stage,
+                                Status: leadData.status,
+                                GroupName: leadData.groupName,
+                                Source: leadData.source,
+                                PreferredLocation: leadData.preferredLocation,
+                                Sqft: leadData.sqft,
+                                Facing: leadData.facing,
+                                Type: leadData.type,
+                                PropertyType: leadData.propertyType,
+                                BHK: leadData.bhk,
+                                LocationDistance: leadData.locationDistance,
+                                Requirement: leadData.requirement,
+                                ExecutiveId: leadData.executiveId,
+                                FollowUpDate: leadData.followUpDate,
+                                Rating: leadData.rating,
+                                Comments: leadData.comments,
+                                CreatedOn: leadData.createdOn,
+                                ModifiedOn: leadData.modifiedOn
+                            };
+                            allLeads.unshift(newLead);
+                            showToast('Lead added successfully!', 'success');
+                        } else {
+                            // Update existing lead
+                            const index = allLeads.findIndex(l => l.LeadId === leadId);
+                            if (index !== -1) {
+                                allLeads[index].Name = leadData.name;
+                                allLeads[index].Contact = leadData.contact;
+                                allLeads[index].Email = leadData.email;
+                                allLeads[index].Stage = leadData.stage;
+                                allLeads[index].Status = leadData.status;
+                                allLeads[index].GroupName = leadData.groupName;
+                                allLeads[index].Source = leadData.source;
+                                allLeads[index].PreferredLocation = leadData.preferredLocation;
+                                allLeads[index].Sqft = leadData.sqft;
+                                allLeads[index].Facing = leadData.facing;
+                                allLeads[index].Type = leadData.type;
+                                allLeads[index].PropertyType = leadData.propertyType;
+                                allLeads[index].BHK = leadData.bhk;
+                                allLeads[index].LocationDistance = leadData.locationDistance;
+                                allLeads[index].Requirement = leadData.requirement;
+                                allLeads[index].ExecutiveId = leadData.executiveId;
+                                allLeads[index].FollowUpDate = leadData.followUpDate;
+                                allLeads[index].Rating = leadData.rating;
+                                allLeads[index].Comments = leadData.comments;
+                                allLeads[index].ModifiedOn = leadData.modifiedOn;
+                            }
+                            showToast('Lead updated successfully!', 'success');
+                        }
+
+                        filteredLeads = [...allLeads];
+                        renderTable();
+                        bootstrap.Modal.getInstance(document.getElementById('addLeadModal')).hide();
+                        resetForm();
+
+                        // Reload page to sync with server
+                        location.reload();
+                    } else if (data.planExpired) {
+                        // Show sweet alert for plan expiration
+                        SubscriptionAlerts.showPlanExpiredAlert(data.message, data.availablePlans);
+                    } else {
+                        showToast(data.message || 'Error saving lead', 'error');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    showToast('Error saving lead', 'error');
+                });
+        }
+
+        function editLead(id) {
+            const lead = allLeads.find(l => l.LeadId === id);
+            if (!lead) return;
+
+            isEditMode = true;
+            document.getElementById('modalTitle').textContent = 'Edit Lead';
+            document.getElementById('leadId').value = lead.LeadId;
+            document.getElementById('leadName').value = lead.Name || '';
+            document.getElementById('leadContact').value = lead.Contact || '';
+            document.getElementById('leadEmail').value = lead.Email || '';
+            document.getElementById('leadStage').value = lead.Stage || '';
+            document.getElementById('leadStatus').value = lead.Status || '';
+            document.getElementById('leadGroupName').value = lead.GroupName || '';
+            document.getElementById('leadSource').value = lead.Source || '';
+            document.getElementById('leadPreferredLocation').value = lead.PreferredLocation || '';
+            document.getElementById('leadSqft').value = lead.Sqft || '';
+            document.getElementById('leadFacing').value = lead.Facing || '';
+            document.getElementById('leadType').value = lead.Type || '';
+            document.getElementById('leadPropertyType').value = lead.PropertyType || '';
+            document.getElementById('leadBHK').value = lead.BHK || '';
+            document.getElementById('leadLocationDistance').value = lead.LocationDistance || '';
+            document.getElementById('leadRequirement').value = lead.Requirement || '';
+            document.getElementById('leadExecutiveId').value = lead.ExecutiveId || '';
+            
+            // Set executive search field
+            if (lead.ExecutiveId) {
+                const executiveName = getExecutiveName(lead.ExecutiveId);
+                document.getElementById('executiveSearch').value = executiveName;
+            } else {
+                document.getElementById('executiveSearch').value = '';
+            }
+            document.getElementById('leadFollowUpDate').value = lead.FollowUpDate ? lead.FollowUpDate.split('T')[0] : '';
+            document.getElementById('leadRating').value = lead.Rating || '';
+            document.getElementById('leadComments').value = lead.Comments || '';
+
+            new bootstrap.Modal(document.getElementById('addLeadModal')).show();
+        }
+
+        function deleteLead(id) {
+            if (!confirm('Are you sure you want to delete this lead?')) return;
+
+            const url = `/Leads/Delete?id=${id}`;
+
+            fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        allLeads = allLeads.filter(l => l.LeadId !== id);
+                        filteredLeads = filteredLeads.filter(l => l.LeadId !== id);
+                        renderTable();
+                        showToast('Lead deleted successfully!', 'success');
+                    } else {
+                        showToast(data.message || 'Error deleting lead', 'error');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    showToast('Error deleting lead', 'error');
+                });
+        }
+
+        function resetForm() {
+            isEditMode = false;
+            document.getElementById('modalTitle').textContent = 'Add New Lead';
+            document.getElementById('leadForm').reset();
+            document.getElementById('leadForm').classList.remove('was-validated');
+            document.getElementById('leadId').value = '0';
+            
+            // Reset executive search
+            document.getElementById('executiveSearch').value = '';
+            document.getElementById('leadExecutiveId').value = '';
+        }
+
+        function exportToExcel() {
+            const ws_data = [
+                ['Name', 'Contact', 'Email', 'Stage', 'Status', 'Group', 'Source', 'Preferred Location',
+                    'Sqft', 'Facing', 'Type', 'Property Type', 'BHK', 'Location Distance', 'Requirement',
+                    'Executive', 'Follow Up Date', 'Rating', 'Comments']
+            ];
+
+            filteredLeads.forEach(lead => {
+                ws_data.push([
+                    lead.Name || '',
+                    lead.Contact || '',
+                    lead.Email || '',
+                    lead.Stage || '',
+                    lead.Status || '',
+                    lead.GroupName || '',
+                    lead.Source || '',
+                    lead.PreferredLocation || '',
+                    lead.Sqft || '',
+                    lead.Facing || '',
+                    lead.Type || '',
+                    lead.PropertyType || '',
+                    lead.BHK || '',
+                    lead.LocationDistance || '',
+                    lead.Requirement || '',
+                    getExecutiveName(lead.ExecutiveId),
+                    lead.FollowUpDate ? formatDate(lead.FollowUpDate) : '',
+                    lead.Rating || '',
+                    lead.Comments || ''
+                ]);
+            });
+
+            const wb = XLSX.utils.book_new();
+            const ws = XLSX.utils.aoa_to_sheet(ws_data);
+
+            // Set column widths
+            ws['!cols'] = [
+                { wch: 20 }, { wch: 15 }, { wch: 25 }, { wch: 15 }, { wch: 12 }, { wch: 15 },
+                { wch: 15 }, { wch: 20 }, { wch: 10 }, { wch: 12 }, { wch: 15 }, { wch: 15 },
+                { wch: 10 }, { wch: 18 }, { wch: 20 }, { wch: 12 }, { wch: 15 }, { wch: 10 }, { wch: 30 }
+            ];
+
+            XLSX.utils.book_append_sheet(wb, ws, "Leads");
+            XLSX.writeFile(wb, `Leads_Export_${new Date().toISOString().split('T')[0]}.xlsx`);
+
+            showToast('Excel exported successfully!', 'success');
+        }
+
+        function exportToCSV() {
+            let csv = 'Name,Contact,Email,Stage,Status,Group,Source,Preferred Location,Sqft,Facing,Type,Property Type,BHK,Location Distance,Requirement,Executive,Follow Up Date,Rating,Comments\n';
+
+            filteredLeads.forEach(lead => {
+                csv += [
+                    escapeCSV(lead.Name),
+                    escapeCSV(lead.Contact),
+                    escapeCSV(lead.Email),
+                    escapeCSV(lead.Stage),
+                    escapeCSV(lead.Status),
+                    escapeCSV(lead.GroupName),
+                    escapeCSV(lead.Source),
+                    escapeCSV(lead.PreferredLocation),
+                    escapeCSV(lead.Sqft),
+                    escapeCSV(lead.Facing),
+                    escapeCSV(lead.Type),
+                    escapeCSV(lead.PropertyType),
+                    escapeCSV(lead.BHK),
+                    escapeCSV(lead.LocationDistance),
+                    escapeCSV(lead.Requirement),
+                    escapeCSV(getExecutiveName(lead.ExecutiveId)),
+                    lead.FollowUpDate ? formatDate(lead.FollowUpDate) : '',
+                    escapeCSV(lead.Rating),
+                    escapeCSV(lead.Comments)
+                ].join(',') + '\n';
+            });
+
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `Leads_Export_${new Date().toISOString().split('T')[0]}.csv`;
+            a.click();
+            window.URL.revokeObjectURL(url);
+
+            showToast('CSV exported successfully!', 'success');
+        }
+
+        function escapeCSV(value) {
+            if (!value) return '';
+            value = value.toString();
+            if (value.includes(',') || value.includes('"') || value.includes('\n')) {
+                return '"' + value.replace(/"/g, '""') + '"';
+            }
+            return value;
+        }
+
+        function downloadSampleTemplate() {
+            const ws_data = [
+                ['Name', 'Contact', 'Email', 'Stage', 'Status', 'Group', 'Source', 'Preferred Location',
+                    'Sqft', 'Facing', 'Type', 'Property Type', 'BHK', 'Location Distance', 'Requirement',
+                    'Executive ID (Enter User ID)', 'Follow Up Date (YYYY-MM-DD)'],
+                ['John Doe', '9999999999', 'john@example.com', 'New', 'Active', 'Group A', 'Website',
+                    'Hyderabad', '1200', 'North', 'Residential', 'Apartment', '3BHK', '5km', 'Immediate',
+                    '1', '2025-12-01']
+            ];
+
+            const wb = XLSX.utils.book_new();
+            const ws = XLSX.utils.aoa_to_sheet(ws_data);
+
+            ws['!cols'] = [
+                { wch: 20 }, { wch: 15 }, { wch: 25 }, { wch: 15 }, { wch: 12 }, { wch: 15 },
+                { wch: 15 }, { wch: 20 }, { wch: 10 }, { wch: 12 }, { wch: 15 }, { wch: 15 },
+                { wch: 10 }, { wch: 18 }, { wch: 20 }, { wch: 12 }, { wch: 15 }
+            ];
+
+            XLSX.utils.book_append_sheet(wb, ws, "Lead Template");
+            XLSX.writeFile(wb, "Lead_Upload_Sample.xlsx");
+
+            showToast('Sample template downloaded!', 'success');
+        }
+
+        function handleBulkUpload(e) {
+            e.preventDefault();
+
+            const fileInput = document.getElementById('bulkUploadFile');
+            const file = fileInput.files[0];
+
+            if (!file) {
+                showToast('Please select a file', 'error');
+                return;
+            }
+
+            // Show loading state
+            const submitBtn = e.target.querySelector('button[type="submit"]');
+            const originalText = submitBtn.innerHTML;
+            submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-1"></i>Uploading...';
+            submitBtn.disabled = true;
+
+            // Upload to server using AJAX
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('a', '1'); // dummy parameter as per controller
+
+            // Add anti-forgery token
+            const token = document.querySelector('input[name="__RequestVerificationToken"]');
+            if (token) {
+                formData.append('__RequestVerificationToken', token.value);
+            }
+
+            fetch('/Leads/UploadLeadFile', {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+                .then(response => {
+                    console.log('Response status:', response.status);
+                    console.log('Response headers:', response.headers);
+                    
+                    if (!response.ok) {
+                        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                    }
+                    
+                    const contentType = response.headers.get('content-type');
+                    console.log('Content-Type:', contentType);
+                    
+                    if (contentType && contentType.includes('application/json')) {
+                        return response.json();
+                    } else {
+                        // If not JSON, it means server returned HTML (redirect)
+                        // This could be due to subscription limits or other server-side redirects
+                        throw new Error('Server returned non-JSON response. Please check your subscription status.');
+                    }
+                })
+                .then(data => {
+                    if (data.success) {
+                        showToast('Bulk upload successful!', 'success');
+                        bootstrap.Modal.getInstance(document.getElementById('bulkUploadModal')).hide();
+                        setTimeout(() => location.reload(), 1500);
+                    } else if (data.planExpired) {
+                        // Show sweet alert for plan expiration
+                        SubscriptionAlerts.showPlanExpiredAlert(data.message, data.availablePlans);
+                    } else {
+                        showToast(data.message || 'Error uploading file', 'error');
+                    }
+                })
+                .catch(error => {
+                    console.error('Bulk upload error details:', error);
+                    console.error('Error message:', error.message);
+                    console.error('Error stack:', error.stack);
+                    
+                    // Show cleaner error message for subscription issues
+                    if (error.message.includes('Server returned non-JSON response')) {
+                        showToast('Please check your subscription status.', 'error');
+                    } else {
+                        showToast(`Upload failed: ${error.message}`, 'error');
+                    }
+                })
+                .finally(() => {
+                    // Reset button state
+                    submitBtn.innerHTML = originalText;
+                    submitBtn.disabled = false;
+                });
+        }
+
+        // Partner Handover System Functions
+        function getHandoverButton(lead) {
+            const userRole = '@User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value';
+            const handoverStatus = lead.HandoverStatus || 'Partner';
+            
+            console.log('Lead:', lead.LeadId, 'Role:', userRole, 'HandoverStatus:', handoverStatus);
+            
+            if ((userRole === 'Partner' || userRole === 'Sales' || userRole === 'Agent') && handoverStatus === 'Partner') {
+                return `<button class="btn-action" style="background-color: #28a745; color: white;" onclick="markReadyToBook(${lead.LeadId})" title="Mark Ready to Book">
+                    <i class="fa-solid fa-handshake"></i>
+                </button>`;
+            } else if (userRole === 'Admin' && handoverStatus === 'ReadyToBook') {
+                return `<button class="btn-action" style="background-color: #17a2b8; color: white;" onclick="assignToAgent(${lead.LeadId})" title="Assign to Agent">
+                    <i class="fa-solid fa-user-plus"></i>
+                </button>`;
+            } else if (handoverStatus === 'HandedOver') {
+                return `<span class="badge" style="background-color: #6c757d; color: white;">Handed Over</span>`;
+            }
+            return '';
+        }
+
+        function markReadyToBook(leadId) {
+            if (!confirm('Are you sure you want to mark this lead as ready to book? This will hand it over to Admin and you will no longer be able to edit it.')) {
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('leadId', leadId);
+            
+            // Add anti-forgery token
+            const token = document.querySelector('input[name="__RequestVerificationToken"]');
+            if (token) {
+                formData.append('__RequestVerificationToken', token.value);
+            }
+
+            fetch('/Leads/MarkReadyToBook', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showToast(data.message, 'success');
+                    // Update lead status in local data
+                    const lead = allLeads.find(l => l.LeadId === leadId);
+                    if (lead) {
+                        lead.HandoverStatus = 'ReadyToBook';
+                        lead.IsReadyToBook = true;
+                        lead.Source = 'Partner';
+                    }
+                    renderTable();
+                } else {
+                    showToast(data.message || 'Error marking lead as ready to book', 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showToast('Error marking lead as ready to book', 'error');
+            });
+        }
+
+        function assignToAgent(leadId) {
+            // Show agent selection modal
+            const agentId = prompt('Enter Agent ID to assign this lead:');
+            if (!agentId) return;
+
+            fetch('/Leads/AssignToAgent', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ leadId: leadId, agentId: parseInt(agentId) })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showToast(data.message, 'success');
+                    // Update lead status in local data
+                    const lead = allLeads.find(l => l.LeadId === leadId);
+                    if (lead) {
+                        lead.HandoverStatus = 'HandedOver';
+                        lead.AdminAssignedTo = parseInt(agentId);
+                        lead.ExecutiveId = parseInt(agentId);
+                    }
+                    renderTable();
+                } else {
+                    showToast(data.message || 'Error assigning lead to agent', 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showToast('Error assigning lead to agent', 'error');
+            });
+        }
+        
+
+
+        function showToast(message, type) {
+            const alertDiv = document.createElement('div');
+            alertDiv.className = `alert alert-${type === 'success' ? 'success' : 'danger'} alert-dismissible fade show position-fixed`;
+            alertDiv.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+            alertDiv.innerHTML = `
+                        <i data-feather="${type === 'success' ? 'check-circle' : 'alert-circle'}" class="me-2"></i>
+                        ${message}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    `;
+
+            document.body.appendChild(alertDiv);
+            initializeFeatherIcons();
+
+            setTimeout(() => {
+                alertDiv.remove();
+            }, 5000);
+        }
+
+        // Sync Facebook Leads
+        async function syncFacebookLeads() {
+            const btn = document.getElementById('syncFacebookBtn');
+            const originalText = btn.innerHTML;
+            
+            // Show loading
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> <span>Syncing...</span>';
+            btn.disabled = true;
+            
+            try {
+                const response = await fetch('/api/facebook/fetch-leads');
+                const result = await response.json();
+                
+                if (result.success) {
+                    showToast(result.message, 'success');
+                    // Reload page to show new leads
+                    setTimeout(() => location.reload(), 2000);
+                } else {
+                    throw new Error(result.message || 'Sync failed');
+                }
+            } catch (error) {
+                showToast(error.message, 'error');
+            } finally {
+                // Reset button
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            }
+        }
+    </script>
+}

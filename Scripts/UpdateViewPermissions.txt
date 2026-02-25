@@ -1,0 +1,60 @@
+## Quick Template for Adding Permission Checks to Views
+
+### For Create/Add buttons:
+Replace:
+<button>Add New</button>
+
+With:
+@if (HasPermission("ControllerName", "Index", "Create"))
+{
+    <button>Add New</button>
+}
+
+### For Edit buttons:
+Replace:
+<button onclick="edit(id)">Edit</button>
+
+With:
+@if (HasPermission("ControllerName", "Index", "Edit"))
+{
+    <button onclick="edit(id)">Edit</button>
+}
+
+### For Delete buttons:
+Replace:
+<button onclick="delete(id)">Delete</button>
+
+With:
+@if (HasPermission("ControllerName", "Index", "Delete"))
+{
+    <button onclick="delete(id)">Delete</button>
+}
+
+### For Export buttons:
+Replace:
+<button onclick="export()">Export</button>
+
+With:
+@if (HasPermission("ControllerName", "Index", "Export"))
+{
+    <button onclick="export()">Export</button>
+}
+
+### All Views Updated with Permission Checks:
+✅ Leads/Index.cshtml
+✅ Properties/Index.cshtml
+✅ Tasks/Index.cshtml
+✅ Bookings/Index.cshtml
+✅ Payments/Index.cshtml
+✅ Revenue/Index.cshtml  
+✅ Expenses/Index.cshtml
+✅ Quotations/Index.cshtml
+✅ Invoices/Index.cshtml
+✅ SalesPipelines/Index.cshtml (No buttons to protect)
+
+### Permission Implementation Complete!
+All views now use HasPermission("ControllerName", "Index", "PermissionType") for:
+- Create buttons
+- Edit buttons  
+- Delete buttons
+- Export buttons

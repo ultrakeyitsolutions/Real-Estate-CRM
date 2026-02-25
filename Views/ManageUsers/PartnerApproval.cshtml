@@ -1,0 +1,1348 @@
+@model IEnumerable<CRM.Models.ChannelPartnerModel>
+@{
+    ViewData["Title"] = "Partner Approval";
+}
+
+<style>
+    .modern-header {
+        background: linear-gradient(135deg, #6f42c1 0%, #5a2d91 100%);
+        position: relative;
+        overflow: hidden;
+        border-radius: 16px;
+        margin-bottom: 2rem;
+        box-shadow: 0 8px 32px rgba(111, 66, 193, 0.15);
+    }
+
+    .modern-header::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="50" cy="50" r="1" fill="%23ffffff" opacity="0.1"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>') repeat;
+        opacity: 0.3;
+    }
+
+    .header-content {
+        position: relative;
+        z-index: 2;
+        padding: 2.5rem 2rem;
+        color: white;
+    }
+
+    .header-title {
+        font-size: 2.5rem;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .header-subtitle {
+        font-size: 1.1rem;
+        opacity: 0.9;
+        margin-bottom: 2rem;
+        font-weight: 400;
+    }
+
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1.5rem;
+        margin-top: 2rem;
+    }
+
+    .stats-card {
+        background: rgba(255, 255, 255, 0.15);
+        backdrop-filter: blur(20px);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        border-radius: 12px;
+        padding: 1.5rem;
+        text-align: center;
+        transition: all 0.3s ease;
+    }
+
+    .stats-card:hover {
+        background: rgba(255, 255, 255, 0.25);
+        transform: translateY(-2px);
+    }
+
+    .stats-number {
+        font-size: 2.2rem;
+        font-weight: 800;
+        margin-bottom: 0.5rem;
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .stats-label {
+        font-size: 0.9rem;
+        opacity: 0.9;
+        font-weight: 500;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .action-btn {
+        background: rgba(255, 255, 255, 0.2);
+        border: 2px solid rgba(255, 255, 255, 0.3);
+        color: white;
+        padding: 0.875rem 2rem;
+        border-radius: 50px;
+        font-weight: 600;
+        font-size: 1rem;
+        backdrop-filter: blur(10px);
+        transition: all 0.3s ease;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin: 0.25rem;
+    }
+
+    .action-btn:hover {
+        background: rgba(255, 255, 255, 0.3);
+        border-color: rgba(255, 255, 255, 0.5);
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+        color: white;
+    }
+
+    .filter-section {
+        background: white;
+        border-radius: 16px;
+        padding: 2rem;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        margin-bottom: 2rem;
+        border: 1px solid rgba(0, 0, 0, 0.05);
+    }
+
+    .filter-title {
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: #2d3748;
+        margin-bottom: 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .partner-card {
+        background: white;
+        border-radius: 16px;
+        padding: 1.5rem;
+        margin-bottom: 1rem;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        border: 1px solid rgba(0, 0, 0, 0.05);
+        transition: all 0.3s ease;
+    }
+
+    .partner-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+        border-color: rgba(111, 66, 193, 0.2);
+    }
+
+    .partner-name {
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: #6f42c1;
+        margin-bottom: 0.5rem;
+        display: block;
+    }
+
+    .partner-name a {
+        color: #6f42c1;
+        transition: color 0.2s ease;
+    }
+
+    .partner-name a:hover {
+        color: #5a2d91;
+        text-decoration: underline !important;
+    }
+
+    .partner-info {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin-bottom: 0.5rem;
+        color: #6b7280;
+        font-size: 0.9rem;
+    }
+
+    .status-badge {
+        padding: 0.5rem 1rem;
+        border-radius: 25px;
+        font-weight: 600;
+        font-size: 0.875rem;
+        border: 2px solid transparent;
+        transition: all 0.2s ease;
+    }
+
+    .status-pending { background-color: #fef3c7; color: #92400e; border-color: #f59e0b; }
+    .status-approved { background-color: #d1fae5; color: #065f46; border-color: #10b981; }
+    .status-rejected { background-color: #fee2e2; color: #991b1b; border-color: #ef4444; }
+
+    .action-buttons {
+        display: flex;
+        gap: 0.5rem;
+        justify-content: flex-end;
+    }
+
+    .btn-action {
+        padding: 0.5rem 1rem;
+        border-radius: 8px;
+        font-size: 0.875rem;
+        font-weight: 500;
+        border: none;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.25rem;
+    }
+
+    .btn-approve {
+        background-color: #10b981;
+        color: white;
+    }
+
+    .btn-approve:hover {
+        background-color: #059669;
+        transform: translateY(-1px);
+    }
+
+    .btn-reject {
+        background-color: #ef4444;
+        color: white;
+    }
+
+    .btn-reject:hover {
+        background-color: #dc2626;
+        transform: translateY(-1px);
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 4rem 2rem;
+        background: white;
+        border-radius: 16px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        border: 1px solid rgba(0, 0, 0, 0.05);
+    }
+
+    .empty-state i {
+        font-size: 5rem;
+        color: #e5e7eb;
+        margin-bottom: 1.5rem;
+    }
+
+    .pagination-wrapper {
+        background: white;
+        border-radius: 16px;
+        padding: 1.5rem;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        border: 1px solid rgba(0, 0, 0, 0.05);
+        margin-top: 2rem;
+    }
+
+    @@media (max-width: 768px) {
+        .header-content {
+            padding: 2rem 1.5rem;
+        }
+        
+        .header-title {
+            font-size: 2rem;
+        }
+        
+        .stats-grid {
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+        }
+        
+        .stats-number {
+            font-size: 1.8rem;
+        }
+        
+        .filter-section {
+            padding: 1.5rem;
+        }
+
+        .partner-card {
+            padding: 1rem;
+        }
+
+        .action-buttons {
+            justify-content: center;
+            margin-top: 1rem;
+        }
+    }
+    
+    @@media (max-width: 576px) {
+        .stats-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .action-btn {
+            width: 100%;
+            justify-content: center;
+            margin: 0.25rem 0;
+        }
+    }
+
+    .dark-mode .filter-section {
+        background: #222639 !important;
+        border-color: #2c3049 !important;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3) !important;
+    }
+    
+    .dark-mode .filter-title {
+        color: #e4e6eb !important;
+    }
+    
+    .dark-mode .partner-card {
+        background: #222639 !important;
+        border-color: #2c3049 !important;
+        color: #e4e6eb !important;
+    }
+    
+    .dark-mode .partner-name {
+        color: #a78bfa !important;
+    }
+    
+    .dark-mode .partner-info {
+        color: #a6adc8 !important;
+    }
+    
+    .dark-mode .empty-state {
+        background: #222639 !important;
+        border-color: #2c3049 !important;
+        color: #e4e6eb !important;
+    }
+    
+    .dark-mode .pagination-wrapper {
+        background: #222639 !important;
+        border-color: #2c3049 !important;
+    }
+</style>
+
+<div class="content">
+    <!-- Breadcrumb -->
+    <nav class="mb-3" aria-label="breadcrumb">
+        <ol class="breadcrumb mb-0">
+            <li class="breadcrumb-item"><a href="/Home/Index">Home</a></li>
+            <li class="breadcrumb-item"><a href="/ManageUsers/Index">Manage Users</a></li>
+            <li class="breadcrumb-item active">Partner Approval</li>
+        </ol>
+    </nav>
+
+    <!-- Modern Header with Stats -->
+    <div class="modern-header">
+        <div class="header-content">
+            <div class="row align-items-center mb-4">
+                <div class="col-lg-8">
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="me-3">
+                            <i class="fa-solid fa-handshake" style="font-size: 2.5rem; opacity: 0.9;"></i>
+                        </div>
+                        <div>
+                            <h1 class="header-title mb-0">Partner Approval</h1>
+                            <p class="header-subtitle mb-0">Manage and approve channel partner requests</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-4 text-lg-end">
+                    <button type="button" class="action-btn" data-bs-toggle="modal" data-bs-target="#createPartnerModal">
+                        <i class="fa-solid fa-plus"></i>
+                        <span>Create Partner</span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="stats-grid">
+                <div class="stats-card">
+                    <div class="stats-number" id="totalPartners">@Model.Count()</div>
+                    <div class="stats-label">Total Partners</div>
+                </div>
+                <div class="stats-card">
+                    <div class="stats-number" id="pendingPartners">@Model.Count(p => p.Status == "Pending")</div>
+                    <div class="stats-label">Pending</div>
+                </div>
+                <div class="stats-card">
+                    <div class="stats-number" id="approvedPartners">@Model.Count(p => p.Status == "Approved")</div>
+                    <div class="stats-label">Approved</div>
+                </div>
+                <div class="stats-card">
+                    <div class="stats-number" id="rejectedPartners">@Model.Count(p => p.Status == "Rejected")</div>
+                    <div class="stats-label">Rejected</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filter Section -->
+    <div class="filter-section">
+        <div class="filter-title">
+            <i class="fa-solid fa-filter"></i>
+            <span>Filter & Search</span>
+        </div>
+        <div class="row g-3">
+            <div class="col-md-4">
+                <label for="searchBox" class="form-label fw-semibold">Search Partners</label>
+                <div class="input-group">
+                    @* <span class="input-group-text bg-light border-end-0"> *@
+                    @*     <i class="fa-solid fa-search text-muted"></i> *@
+                    @* </span> *@
+                    <input type="text" class="form-control border-start-0 ps-0" id="searchBox" 
+                           placeholder="Search by company, contact, email...">
+                </div>
+            </div>
+            <div class="col-md-2">
+                <label for="filterStatus" class="form-label fw-semibold">Status</label>
+                <select id="filterStatus" class="form-select">
+                    <option value="">🔍 All Status</option>
+                    <option value="Pending">⏳ Pending</option>
+                    <option value="Approved">✅ Approved</option>
+                    <option value="Rejected">❌ Rejected</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label for="filterFromDate" class="form-label fw-semibold">From Date</label>
+                <input type="date" id="filterFromDate" class="form-control">
+            </div>
+            <div class="col-md-3">
+                <label for="filterToDate" class="form-label fw-semibold">To Date</label>
+                <input type="date" id="filterToDate" class="form-control">
+            </div>
+        </div>
+        <div class="row mt-3">
+            <div class="col-md-6">
+                <button type="button" class="btn btn-outline-primary" id="clearFilters">
+                    <i class="fa-solid fa-refresh me-1"></i>Clear Filters
+                </button>
+            </div>
+            <div class="col-md-6 text-end">
+                <button type="button" class="btn btn-success me-2" id="exportExcel">
+                    <i class="fa-solid fa-file-excel me-1"></i>Export Excel
+                </button>
+                <button type="button" class="btn btn-info me-2" id="exportCSV">
+                    <i class="fa-solid fa-file-csv me-1"></i>Export CSV
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Partners List -->
+    <div id="partnersContainer">
+        <!-- Partners will be populated by JavaScript -->
+    </div>
+
+    <!-- Pagination -->
+    <div class="pagination-wrapper" id="paginationWrapper" style="display: none;">
+        <div class="row align-items-center">
+            <div class="col-md-6">
+                <p class="text-muted mb-0">Showing <span id="showingStart">0</span> to <span id="showingEnd">0</span> of <span id="totalRecords">0</span> entries</p>
+            </div>
+            <div class="col-md-6">
+                <nav>
+                    <ul class="pagination justify-content-end mb-0" id="pagination">
+                        <!-- Pagination will be generated by JavaScript -->
+                    </ul>
+                </nav>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Create Partner Modal -->
+<div class="modal fade" id="createPartnerModal" tabindex="-1" aria-labelledby="createPartnerModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable" style="max-width: 95vw; width: 95vw;">
+        <div class="modal-content" style="max-height: 95vh;">
+            <form id="createPartnerForm" method="post" action="/ManageUsers/CreatePartner" enctype="multipart/form-data">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="createPartnerModalLabel">Create Channel Partner</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body" style="max-height: calc(95vh - 120px); overflow-y: auto;">
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Company Name <span class="text-danger">*</span></label>
+                            <input name="CompanyName" class="form-control" required />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Contact Person <span class="text-danger">*</span></label>
+                            <input name="ContactPerson" class="form-control" required />
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Email <span class="text-danger">*</span></label>
+                            <input name="Email" id="partnerEmailInput" class="form-control" required type="email" />
+                            <div id="partnerEmailError" class="text-danger" style="display: none;"></div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Phone <span class="text-danger">*</span></label>
+                            <input name="Phone" class="form-control" required />
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Address</label>
+                        <textarea name="Address" class="form-control" rows="3"></textarea>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Commission Scheme</label>
+                            <select name="CommissionScheme" id="commissionScheme" class="form-select" onchange="toggleCustomPercentage()">
+                                <option value="">Select Commission Scheme</option>
+                                <option value="0.5% of sale">0.5% of sale</option>
+                                <option value="1% of sale">1% of sale</option>
+                                <option value="1.5% of sale">1.5% of sale</option>
+                                <option value="2% of sale">2% of sale</option>
+                                <option value="3% of sale">3% of sale</option>
+                                <option value="5% of sale">5% of sale</option>
+                                <option value="Custom">Custom</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6" id="customPercentageDiv" style="display: none;">
+                            <label class="form-label">Commission Percentage</label>
+                            <div class="input-group">
+                                <input name="CommissionPercentage" id="commissionPercentage" class="form-control" type="number" step="0.01" min="0" max="100" placeholder="5.00" value="" />
+                                <span class="input-group-text">%</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mb-3" id="pricingPlanSection">
+                        <label class="form-label">Pricing Plan <span class="text-danger">*</span></label>
+                        <div id="pricingPlanDisplay">
+                            <button type="button" class="btn btn-outline-primary w-100" data-bs-toggle="modal" data-bs-target="#pricingPlanModal">
+                                <i class="fa-solid fa-layer-group me-2"></i>
+                                <span id="selectedPlanText">Select Pricing Plan</span>
+                            </button>
+                        </div>
+                        <input type="hidden" name="SelectedPlanId" id="selectedPlanId" required />
+                        <div id="trialPlanInfo" style="display: none; margin-top: 10px; padding: 15px; background: linear-gradient(135deg, #667eea15 0%, #764ba215 100%); border-radius: 8px; border-left: 4px solid #667eea;">
+                            <div style="display: flex; align-items: center; margin-bottom: 8px;">
+                                <i class="fa-solid fa-gift" style="color: #667eea; font-size: 20px; margin-right: 10px;"></i>
+                                <strong style="color: #667eea; font-size: 16px;">7-Day Free Trial Included!</strong>
+                            </div>
+                            <p style="margin: 5px 0; color: #555;">
+                                <i class="fa-solid fa-check-circle" style="color: #28a745; margin-right: 5px;"></i>
+                                Plan: <strong id="trialPlanName">-</strong>
+                            </p>
+                            <p style="margin: 5px 0; color: #555;">
+                                <i class="fa-solid fa-calendar-alt" style="color: #28a745; margin-right: 5px;"></i>
+                                Trial Period: <strong id="trialPeriod">7 Days</strong>
+                            </p>
+                            <p style="margin: 5px 0; color: #555;">
+                                <i class="fa-solid fa-dollar-sign" style="color: #28a745; margin-right: 5px;"></i>
+                                Cost: <strong style="color: #28a745;">FREE</strong>
+                            </p>
+                            <p style="margin: 5px 0; color: #555;">
+                                <i class="fa-solid fa-info-circle" style="color: #ffc107; margin-right: 5px;"></i>
+                                Expires: <strong id="trialExpiry">-</strong>
+                            </p>
+                            <small class="text-muted" style="display: block; margin-top: 8px; font-style: italic;">
+                                Partner can explore all features without payment during trial period
+                            </small>
+                        </div>
+                        <small class="text-muted">Choose a subscription plan for this partner</small>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Upload Documents (Optional)</label>
+                        <div class="border rounded p-3" style="background-color: #f8f9fa;">
+                            <div class="mb-2">
+                                <strong>Selected Documents</strong>
+                            </div>
+                            <div id="selectedDocuments" class="mb-3">
+                                <div class="text-muted">No documents selected</div>
+                            </div>
+                            <input type="file" id="documentInput" name="DocumentFiles" multiple accept=".pdf,.jpg,.jpeg,.png,.doc,.docx" style="display: none;" data-optional="true">
+                            <input type="file" id="addMoreInput" multiple accept=".pdf,.jpg,.jpeg,.png,.doc,.docx" style="display: none;" data-optional="true">
+                            <button type="button" class="btn btn-outline-primary me-2" onclick="document.getElementById('documentInput').click()">
+                                <i class="fa-solid fa-upload me-2"></i>Choose Files
+                            </button>
+                            <button type="button" class="btn btn-outline-success" onclick="document.getElementById('addMoreInput').click()">
+                                <i class="fa-solid fa-plus me-2"></i>Add More
+                            </button>
+                        </div>
+                        <small class="text-muted">Upload business registration, tax certificate, identity proof, etc.</small>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" id="partnerSubmitBtn" class="btn btn-primary">Create</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script>
+        // Global variables
+        let allPartners = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model));
+        let filteredPartners = [...allPartners];
+        let currentPage = 1;
+        let pageSize = 10;
+        let partnerEmailValid = false;
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', function () {
+            renderTable();
+            attachEventListeners();
+            setupPartnerEmailValidation();
+        });
+
+        function setupPartnerEmailValidation() {
+            const emailInput = document.getElementById('partnerEmailInput');
+            const errorDiv = document.getElementById('partnerEmailError');
+            const submitBtn = document.getElementById('partnerSubmitBtn');
+            
+            emailInput.addEventListener('blur', function() {
+                const email = this.value.trim();
+                
+                if (!email) {
+                    errorDiv.style.display = 'none';
+                    partnerEmailValid = false;
+                    submitBtn.disabled = false;
+                    return;
+                }
+                
+                // Check if email already exists
+                fetch(`/Agent/CheckEmailExists?email=${encodeURIComponent(email)}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.exists) {
+                            errorDiv.textContent = 'This email is already registered';
+                            errorDiv.style.display = 'block';
+                            partnerEmailValid = false;
+                            submitBtn.disabled = true;
+                        } else {
+                            errorDiv.style.display = 'none';
+                            partnerEmailValid = true;
+                            submitBtn.disabled = false;
+                        }
+                    })
+                    .catch(error => {
+                        errorDiv.textContent = 'Error checking email availability';
+                        errorDiv.style.display = 'block';
+                        partnerEmailValid = false;
+                        submitBtn.disabled = true;
+                    });
+            });
+        }
+
+        function attachEventListeners() {
+            // Search and filters
+            document.getElementById('searchBox').addEventListener('input', applyFilters);
+            document.getElementById('filterStatus').addEventListener('change', applyFilters);
+            document.getElementById('filterFromDate').addEventListener('change', applyFilters);
+            document.getElementById('filterToDate').addEventListener('change', applyFilters);
+
+            // Clear filters
+            document.getElementById('clearFilters').addEventListener('click', clearFilters);
+
+            // Export buttons
+            document.getElementById('exportExcel').addEventListener('click', exportToExcel);
+            document.getElementById('exportCSV').addEventListener('click', exportToCSV);
+        }
+
+        function applyFilters() {
+            const searchText = document.getElementById('searchBox').value.toLowerCase();
+            const status = document.getElementById('filterStatus').value;
+            const fromDate = document.getElementById('filterFromDate').value;
+            const toDate = document.getElementById('filterToDate').value;
+
+            filteredPartners = allPartners.filter(partner => {
+                const matchesSearch = !searchText ||
+                    (partner.CompanyName && partner.CompanyName.toLowerCase().includes(searchText)) ||
+                    (partner.ContactPerson && partner.ContactPerson.toLowerCase().includes(searchText)) ||
+                    (partner.Email && partner.Email.toLowerCase().includes(searchText)) ||
+                    (partner.Phone && partner.Phone.includes(searchText));
+
+                const matchesStatus = !status || partner.Status === status;
+
+                let matchesDate = true;
+                if (fromDate || toDate) {
+                    const partnerDate = new Date(partner.CreatedOn || new Date());
+                    if (fromDate) {
+                        matchesDate = matchesDate && partnerDate >= new Date(fromDate);
+                    }
+                    if (toDate) {
+                        matchesDate = matchesDate && partnerDate <= new Date(toDate + 'T23:59:59');
+                    }
+                }
+
+                return matchesSearch && matchesStatus && matchesDate;
+            });
+
+            currentPage = 1;
+            renderTable();
+        }
+
+        function clearFilters() {
+            document.getElementById('searchBox').value = '';
+            document.getElementById('filterStatus').value = '';
+            document.getElementById('filterFromDate').value = '';
+            document.getElementById('filterToDate').value = '';
+            filteredPartners = [...allPartners];
+            currentPage = 1;
+            renderTable();
+        }
+
+        function renderTable() {
+            const container = document.getElementById('partnersContainer');
+            const start = (currentPage - 1) * pageSize;
+            const end = start + pageSize;
+            const paginatedPartners = filteredPartners.slice(start, end);
+
+            container.innerHTML = '';
+
+            if (paginatedPartners.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fa-solid fa-handshake"></i>
+                        <h3>No Partners Found</h3>
+                        <p class="text-muted">Start by creating your first channel partner or adjust your filters</p>
+                        <button type="button" class="btn btn-primary mt-3" data-bs-toggle="modal" data-bs-target="#createPartnerModal">
+                            <i class="fa-solid fa-plus me-2"></i>Create Partner
+                        </button>
+                    </div>
+                `;
+                document.getElementById('paginationWrapper').style.display = 'none';
+            } else {
+                paginatedPartners.forEach(partner => {
+                    const partnerCard = document.createElement('div');
+                    partnerCard.className = 'partner-card';
+                    partnerCard.innerHTML = `
+                        <div class="row align-items-center">
+                            <div class="col-md-4">
+                                <div class="partner-name">
+                                    <a href="/ManageUsers/PartnerDetails/${partner.PartnerId}" class="text-decoration-none">
+                                        ${partner.CompanyName || 'Unnamed Company'}
+                                    </a>
+                                </div>
+                                <div class="partner-info">
+                                    <i class="fa-solid fa-user"></i>
+                                    <span>${partner.ContactPerson || 'No contact person'}</span>
+                                </div>
+                                <div class="partner-info">
+                                    <i class="fa-solid fa-envelope"></i>
+                                    <span>${partner.Email || 'No email'}</span>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="partner-info">
+                                    <i class="fa-solid fa-phone"></i>
+                                    <span>${partner.Phone || 'No phone'}</span>
+                                </div>
+                                <div class="partner-info">
+                                    <i class="fa-solid fa-map-marker-alt"></i>
+                                    <span>${partner.Address || 'No address'}</span>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="partner-info">
+                                    <i class="fa-solid fa-percentage"></i>
+                                    <span>${partner.CommissionScheme || 'No commission scheme'}</span>
+                                </div>
+                                <div class="partner-info">
+                                    <i class="fa-solid fa-file-alt"></i>
+                                    <span>${partner.Documents || 'No documents'}</span>
+                                </div>
+                                <div class="mt-2">
+                                    <span class="status-badge status-${(partner.Status || 'pending').toLowerCase()}">
+                                        ${partner.Status || 'Pending'}
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="col-md-2">
+                                <div class="action-buttons">
+                                    <button class="btn-action btn-approve" onclick="editPartner(${partner.PartnerId})" title="Edit Partner" style="background-color: #3b82f6;">
+                                        <i class="fa-solid fa-edit"></i>
+                                    </button>
+                                    ${partner.Status === 'Pending' || !partner.Status ? `
+                                        <button class="btn-action btn-approve" onclick="approvePartner(${partner.PartnerId})" title="Approve Partner">
+                                            <i class="fa-solid fa-check"></i>
+                                        </button>
+                                        <button class="btn-action btn-reject" onclick="rejectPartner(${partner.PartnerId})" title="Reject Partner">
+                                            <i class="fa-solid fa-times"></i>
+                                        </button>
+                                    ` : '<span class="text-muted">-</span>'}
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    container.appendChild(partnerCard);
+                });
+                document.getElementById('paginationWrapper').style.display = 'block';
+            }
+
+            updatePaginationInfo();
+            renderPagination();
+            updateStats();
+        }
+
+        function updateStats() {
+            document.getElementById('totalPartners').textContent = filteredPartners.length;
+            document.getElementById('pendingPartners').textContent = filteredPartners.filter(p => p.Status === 'Pending' || !p.Status).length;
+            document.getElementById('approvedPartners').textContent = filteredPartners.filter(p => p.Status === 'Approved').length;
+            document.getElementById('rejectedPartners').textContent = filteredPartners.filter(p => p.Status === 'Rejected').length;
+        }
+
+        function updatePaginationInfo() {
+            const total = filteredPartners.length;
+            const start = total === 0 ? 0 : (currentPage - 1) * pageSize + 1;
+            const end = Math.min(currentPage * pageSize, total);
+
+            document.getElementById('showingStart').textContent = start;
+            document.getElementById('showingEnd').textContent = end;
+            document.getElementById('totalRecords').textContent = total;
+        }
+
+        function renderPagination() {
+            const pagination = document.getElementById('pagination');
+            const totalPages = Math.ceil(filteredPartners.length / pageSize);
+
+            pagination.innerHTML = '';
+
+            if (totalPages <= 1) {
+                const singleLi = document.createElement('li');
+                singleLi.className = 'page-item active';
+                singleLi.innerHTML = `<span class="page-link">1</span>`;
+                pagination.appendChild(singleLi);
+                return;
+            }
+
+            // Previous button
+            const prevLi = document.createElement('li');
+            prevLi.className = `page-item ${currentPage === 1 ? 'disabled' : ''}`;
+            prevLi.innerHTML = `<a class="page-link" href="#" onclick="changePage(${currentPage - 1}); return false;">Previous</a>`;
+            pagination.appendChild(prevLi);
+
+            // Page numbers
+            const startPage = Math.max(1, currentPage - 2);
+            const endPage = Math.min(totalPages, currentPage + 2);
+
+            for (let i = startPage; i <= endPage; i++) {
+                const li = document.createElement('li');
+                li.className = `page-item ${i === currentPage ? 'active' : ''}`;
+                li.innerHTML = `<a class="page-link" href="#" onclick="changePage(${i}); return false;">${i}</a>`;
+                pagination.appendChild(li);
+            }
+
+            // Next button
+            const nextLi = document.createElement('li');
+            nextLi.className = `page-item ${currentPage === totalPages ? 'disabled' : ''}`;
+            nextLi.innerHTML = `<a class="page-link" href="#" onclick="changePage(${currentPage + 1}); return false;">Next</a>`;
+            pagination.appendChild(nextLi);
+        }
+
+        function changePage(page) {
+            const totalPages = Math.ceil(filteredPartners.length / pageSize);
+            if (page < 1 || page > totalPages) return;
+            currentPage = page;
+            renderTable();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function approvePartner(partnerId) {
+            if (!confirm('Are you sure you want to approve this partner?')) return;
+
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = '/ManageUsers/ApprovePartner';
+            
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = 'partnerId';
+            input.value = partnerId;
+            
+            form.appendChild(input);
+            document.body.appendChild(form);
+            form.submit();
+        }
+
+        function rejectPartner(partnerId) {
+            if (!confirm('Are you sure you want to reject this partner?')) return;
+
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = '/ManageUsers/RejectPartner';
+            
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = 'partnerId';
+            input.value = partnerId;
+            
+            form.appendChild(input);
+            document.body.appendChild(form);
+            form.submit();
+        }
+
+        function editPartner(partnerId) {
+            fetch(`/ManageUsers/GetPartner?id=${partnerId}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        document.getElementById('createPartnerModalLabel').textContent = 'Edit Channel Partner';
+                        document.querySelector('input[name="CompanyName"]').value = data.companyName || '';
+                        document.querySelector('input[name="ContactPerson"]').value = data.contactPerson || '';
+                        document.getElementById('partnerEmailInput').value = data.email || '';
+                        document.querySelector('input[name="Phone"]').value = data.phone || '';
+                        document.querySelector('textarea[name="Address"]').value = data.address || '';
+                        document.getElementById('commissionScheme').value = data.commissionScheme || '';
+                        
+                        const form = document.getElementById('createPartnerForm');
+                        form.action = `/ManageUsers/UpdatePartner?id=${partnerId}`;
+                        
+                        document.getElementById('partnerSubmitBtn').textContent = 'Update';
+                        
+                        const modal = new bootstrap.Modal(document.getElementById('createPartnerModal'));
+                        modal.show();
+                    } else {
+                        showToast(data.message || 'Failed to load partner data', 'error');
+                    }
+                })
+                .catch(error => {
+                    showToast('Error loading partner data', 'error');
+                });
+        }
+
+        function exportToExcel() {
+            const ws_data = [
+                ['Company Name', 'Contact Person', 'Email', 'Phone', 'Address', 'Commission Scheme', 'Documents', 'Status']
+            ];
+
+            filteredPartners.forEach(partner => {
+                ws_data.push([
+                    partner.CompanyName || '',
+                    partner.ContactPerson || '',
+                    partner.Email || '',
+                    partner.Phone || '',
+                    partner.Address || '',
+                    partner.CommissionScheme || '',
+                    partner.Documents || '',
+                    partner.Status || 'Pending'
+                ]);
+            });
+
+            const wb = XLSX.utils.book_new();
+            const ws = XLSX.utils.aoa_to_sheet(ws_data);
+            ws['!cols'] = [{ wch: 25 }, { wch: 20 }, { wch: 25 }, { wch: 15 }, { wch: 30 }, { wch: 25 }, { wch: 30 }, { wch: 12 }];
+            XLSX.utils.book_append_sheet(wb, ws, "Partners");
+            XLSX.writeFile(wb, `Partners_Export_${new Date().toISOString().split('T')[0]}.xlsx`);
+            showToast('Excel exported successfully!', 'success');
+        }
+
+        function exportToCSV() {
+            let csv = 'Company Name,Contact Person,Email,Phone,Address,Commission Scheme,Documents,Status\n';
+
+            filteredPartners.forEach(partner => {
+                csv += [
+                    escapeCSV(partner.CompanyName),
+                    escapeCSV(partner.ContactPerson),
+                    escapeCSV(partner.Email),
+                    escapeCSV(partner.Phone),
+                    escapeCSV(partner.Address),
+                    escapeCSV(partner.CommissionScheme),
+                    escapeCSV(partner.Documents),
+                    escapeCSV(partner.Status || 'Pending')
+                ].join(',') + '\n';
+            });
+
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `Partners_Export_${new Date().toISOString().split('T')[0]}.csv`;
+            a.click();
+            window.URL.revokeObjectURL(url);
+            showToast('CSV exported successfully!', 'success');
+        }
+
+        function escapeCSV(value) {
+            if (!value) return '';
+            value = value.toString();
+            if (value.includes(',') || value.includes('"') || value.includes('\n')) {
+                return '"' + value.replace(/"/g, '""') + '"';
+            }
+            return value;
+        }
+
+        function showToast(message, type) {
+            const alertDiv = document.createElement('div');
+            alertDiv.className = `alert alert-${type === 'success' ? 'success' : 'danger'} alert-dismissible fade show position-fixed`;
+            alertDiv.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+            alertDiv.innerHTML = `
+                <i class="fa-solid fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'} me-2"></i>
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            `;
+            document.body.appendChild(alertDiv);
+            setTimeout(() => alertDiv.remove(), 5000);
+        }
+
+        function toggleCustomPercentage() {
+            const schemeSelect = document.getElementById('commissionScheme');
+            const customDiv = document.getElementById('customPercentageDiv');
+            
+            if (schemeSelect.value === 'Custom') {
+                customDiv.style.display = 'block';
+            } else {
+                customDiv.style.display = 'none';
+                document.getElementById('commissionPercentage').value = '';
+            }
+        }
+
+        // Handle file selection
+        document.addEventListener('DOMContentLoaded', function() {
+            const fileInput = document.getElementById('documentInput');
+            const addMoreInput = document.getElementById('addMoreInput');
+            const selectedDocuments = document.getElementById('selectedDocuments');
+            
+            function updateDisplay() {
+                if (fileInput.files.length > 0) {
+                    let html = '';
+                    for (let i = 0; i < fileInput.files.length; i++) {
+                        const file = fileInput.files[i];
+                        html += `
+                            <div class="d-flex justify-content-between align-items-center mb-2 p-2 bg-white rounded border">
+                                <div>
+                                    <i class="fa-solid fa-file me-2"></i>
+                                    <span>${file.name}</span>
+                                    <small class="text-muted ms-2">(${(file.size / 1024).toFixed(1)} KB)</small>
+                                </div>
+                                <button type="button" class="btn btn-sm btn-outline-danger" onclick="removeFile(${i})">
+                                    <i class="fa-solid fa-times"></i>
+                                </button>
+                            </div>
+                        `;
+                    }
+                    selectedDocuments.innerHTML = html;
+                } else {
+                    selectedDocuments.innerHTML = '<div class="text-muted">No documents selected</div>';
+                }
+            }
+            
+            fileInput.addEventListener('change', updateDisplay);
+            
+            addMoreInput.addEventListener('change', function() {
+                if (this.files.length > 0) {
+                    const dt = new DataTransfer();
+                    
+                    // Add existing files
+                    for (let i = 0; i < fileInput.files.length; i++) {
+                        dt.items.add(fileInput.files[i]);
+                    }
+                    
+                    // Add new files
+                    for (let i = 0; i < this.files.length; i++) {
+                        dt.items.add(this.files[i]);
+                    }
+                    
+                    fileInput.files = dt.files;
+                    updateDisplay();
+                    
+                    // Clear the add more input
+                    this.value = '';
+                }
+            });
+        });
+        
+        function removeFile(index) {
+            const fileInput = document.getElementById('documentInput');
+            const dt = new DataTransfer();
+            
+            for (let i = 0; i < fileInput.files.length; i++) {
+                if (i !== index) {
+                    dt.items.add(fileInput.files[i]);
+                }
+            }
+            
+            fileInput.files = dt.files;
+            fileInput.dispatchEvent(new Event('change'));
+        }
+        
+
+
+        // Handle create partner form submission
+        document.addEventListener('DOMContentLoaded', function() {
+            const createForm = document.getElementById('createPartnerForm');
+            if (createForm) {
+                // Ensure document fields are not required
+                const documentInput = document.getElementById('documentInput');
+                const addMoreInput = document.getElementById('addMoreInput');
+                if (documentInput) documentInput.removeAttribute('required');
+                if (addMoreInput) addMoreInput.removeAttribute('required');
+                
+                let isSubmitting = false; // Prevent double submission
+                
+                createForm.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    
+                    // Prevent double submission
+                    if (isSubmitting) {
+                        console.log('Form already submitting, please wait...');
+                        return;
+                    }
+                    
+                    const isEditMode = createForm.action.includes('UpdatePartner');
+                    
+                    // Validate email before submission (skip for edit mode)
+                    const emailInput = document.getElementById('partnerEmailInput');
+                    if (!isEditMode && !partnerEmailValid && emailInput.value.trim()) {
+                        showToast('Please use a unique email address', 'error');
+                        return;
+                    }
+                    
+                    // Check if pricing plan is required and selected
+                    const planIdInput = document.getElementById('selectedPlanId');
+                    if (!isEditMode && planIdInput.hasAttribute('required') && !planIdInput.value) {
+                        showToast('Please select a pricing plan', 'error');
+                        return;
+                    }
+                    
+                    // Custom validation - skip document fields
+                    const requiredFields = createForm.querySelectorAll('[required]:not([data-optional])');
+                    let isValid = true;
+                    let firstInvalidField = null;
+                    
+                    requiredFields.forEach(field => {
+                        if (!field.value.trim()) {
+                            field.classList.add('is-invalid');
+                            isValid = false;
+                            if (!firstInvalidField) firstInvalidField = field;
+                        } else {
+                            field.classList.remove('is-invalid');
+                        }
+                    });
+                    
+                    if (!isValid) {
+                        showToast('Please fill in all required fields', 'error');
+                        if (firstInvalidField) firstInvalidField.focus();
+                        return;
+                    }
+                    
+                    // Disable submit button and set submitting flag
+                    isSubmitting = true;
+                    const submitBtn = createForm.querySelector('button[type="submit"]');
+                    const originalBtnText = submitBtn.innerHTML;
+                    submitBtn.disabled = true;
+                    submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-2"></i>Creating...';
+                    
+                    const formData = new FormData(createForm);
+                    
+                    // Set commission percentage based on selected scheme
+                    const scheme = formData.get('CommissionScheme');
+                    let percentage = formData.get('CommissionPercentage');
+                    
+                    if (scheme !== 'Custom') {
+                        // Extract percentage from scheme text
+                        const match = scheme.match(/(\d+\.?\d*)%/);
+                        if (match) {
+                            percentage = match[1];
+                        } else {
+                            percentage = '5.0'; // Default
+                        }
+                        formData.set('CommissionPercentage', percentage);
+                    } else if (!percentage || percentage === '') {
+                        formData.set('CommissionPercentage', '5.0');
+                    }
+                    
+                    const actionUrl = createForm.action;
+                    
+                    fetch(actionUrl, {
+                        method: 'POST',
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest'
+                        },
+                        body: formData
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        // Re-enable submit button
+                        isSubmitting = false;
+                        submitBtn.disabled = false;
+                        submitBtn.innerHTML = originalBtnText;
+                        
+                        if (data.success) {
+                            showToast(data.message || 'Partner saved successfully!', 'success');
+                            document.getElementById('createPartnerModal').querySelector('.btn-close').click();
+                            createForm.reset();
+                            createForm.action = '/ManageUsers/CreatePartner';
+                            document.getElementById('createPartnerModalLabel').textContent = 'Create Channel Partner';
+                            document.getElementById('partnerSubmitBtn').textContent = 'Create';
+                            
+                            // Reset email validation
+                            document.getElementById('partnerEmailError').style.display = 'none';
+                            document.getElementById('partnerSubmitBtn').disabled = false;
+                            partnerEmailValid = false;
+                            
+                            // Hide trial info card
+                            document.getElementById('trialPlanInfo').style.display = 'none';
+                            document.getElementById('selectedPlanText').textContent = 'Select Pricing Plan';
+                            
+                            location.reload(); // Refresh to show updated partner
+                        } else {
+                            const errors = data.errors || ['An error occurred'];
+                            showToast(errors.join(', '), 'error');
+                        }
+                    })
+                    .catch(error => {
+                        // Re-enable submit button on error
+                        isSubmitting = false;
+                        submitBtn.disabled = false;
+                        submitBtn.innerHTML = originalBtnText;
+                        
+                        showToast('An error occurred while creating partner', 'error');
+                    });
+                });
+            }
+            
+            // Load pricing plans when modal opens
+            document.getElementById('pricingPlanModal').addEventListener('show.bs.modal', function() {
+                loadPricingPlans();
+            });
+            
+            // Reset form when modal closes
+            document.getElementById('createPartnerModal').addEventListener('hidden.bs.modal', function() {
+                const form = document.getElementById('createPartnerForm');
+                const displayDiv = document.getElementById('pricingPlanDisplay');
+                const submitBtn = document.getElementById('partnerSubmitBtn');
+                form.reset();
+                form.action = '/ManageUsers/CreatePartner';
+                document.getElementById('createPartnerModalLabel').textContent = 'Create Channel Partner';
+                submitBtn.textContent = 'Create';
+                document.getElementById('partnerEmailError').style.display = 'none';
+                submitBtn.disabled = false;
+                partnerEmailValid = false;
+                displayDiv.innerHTML = `
+                    <button type="button" class="btn btn-outline-primary w-100" data-bs-toggle="modal" data-bs-target="#pricingPlanModal">
+                        <i class="fa-solid fa-layer-group me-2"></i>
+                        <span id="selectedPlanText">Select Pricing Plan</span>
+                    </button>
+                `;
+            });
+        })
+        
+        // Load and display pricing plans
+        function loadPricingPlans() {
+            fetch('/Subscription/GetAvailablePlans')
+                .then(response => response.json())
+                .then(plans => {
+                    const container = document.getElementById('pricingPlansContainer');
+                    const displayDiv = document.getElementById('pricingPlanDisplay');
+                    const planIdInput = document.getElementById('selectedPlanId');
+                    const submitBtn = document.getElementById('partnerSubmitBtn');
+                    
+                    container.innerHTML = '';
+                    
+                    if (!plans || plans.length === 0) {
+                        displayDiv.innerHTML = '<p class="text-muted mb-0">No plans available, please create</p>';
+                        planIdInput.removeAttribute('required');
+                        submitBtn.disabled = true;
+                        return;
+                    }
+                    
+                    displayDiv.innerHTML = `
+                        <button type="button" class="btn btn-outline-primary w-100" data-bs-toggle="modal" data-bs-target="#pricingPlanModal">
+                            <i class="fa-solid fa-layer-group me-2"></i>
+                            <span id="selectedPlanText">Select Pricing Plan</span>
+                        </button>
+                    `;
+                    planIdInput.setAttribute('required', 'required');
+                    submitBtn.disabled = false;
+                    
+                    plans.forEach(plan => {
+                        const planCard = document.createElement('div');
+                        planCard.className = 'col-md-4 mb-3';
+                        planCard.innerHTML = `
+                            <div class="card h-100 plan-selection-card" data-plan-id="${plan.planId}" data-plan-name="${plan.planName}" style="cursor: pointer; transition: all 0.3s ease;">
+                                <div class="card-header text-center bg-primary text-white">
+                                    <h5 class="mb-0">${plan.planName}</h5>
+                                    <small>${plan.planType}</small>
+                                </div>
+                                <div class="card-body">
+                                    <div class="text-center mb-3">
+                                        <div class="h4 text-primary">₹${plan.monthlyPrice.toLocaleString()}</div>
+                                        <small class="text-muted">per month</small>
+                                    </div>
+                                    <ul class="list-unstyled">
+                                        <li class="mb-2"><i class="fa-solid fa-users text-success me-2"></i>${plan.maxAgents === -1 ? 'Unlimited' : plan.maxAgents} Agents</li>
+                                        <li class="mb-2"><i class="fa-solid fa-chart-line text-success me-2"></i>${plan.maxLeadsPerMonth === -1 ? 'Unlimited' : plan.maxLeadsPerMonth} Leads/Month</li>
+                                        <li class="mb-2"><i class="fa-solid fa-database text-success me-2"></i>${plan.maxStorageGB === -1 ? 'Unlimited' : plan.maxStorageGB + ' GB'} Storage</li>
+                                        <li class="mb-2"><i class="fa-solid fa-${plan.hasWhatsAppIntegration ? 'check text-success' : 'times text-danger'} me-2"></i>WhatsApp</li>
+                                        <li class="mb-2"><i class="fa-solid fa-${plan.hasFacebookIntegration ? 'check text-success' : 'times text-danger'} me-2"></i>Facebook</li>
+                                        <li class="mb-2"><i class="fa-solid fa-${plan.hasAdvancedReports ? 'check text-success' : 'times text-danger'} me-2"></i>Advanced Reports</li>
+                                    </ul>
+                                </div>
+                                <div class="card-footer text-center">
+                                    <button type="button" class="btn btn-outline-primary btn-sm" onclick="selectPlan(${plan.planId}, '${plan.planName}')">
+                                        Select Plan
+                                    </button>
+                                </div>
+                            </div>
+                        `;
+                        container.appendChild(planCard);
+                    });
+                })
+                .catch(error => {
+                    console.error('Error loading pricing plans:', error);
+                    document.getElementById('pricingPlansContainer').innerHTML = '<div class="col-12 text-center"><p class="text-danger">Failed to load pricing plans</p></div>';
+                });
+        }
+        
+        // Select a pricing plan
+        function selectPlan(planId, planName) {
+            document.getElementById('selectedPlanId').value = planId;
+            document.getElementById('selectedPlanText').textContent = planName;
+            
+            // Show trial plan info
+            const trialInfo = document.getElementById('trialPlanInfo');
+            const trialExpiry = new Date();
+            trialExpiry.setDate(trialExpiry.getDate() + 7);
+            
+            document.getElementById('trialPlanName').textContent = planName;
+            document.getElementById('trialExpiry').textContent = trialExpiry.toLocaleDateString('en-US', { 
+                month: 'short', 
+                day: 'numeric', 
+                year: 'numeric' 
+            });
+            
+            trialInfo.style.display = 'block';
+            
+            // Close modal
+            bootstrap.Modal.getInstance(document.getElementById('pricingPlanModal')).hide();
+            
+            // Highlight selected plan
+            document.querySelectorAll('.plan-selection-card').forEach(card => {
+                card.style.borderColor = '';
+                card.style.backgroundColor = '';
+            });
+            
+            const selectedCard = document.querySelector(`[data-plan-id="${planId}"]`);
+            if (selectedCard) {
+                selectedCard.style.borderColor = '#0d6efd';
+                selectedCard.style.backgroundColor = '#f8f9ff';
+            }
+        }
+    </script>
+}
+
+<!-- Pricing Plan Selection Modal -->
+<div class="modal fade" id="pricingPlanModal" tabindex="-1" aria-labelledby="pricingPlanModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="pricingPlanModalLabel">Select Pricing Plan</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row" id="pricingPlansContainer">
+                    <!-- Plans will be loaded here -->
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

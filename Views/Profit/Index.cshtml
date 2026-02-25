@@ -1,0 +1,347 @@
+@model CRM.ViewModels.ExpenseRevenueProfitViewModel
+@{
+    ViewData["Title"] = "Profit";
+}
+<style>
+    .profit-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 2rem;
+        border-radius: 12px;
+        margin-bottom: 2rem;
+    }
+    .stats-card {
+        background: rgba(255,255,255,0.15);
+        backdrop-filter: blur(10px);
+        border-radius: 10px;
+        padding: 1.5rem;
+        text-align: center;
+    }
+    .stats-number {
+        font-size: 2rem;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+    }
+    .profit-card {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-radius: 12px;
+        padding: 2rem;
+        margin-bottom: 2rem;
+        text-align: center;
+        box-shadow: 0 4px 16px rgba(102,126,234,0.15);
+    }
+    .breakdown-card {
+        background: white;
+        border-radius: 12px;
+        padding: 1.5rem;
+        margin-bottom: 1rem;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        transition: all 0.3s ease;
+    }
+    
+    /* Dark Mode Styles */
+    .dark-mode .breakdown-card {
+        background: #222639 !important;
+        color: #e4e6eb !important;
+        border: 1px solid #2c3049;
+    }
+    
+    .dark-mode .breakdown-card .text-muted {
+        color: #a6adc8 !important;
+    }
+    
+    .dark-mode .empty-state {
+        color: #e4e6eb !important;
+    }
+    
+    .dark-mode .empty-state i {
+        color: #3d4461 !important;
+    }
+    .breakdown-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+    }
+    .type-badge {
+        padding: 0.5rem 1rem;
+        border-radius: 20px;
+        font-weight: 600;
+        font-size: 0.875rem;
+        background-color: #f8d7da;
+        color: #842029;
+    }
+    .type-badge-revenue {
+        background-color: #cfe2ff;
+        color: #084298;
+    }
+    .empty-state {
+        text-align: center;
+        padding: 4rem 2rem;
+    }
+    .empty-state i {
+        font-size: 5rem;
+        color: #e9ecef;
+        margin-bottom: 1.5rem;
+    }
+    @@media (max-width: 768px) {
+        .breakdown-card { padding: 1rem; }
+        .stats-number { font-size: 1.5rem; }
+    }
+</style>
+<div class="content">
+    <!-- Breadcrumb -->
+    <nav class="mb-3" aria-label="breadcrumb">
+        <ol class="breadcrumb mb-0">
+            <li class="breadcrumb-item"><a href="/Home/Index">Home</a></li>
+            <li class="breadcrumb-item active">Profit</li>
+        </ol>
+    </nav>
+    <!-- Header with Stats -->
+    <div class="profit-header">
+        <div class="row align-items-center mb-4">
+            <div class="col-md-6">
+                <h2 class="mb-0"><i class="fa-solid fa-chart-line me-2"></i>Profit</h2>
+                <p class="mb-0 mt-2 opacity-75">Summary of profit, revenue, and expenses</p>
+            </div>
+            <div class="col-md-6 text-md-end">
+                <span class="badge bg-success fs-5">Profit: ₹@Model.Profit.ToString("N0")</span>
+            </div>
+        </div>
+        <div class="row g-3">
+            <div class="col-md-4">
+                <div class="stats-card">
+                    <div class="stats-number">₹@Model.TotalExpenses.ToString("N0")</div>
+                    <div>Total Expenses</div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="stats-card">
+                    <div class="stats-number">₹@Model.TotalRevenue.ToString("N0")</div>
+                    <div>Total Revenue</div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="stats-card">
+                    <div class="stats-number">₹@Model.Profit.ToString("N0")</div>
+                    <div>Profit</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Filter Section -->
+    <div class="filter-card" style="background: white; border-radius: 12px; padding: 1.5rem; box-shadow: 0 2px 8px rgba(0,0,0,0.05); margin-bottom: 2rem;">
+        <div class="row g-3 align-items-end">
+            <div class="col-md-4">
+                <label for="dateRangeFilter" class="form-label">Date Range</label>
+                <select class="form-select" id="dateRangeFilter">
+                    <option value="all">All Time</option>
+                    <option value="today">Today</option>
+                    <option value="thisWeek">This Week</option>
+                    <option value="thisMonth">This Month</option>
+                    <option value="last3Months">Last 3 Months</option>
+                    <option value="custom">Custom Range</option>
+                </select>
+            </div>
+            <div class="col-md-4" id="customDateRange" style="display: none;">
+                <label class="form-label">Custom Range</label>
+                <input type="date" class="form-control mb-1" id="startDate">
+                <input type="date" class="form-control" id="endDate">
+            </div>
+            <div class="col-md-4">
+                <button class="btn btn-success w-100" type="button" onclick="exportData()">
+                    <i class="fa-solid fa-file-excel me-2"></i>Export Excel
+                </button>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-6">
+            <h4 class="mb-3"><i class="fa-solid fa-money-bill-wave me-2"></i>Expenses Breakdown</h4>
+            @if (Model.Expenses != null && Model.Expenses.Any())
+            {
+                foreach(var expense in Model.Expenses)
+                {
+                    <div class="breakdown-card expense-card" data-date="@expense.Date.ToString("MMM dd, yyyy")">
+                        <div class="row align-items-center">
+                            <div class="col-md-7">
+                                <span class="type-badge">@expense.Type</span>
+                                <span class="ms-2 text-muted">@expense.Description</span>
+                                <div><small class="text-muted"><i class="fa-solid fa-calendar me-1"></i>@expense.Date.ToString("MMM dd, yyyy")</small></div>
+                            </div>
+                            <div class="col-md-5 text-end">
+                                <span class="fs-5 text-danger">₹@expense.Amount.ToString("N0")</span>
+                            </div>
+                        </div>
+                    </div>
+                }
+            }
+            else
+            {
+                <div class="empty-state">
+                    <i class="fa-solid fa-money-bill-wave"></i>
+                    <h5>No Expenses Found</h5>
+                </div>
+            }
+        </div>
+        <div class="col-md-6">
+            <h4 class="mb-3"><i class="fa-solid fa-coins me-2"></i>Revenue Breakdown</h4>
+            @if (Model.Revenues != null && Model.Revenues.Any())
+            {
+                foreach(var revenue in Model.Revenues)
+                {
+                    <div class="breakdown-card revenue-card" data-date="@revenue.Date.ToString("MMM dd, yyyy")">
+                        <div class="row align-items-center">
+                            <div class="col-md-7">
+                                <span class="type-badge type-badge-revenue">@revenue.Type</span>
+                                <span class="ms-2 text-muted">@revenue.Description</span>
+                                <div><small class="text-muted"><i class="fa-solid fa-calendar me-1"></i>@revenue.Date.ToString("MMM dd, yyyy")</small></div>
+                            </div>
+                            <div class="col-md-5 text-end">
+                                <span class="fs-5 text-success">₹@revenue.Amount.ToString("N0")</span>
+                            </div>
+                        </div>
+                    </div>
+                }
+            }
+            else
+            {
+                <div class="empty-state">
+                    <i class="fa-solid fa-coins"></i>
+                    <h5>No Revenue Found</h5>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script>
+$(document).ready(function () {
+    function getDateRange(range) {
+        const today = new Date();
+        const startOfWeek = new Date(today.setDate(today.getDate() - today.getDay()));
+        const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+        const last3Months = new Date(today.getFullYear(), today.getMonth() - 3, 1);
+        
+        switch(range) {
+            case 'today':
+                return { start: new Date().toISOString().split('T')[0], end: new Date().toISOString().split('T')[0] };
+            case 'thisWeek':
+                return { start: startOfWeek.toISOString().split('T')[0], end: new Date().toISOString().split('T')[0] };
+            case 'thisMonth':
+                return { start: startOfMonth.toISOString().split('T')[0], end: new Date().toISOString().split('T')[0] };
+            case 'last3Months':
+                return { start: last3Months.toISOString().split('T')[0], end: new Date().toISOString().split('T')[0] };
+            default:
+                return null;
+        }
+    }
+    
+    function updateStatsCards() {
+        var visibleExpenseCards = $('.expense-card:visible');
+        var visibleRevenueCards = $('.revenue-card:visible');
+        var totalExpenses = 0;
+        var totalRevenue = 0;
+        
+        visibleExpenseCards.each(function() {
+            var amount = $(this).find('.text-danger').text().replace('₹', '').replace(/,/g, '');
+            totalExpenses += parseFloat(amount) || 0;
+        });
+        
+        visibleRevenueCards.each(function() {
+            var amount = $(this).find('.text-success').text().replace('₹', '').replace(/,/g, '');
+            totalRevenue += parseFloat(amount) || 0;
+        });
+        
+        var profit = totalRevenue - totalExpenses;
+        
+        $('.stats-card').eq(0).find('.stats-number').text('₹' + totalExpenses.toLocaleString('en-IN'));
+        $('.stats-card').eq(1).find('.stats-number').text('₹' + totalRevenue.toLocaleString('en-IN'));
+        $('.stats-card').eq(2).find('.stats-number').text('₹' + profit.toLocaleString('en-IN'));
+        
+        $('.profit-header .badge').text('Profit: ₹' + profit.toLocaleString('en-IN'));
+    }
+    
+    function applyFilters() {
+        var dateRange = $('#dateRangeFilter').val();
+        var startDate = $('#startDate').val();
+        var endDate = $('#endDate').val();
+        
+        var dateFilter = null;
+        if (dateRange !== 'all') {
+            if (dateRange === 'custom' && startDate && endDate) {
+                dateFilter = { start: startDate, end: endDate };
+            } else if (dateRange !== 'custom') {
+                dateFilter = getDateRange(dateRange);
+            }
+        }
+        
+        $('.breakdown-card').each(function () {
+            var card = $(this);
+            var cardDateText = card.attr('data-date');
+            var matchesDate = true;
+            
+            if (dateFilter && cardDateText) {
+                var date = new Date(cardDateText).toISOString().split('T')[0];
+                matchesDate = date >= dateFilter.start && date <= dateFilter.end;
+            }
+            
+            if (matchesDate) {
+                card.show();
+            } else {
+                card.hide();
+            }
+        });
+        
+        updateStatsCards();
+    }
+    
+
+    $('#dateRangeFilter').on('change', function() {
+        if ($(this).val() === 'custom') {
+            $('#customDateRange').show();
+        } else {
+            $('#customDateRange').hide();
+            applyFilters();
+        }
+    });
+    $('#startDate, #endDate').on('change', applyFilters);
+    applyFilters();
+});
+
+function exportData() {
+    const visibleData = [];
+    
+    $('.expense-card:visible').each(function() {
+        const card = $(this);
+        const type = card.find('.type-badge').text().trim();
+        const description = card.find('.text-muted').first().text().trim();
+        const amount = card.find('.text-danger').text().replace('₹', '').replace(/,/g, '').trim();
+        const date = card.attr('data-date');
+        
+        visibleData.push({ Category: 'Expense', Type: type, Description: description, Amount: amount, Date: date });
+    });
+    
+    $('.revenue-card:visible').each(function() {
+        const card = $(this);
+        const type = card.find('.type-badge').text().trim();
+        const description = card.find('.text-muted').first().text().trim();
+        const amount = card.find('.text-success').text().replace('₹', '').replace(/,/g, '').trim();
+        const date = card.attr('data-date');
+        
+        visibleData.push({ Category: 'Revenue', Type: type, Description: description, Amount: amount, Date: date });
+    });
+    
+    if (visibleData.length === 0) {
+        alert('No data to export');
+        return;
+    }
+    
+    const ws = XLSX.utils.json_to_sheet(visibleData);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Profit_Analysis');
+    XLSX.writeFile(wb, `Profit_Report_${new Date().toISOString().split('T')[0]}.xlsx`);
+}
+</script>
+}

@@ -1,0 +1,491 @@
+@model CRM.Models.PaymentModel
+@{
+    ViewData["Title"] = "Record Payment";
+    var invoice = ViewBag.Invoice as CRM.Models.InvoiceModel;
+    var pendingInvoices = ViewBag.PendingInvoices as List<CRM.Models.InvoiceModel> ?? new List<CRM.Models.InvoiceModel>();
+}
+
+<style>
+    .create-payment-container {
+        max-width: 800px;
+        margin: 0 auto;
+    }
+
+    .section-card {
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        margin-bottom: 2rem;
+        overflow: visible;
+    }
+
+    .section-header {
+        background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+        color: white;
+        padding: 1rem 1.5rem;
+        font-weight: 600;
+        font-size: 1.1rem;
+    }
+
+    .section-body {
+        padding: 2rem;
+    }
+
+    .invoice-summary {
+        background: linear-gradient(135deg, #f5f7fa 0%, #e9ecef 100%);
+        border-radius: 8px;
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .amount-display {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #28a745;
+    }
+
+    .payment-method-selector {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .payment-method-option {
+        border: 2px solid #e9ecef;
+        border-radius: 10px;
+        padding: 1.5rem;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .payment-method-option:hover {
+        border-color: #28a745;
+        background-color: #f8f9fa;
+    }
+
+    .payment-method-option.active {
+        border-color: #28a745;
+        background: linear-gradient(135deg, rgba(40, 167, 69, 0.1) 0%, rgba(32, 201, 151, 0.1) 100%);
+    }
+
+    .payment-method-option i {
+        font-size: 2rem;
+        color: #28a745;
+        margin-bottom: 0.5rem;
+    }
+
+    .submit-btn {
+        background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+        border: none;
+        padding: 1rem 3rem;
+        border-radius: 8px;
+        font-weight: 600;
+        font-size: 1.1rem;
+        box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
+    }
+
+    .submit-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(40, 167, 69, 0.4);
+    }
+
+    @@media (max-width: 768px) {
+        .payment-method-selector {
+            grid-template-columns: repeat(2, 1fr);
+        }
+
+        .section-body {
+            padding: 1rem;
+        }
+    }
+
+    /* Searchable Dropdown Styles */
+    .position-relative .dropdown-menu {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        z-index: 1050;
+        border: 1px solid #dee2e6;
+        border-radius: 0.375rem;
+        background-color: #fff;
+        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+    }
+
+    .position-relative .dropdown-item {
+        padding: 0.5rem 1rem;
+        cursor: pointer;
+        border-bottom: 1px solid #f8f9fa;
+    }
+
+    .position-relative .dropdown-item:hover {
+        background-color: #f8f9fa;
+    }
+
+    .position-relative .dropdown-item:last-child {
+        border-bottom: none;
+    }
+</style>
+
+<div class="content create-payment-container">
+    <!-- Breadcrumb -->
+    <nav class="mb-3" aria-label="breadcrumb">
+        <ol class="breadcrumb mb-0">
+            <li class="breadcrumb-item"><a href="/Home/Index">Home</a></li>
+            <li class="breadcrumb-item"><a href="/Payments/Index">Payments</a></li>
+            <li class="breadcrumb-item active">Record New</li>
+        </ol>
+    </nav>
+
+    <!-- Page Header -->
+    <div class="mb-4">
+        <h2><i class="fa-solid fa-money-bill-wave me-2 text-success"></i>Record Payment</h2>
+        <p class="text-muted">Record a new payment transaction</p>
+    </div>
+
+    <form id="paymentForm">
+        <!-- Invoice Selection -->
+        <div class="section-card">
+            <div class="section-header">
+                <i class="fa-solid fa-file-invoice me-2"></i>Invoice Details
+            </div>
+            <div class="section-body">
+                @if (invoice != null)
+                {
+                    <!-- From specific invoice -->
+                    <input type="hidden" id="InvoiceId" name="InvoiceId" value="@invoice.InvoiceId" />
+                    <input type="hidden" id="BookingId" name="BookingId" value="@invoice.BookingId" />
+                    <input type="hidden" id="InstallmentId" name="InstallmentId" value="@invoice.InstallmentId" />
+
+                    <div class="invoice-summary">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <p class="mb-1"><strong>Invoice:</strong> @invoice.InvoiceNumber</p>
+                                <p class="mb-1"><strong>Customer:</strong> @invoice.Booking?.Lead?.Name</p>
+                                <p class="mb-0"><strong>Property:</strong> @invoice.Booking?.Property?.PropertyName</p>
+                            </div>
+                            <div class="col-md-6 text-md-end">
+                                <p class="mb-1">Total: ₹@invoice.TotalAmount.ToString("N2")</p>
+                                <p class="mb-1">Paid: ₹@invoice.PaidAmount.ToString("N2")</p>
+                                <p class="mb-0 amount-display">Balance: ₹@((invoice.TotalAmount - invoice.PaidAmount).ToString("N2"))</p>
+                            </div>
+                        </div>
+                    </div>
+                }
+                else
+                {
+                    <!-- Select invoice -->
+                    <div class="row g-3">
+                        <div class="col-12">
+                            <label for="InvoiceIdSelect" class="form-label">Select Invoice *</label>
+                            <div class="position-relative">
+                                <input type="text" class="form-control" id="invoiceSearch" placeholder="Search invoices..." autocomplete="off" required>
+                                <input type="hidden" id="InvoiceIdSelect" value="">
+                                <div class="dropdown-menu w-100" id="invoiceDropdown" style="max-height: 200px; overflow-y: auto; display: none;">
+                                    <div class="dropdown-item" data-value="">Choose an invoice...</div>
+                                    @foreach (var inv in pendingInvoices)
+                                    {
+                                        var balance = inv.TotalAmount - inv.PaidAmount;
+                                        var displayText = $"{inv.InvoiceNumber} - {inv.Booking?.Lead?.Name} - Balance: ₹{balance:N0}";
+                                        <div class="dropdown-item" data-value="@inv.InvoiceId" 
+                                             data-booking="@inv.BookingId" 
+                                             data-installment="@inv.InstallmentId"
+                                             data-balance="@balance"
+                                             data-name="@displayText">@displayText</div>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-12" id="invoiceSummary" style="display: none;">
+                            <div class="invoice-summary">
+                                <div id="summaryContent"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <input type="hidden" id="InvoiceId" name="InvoiceId" />
+                    <input type="hidden" id="BookingId" name="BookingId" />
+                    <input type="hidden" id="InstallmentId" name="InstallmentId" />
+                }
+            </div>
+        </div>
+
+        <!-- Payment Details -->
+        <div class="section-card">
+            <div class="section-header">
+                <i class="fa-solid fa-credit-card me-2"></i>Payment Details
+            </div>
+            <div class="section-body">
+                <!-- Payment Method Selection -->
+                <label class="form-label">Payment Method *</label>
+                <div class="payment-method-selector">
+                    <div class="payment-method-option active" id="paymentCash" data-method="Cash">
+                        <i class="fa-solid fa-money-bill"></i>
+                        <div>Cash</div>
+                    </div>
+                    <div class="payment-method-option" id="paymentUPI" data-method="UPI">
+                        <i class="fa-solid fa-mobile-screen"></i>
+                        <div>UPI</div>
+                    </div>
+                    <div class="payment-method-option" id="paymentCheque" data-method="Cheque">
+                        <i class="fa-solid fa-money-check"></i>
+                        <div>Cheque</div>
+                    </div>
+                    <div class="payment-method-option" id="paymentNEFT" data-method="NEFT">
+                        <i class="fa-solid fa-building-columns"></i>
+                        <div>NEFT</div>
+                    </div>
+                    <div class="payment-method-option" id="paymentRTGS" data-method="RTGS">
+                        <i class="fa-solid fa-university"></i>
+                        <div>RTGS</div>
+                    </div>
+                    <div class="payment-method-option" id="paymentCard" data-method="Card">
+                        <i class="fa-solid fa-credit-card"></i>
+                        <div>Card</div>
+                    </div>
+                </div>
+                <input type="hidden" id="PaymentMethod" name="PaymentMethod" value="Cash" required />
+
+                <!-- Payment Amount and Details -->
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label for="Amount" class="form-label">Amount (₹) *</label>
+                        <div class="input-group">
+                            <span class="input-group-text">₹</span>
+                            <input type="number" class="form-control" id="Amount" name="Amount" 
+                                   step="0.01" min="0" value="@Model.Amount" required>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label for="PaymentDate" class="form-label">Payment Date</label>
+                        <input type="date" class="form-control" id="PaymentDate" name="PaymentDate" 
+                               value="@DateTime.Now.ToString("yyyy-MM-dd")">
+                    </div>
+
+                    <div class="col-md-6" id="transactionRefDiv">
+                        <label for="TransactionReference" class="form-label">Transaction Reference</label>
+                        <input type="text" class="form-control" id="TransactionReference" name="TransactionReference" 
+                               placeholder="Transaction ID / UTR Number">
+                    </div>
+
+                    <div class="col-md-6" id="bankNameDiv" style="display: none;">
+                        <label for="BankName" class="form-label">Bank Name</label>
+                        <input type="text" class="form-control" id="BankName" name="BankName" 
+                               placeholder="Bank name">
+                    </div>
+
+                    <div class="col-md-6" id="chequeNumberDiv" style="display: none;">
+                        <label for="ChequeNumber" class="form-label">Cheque Number</label>
+                        <input type="text" class="form-control" id="ChequeNumber" name="ChequeNumber" 
+                               placeholder="Cheque number">
+                    </div>
+
+                    <div class="col-md-6" id="chequeDateDiv" style="display: none;">
+                        <label for="ChequeDate" class="form-label">Cheque Date</label>
+                        <input type="date" class="form-control" id="ChequeDate" name="ChequeDate">
+                    </div>
+
+                    <div class="col-12">
+                        <label for="Notes" class="form-label">Notes</label>
+                        <textarea class="form-control" id="Notes" name="Notes" rows="2" 
+                                  placeholder="Additional payment notes..."></textarea>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Submit Button -->
+        <div class="text-center mb-5">
+            <button type="submit" class="btn btn-success submit-btn">
+                <i class="fa-solid fa-check me-2"></i>Record Payment
+            </button>
+        </div>
+    </form>
+</div>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+    $(function () {
+        // Initialize searchable dropdown
+        initializeInvoiceSearch();
+
+        // Payment method selection (support click and pointerdown for mobile)
+            $('.payment-method-option').on('click pointerdown', function (e) {
+                $('.payment-method-option').removeClass('active');
+                $(this).addClass('active');
+                var method = $(this).attr('data-method');
+                $('#PaymentMethod').val(method);
+                updatePaymentFields(method);
+                Swal.fire({
+                    icon: 'info',
+                    title: 'Payment Method Selected',
+                    text: 'You selected: ' + method,
+                    timer: 1200,
+                    showConfirmButton: false
+                });
+                e.preventDefault();
+            });
+
+        // Set initial value on page load
+        var initialMethod = $('.payment-method-option.active').attr('data-method');
+        $('#PaymentMethod').val(initialMethod);
+        updatePaymentFields(initialMethod);
+
+        // Load invoice details when selected
+        $('#InvoiceIdSelect').on('change', function () {
+            const invoiceId = $(this).val();
+            if (invoiceId) {
+                loadInvoiceDetails(invoiceId);
+            } else {
+                $('#invoiceSummary').hide();
+            }
+        });
+
+        // Form submission
+        $('#paymentForm').on('submit', function (e) {
+            e.preventDefault();
+
+            const submitBtn = $(this).find('button[type="submit"]');
+            const originalText = submitBtn.html();
+            submitBtn.prop('disabled', true).html('<i class="fa-solid fa-spinner fa-spin me-2"></i>Recording...');
+
+            $.ajax({
+                url: '/Payments/Create',
+                type: 'POST',
+                data: $(this).serialize(),
+                success: function (response) {
+                    if (response.success) {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Payment Recorded!',
+                            text: 'Receipt Number: ' + response.receiptNumber,
+                            timer: 3000,
+                            showConfirmButton: false
+                        }).then(() => {
+                            window.location.href = '/Payments/Receipt/' + response.paymentId;
+                        });
+                    } else {
+                        Swal.fire('Error', response.message, 'error');
+                        submitBtn.prop('disabled', false).html(originalText);
+                    }
+                },
+                error: function () {
+                    Swal.fire('Error', 'Failed to record payment', 'error');
+                    submitBtn.prop('disabled', false).html(originalText);
+                }
+            });
+        });
+    });
+
+    function initializeInvoiceSearch() {
+        const searchInput = $('#invoiceSearch');
+        const hiddenInput = $('#InvoiceIdSelect');
+        const dropdown = $('#invoiceDropdown');
+        const dropdownItems = dropdown.find('.dropdown-item');
+
+        // Show dropdown on focus
+        searchInput.on('focus', function() {
+            dropdown.show();
+            filterDropdownItems('');
+        });
+
+        // Hide dropdown when clicking outside
+        $(document).on('click', function(e) {
+            if (!searchInput.is(e.target) && !dropdown.is(e.target) && dropdown.has(e.target).length === 0) {
+                dropdown.hide();
+            }
+        });
+
+        // Filter on input
+        searchInput.on('input', function() {
+            const searchTerm = $(this).val().toLowerCase();
+            filterDropdownItems(searchTerm);
+        });
+
+        // Handle dropdown item selection
+        dropdownItems.on('click', function() {
+            const value = $(this).data('value');
+            const name = $(this).data('name') || $(this).text();
+            
+            hiddenInput.val(value);
+            searchInput.val(name);
+            dropdown.hide();
+            
+            // Trigger invoice change event
+            if (value) {
+                loadInvoiceDetails(value);
+            } else {
+                $('#invoiceSummary').hide();
+            }
+        });
+
+        function filterDropdownItems(searchTerm) {
+            dropdownItems.each(function() {
+                const text = $(this).text().toLowerCase();
+                if (text.includes(searchTerm)) {
+                    $(this).show();
+                } else {
+                    $(this).hide();
+                }
+            });
+        }
+    }
+
+    function loadInvoiceDetails(invoiceId) {
+        $.ajax({
+            url: '/Payments/GetInvoiceDetails',
+            type: 'GET',
+            data: { invoiceId },
+            success: function (response) {
+                if (response.success) {
+                    $('#InvoiceId').val(invoiceId);
+                    $('#BookingId').val(response.bookingId);
+                    $('#InstallmentId').val(response.installmentId);
+                    $('#Amount').val(response.balanceAmount.toFixed(2));
+
+                    $('#summaryContent').html(`
+                        <div class="row">
+                            <div class="col-md-6">
+                                <p class="mb-1"><strong>Invoice:</strong> ${response.invoiceNumber}</p>
+                                <p class="mb-1"><strong>Customer:</strong> ${response.leadName}</p>
+                                <p class="mb-0"><strong>Property:</strong> ${response.propertyName}</p>
+                            </div>
+                            <div class="col-md-6 text-md-end">
+                                <p class="mb-1">Total: ₹${response.totalAmount.toLocaleString('en-IN')}</p>
+                                <p class="mb-1">Paid: ₹${response.paidAmount.toLocaleString('en-IN')}</p>
+                                <p class="mb-0 amount-display">Balance: ₹${response.balanceAmount.toLocaleString('en-IN')}</p>
+                            </div>
+                        </div>
+                    `);
+
+                    $('#invoiceSummary').show();
+                }
+            }
+        });
+    }
+
+    function updatePaymentFields(method) {
+        // Hide all optional fields
+        $('#transactionRefDiv').hide();
+        $('#bankNameDiv').hide();
+        $('#chequeNumberDiv').hide();
+        $('#chequeDateDiv').hide();
+
+        // Show relevant fields based on method
+        if (method === 'UPI' || method === 'NEFT' || method === 'RTGS' || method === 'Card') {
+            $('#transactionRefDiv').show();
+        }
+        
+        if (method === 'NEFT' || method === 'RTGS') {
+            $('#bankNameDiv').show();
+        }
+
+        if (method === 'Cheque') {
+            $('#bankNameDiv').show();
+            $('#chequeNumberDiv').show();
+            $('#chequeDateDiv').show();
+        }
+    }
+</script>

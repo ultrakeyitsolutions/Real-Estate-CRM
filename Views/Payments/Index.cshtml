@@ -1,0 +1,446 @@
+@model List<CRM.Models.PaymentModel>
+@inject CRM.AppDbContext _context
+@{
+    ViewData["Title"] = "Payments";
+    var invoices = ViewBag.Invoices as List<CRM.Models.InvoiceModel> ?? new List<CRM.Models.InvoiceModel>();
+    var bookings = ViewBag.Bookings as List<CRM.Models.BookingModel> ?? new List<CRM.Models.BookingModel>();
+    var userRole = User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value;
+    
+    // Use new permission system
+    bool canCreate = User.IsInRole("Admin");
+    bool canDelete = User.IsInRole("Admin");
+    
+    if (!canCreate && !string.IsNullOrEmpty(userRole)) {
+        canCreate = _context.RolePagePermissions
+            .Include(rpp => rpp.Page)
+            .Include(rpp => rpp.Permission)
+            .Any(rpp => rpp.RoleName == userRole && 
+                        rpp.Page.Controller == "Payments" && 
+                        rpp.Page.Action == "Index" && 
+                        rpp.Permission.PermissionName == "Create" && 
+                        rpp.IsGranted);
+    }
+    
+    if (!canDelete && !string.IsNullOrEmpty(userRole)) {
+        canDelete = _context.RolePagePermissions
+            .Include(rpp => rpp.Page)
+            .Include(rpp => rpp.Permission)
+            .Any(rpp => rpp.RoleName == userRole && 
+                        rpp.Page.Controller == "Payments" && 
+                        rpp.Page.Action == "Index" && 
+                        rpp.Permission.PermissionName == "Delete" && 
+                        rpp.IsGranted);
+    }
+}
+
+<style>
+    .payments-header {
+        background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+        color: white;
+        padding: 2rem;
+        border-radius: 12px;
+        margin-bottom: 2rem;
+    }
+
+    .stats-card {
+        background: rgba(255, 255, 255, 0.15);
+        backdrop-filter: blur(10px);
+        border-radius: 10px;
+        padding: 1.5rem;
+        text-align: center;
+    }
+
+    .stats-number {
+        font-size: 2rem;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+    }
+
+    .filter-card {
+        background: white;
+        border-radius: 12px;
+        padding: 1.5rem;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        margin-bottom: 2rem;
+    }
+
+    .payment-card {
+        background: white;
+        border-radius: 12px;
+        padding: 1.5rem;
+        margin-bottom: 1rem;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        transition: all 0.3s ease;
+        border-left: 4px solid #28a745;
+        position: relative;
+        overflow: visible !important;
+        z-index: 1;
+    }
+
+    .payment-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+    }
+
+    .payment-card:has(.dropdown.show) {
+        z-index: 9999 !important;
+    }
+
+    .payment-card .dropdown {
+        position: static !important;
+    }
+
+    .payment-card .dropdown-menu {
+        z-index: 999999 !important;
+        position: absolute !important;
+    }
+    
+    .payment-card.dropdown-active {
+        z-index: 99999 !important;
+    }
+    
+    .dropdown-menu.show {
+        z-index: 999999 !important;
+    }
+    
+    /* Force dropdown visibility */
+    .dropdown-menu {
+        z-index: 999999 !important;
+    }
+    
+    .payment-card .dropdown.show .dropdown-menu {
+        z-index: 999999 !important;
+        position: absolute !important;
+        display: block !important;
+    }
+    
+    .payment-card:hover {
+        z-index: 99999 !important;
+    }
+
+    .create-btn {
+        background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+        border: none;
+        color: white;
+        padding: 0.75rem 2rem;
+        border-radius: 8px;
+        font-weight: 600;
+        box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
+        transition: all 0.3s ease;
+    }
+
+    .create-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(40, 167, 69, 0.4);
+        color: white;
+    }
+
+    .payment-method-badge {
+        padding: 0.35rem 0.75rem;
+        border-radius: 15px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        background-color: #e7f3ff;
+        color: #0066cc;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 4rem 2rem;
+    }
+
+    .empty-state i {
+        font-size: 5rem;
+        color: #e9ecef;
+        margin-bottom: 1.5rem;
+    }
+
+    @@media (max-width: 768px) {
+        .payment-card {
+            padding: 1rem;
+        }
+
+        .stats-number {
+            font-size: 1.5rem;
+        }
+    }
+</style>
+
+<div class="content">
+    <!-- Breadcrumb -->
+    <nav class="mb-3" aria-label="breadcrumb">
+        <ol class="breadcrumb mb-0">
+            <li class="breadcrumb-item"><a href="/Home/Index">Home</a></li>
+            <li class="breadcrumb-item active">Payments</li>
+        </ol>
+    </nav>
+
+    <!-- Header with Stats -->
+    <div class="payments-header">
+        <div class="row align-items-center mb-4">
+            <div class="col-md-6">
+                <h2 class="mb-0"><i class="fa-solid fa-money-bill-wave me-2"></i>Payments</h2>
+                <p class="mb-0 mt-2 opacity-75">Track all payment transactions and receipts</p>
+            </div>
+@if (canCreate)
+{
+    <div class="col-md-6 text-md-end">
+        <a href="/Payments/Create" class="btn create-btn">
+            <i class="fa-solid fa-plus me-2"></i>Record Payment
+        </a>
+    </div>
+}
+        </div>
+
+        <div class="row g-3">
+            <div class="col-md-3">
+                <div class="stats-card">
+                    <div class="stats-number">@Model.Count</div>
+                    <div>Total Payments</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stats-card">
+                    <div class="stats-number">₹@Model.Sum(p => p.Amount).ToString("N0")</div>
+                    <div>Total Received</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stats-card">
+                    <div class="stats-number">@Model.Count(p => p.PaymentDate.Month == DateTime.Now.Month)</div>
+                    <div>This Month</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stats-card">
+                    <div class="stats-number">₹@Model.Where(p => p.PaymentDate.Month == DateTime.Now.Month).Sum(p => p.Amount).ToString("N0")</div>
+                    <div>Month Revenue</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filter Section -->
+    <div class="filter-card">
+        <div class="row g-3 align-items-end">
+            <div class="col-md-3">
+                <label for="searchInput" class="form-label">Search</label>
+                <div class="input-group">
+                    <input type="text" class="form-control" id="searchInput" 
+                           placeholder="Receipt, transaction ref..." 
+                           value="@ViewBag.SearchTerm">
+                </div>
+            </div>
+
+            <div class="col-md-3">
+                <label for="fromDate" class="form-label">From Date</label>
+                <input type="date" class="form-control" id="fromDate" value="@ViewBag.FromDate">
+            </div>
+
+            <div class="col-md-3">
+                <label for="toDate" class="form-label">To Date</label>
+                <input type="date" class="form-control" id="toDate" value="@ViewBag.ToDate">
+            </div>
+
+            <div class="col-md-3">
+                <button class="btn btn-primary" onclick="applyFilters()">
+                    <i class="fa-solid fa-filter me-2"></i>Filter
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Payments List -->
+    @if (Model.Any())
+    {
+        foreach (var payment in Model)
+        {
+            var invoice = invoices.FirstOrDefault(i => i.InvoiceId == payment.InvoiceId);
+            var booking = invoice != null ? bookings.FirstOrDefault(b => b.BookingId == invoice.BookingId) : null;
+
+            <div class="card payment-card paginated-item">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col-md-3">
+                            <h5 class="mb-2">
+                                <i class="fa-solid fa-receipt text-success me-2"></i>
+                                @payment.ReceiptNumber
+                            </h5>
+                            <p class="mb-1 text-muted">
+                                <i class="fa-solid fa-user me-2"></i>
+                                <strong>@booking?.Lead?.Name</strong>
+                            </p>
+                            <p class="mb-0 text-muted">
+                                <i class="fa-solid fa-file-invoice me-2"></i>
+                                Invoice: @invoice?.InvoiceNumber
+                            </p>
+                        </div>
+
+                        <div class="col-md-3">
+                            <small class="text-muted d-block">Payment Date</small>
+                            <p class="mb-2">
+                                <i class="fa-solid fa-calendar me-1"></i>
+                                @payment.PaymentDate.ToString("MMM dd, yyyy")
+                            </p>
+                            <span class="payment-method-badge">
+                                <i class="fa-solid fa-credit-card me-1"></i>@payment.PaymentMethod
+                            </span>
+                        </div>
+
+                        <div class="col-md-2">
+                            @if (!string.IsNullOrEmpty(payment.TransactionReference))
+                            {
+                                <small class="text-muted d-block">Transaction Ref</small>
+                                <p class="mb-0">@payment.TransactionReference</p>
+                            }
+                            @if (!string.IsNullOrEmpty(payment.ChequeNumber))
+                            {
+                                <small class="text-muted d-block">Cheque No.</small>
+                                <p class="mb-0">@payment.ChequeNumber</p>
+                            }
+                        </div>
+
+                        <div class="col-md-2 text-center">
+                            <small class="text-muted d-block mb-1">Amount Paid</small>
+                            <h4 class="text-success mb-0">₹@payment.Amount.ToString("N0")</h4>
+                        </div>
+
+                        <div class="col-md-2 text-end">
+                            <div class="dropdown">
+                                <button class="btn btn-sm btn-outline-success" 
+                                        type="button" data-bs-toggle="dropdown">
+                                    <i class="fa-solid fa-ellipsis-vertical"></i>
+                                </button>
+                                <ul class="dropdown-menu dropdown-menu-end">
+                                    <li>
+                                        <a class="dropdown-item" href="/Payments/Receipt/@payment.PaymentId">
+                                            <i class="fa-solid fa-receipt me-2"></i>View Receipt
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item" href="/Invoices/Details/@payment.InvoiceId">
+                                            <i class="fa-solid fa-file-invoice me-2"></i>View Invoice
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item" href="/Payments/Receipt/@payment.PaymentId">
+                                            <i class="fa-solid fa-download me-2"></i>Download Receipt
+                                        </a>
+                                    </li>
+                                    @if (canDelete)
+                                    {
+                                        <li><hr class="dropdown-divider"></li>
+                                        <li>
+                                            <a class="dropdown-item text-danger" href="#" 
+                                               onclick="deletePayment(@payment.PaymentId)">
+                                                <i class="fa-solid fa-trash me-2"></i>Delete
+                                            </a>
+                                        </li>
+                                    }
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+        
+        <!-- Pagination -->
+        <div id="pagination-container" class="mt-4"></div>
+    }
+    else
+    {
+        <div class="empty-state">
+            <i class="fa-solid fa-money-bill-wave"></i>
+            <h3>No Payments Found</h3>
+            <p class="text-muted">Start by recording your first payment</p>
+@if (canCreate)
+{
+    <a href="/Payments/Create" class="btn create-btn mt-3">
+        <i class="fa-solid fa-plus me-2"></i>Record Payment
+    </a>
+}
+        </div>
+    }
+</div>
+
+<script>
+    setTimeout(function() {
+        if (typeof $ === 'undefined') {
+            console.log('jQuery not loaded yet');
+            return;
+        }
+        
+        function applyFilters() {
+            const search = $('#searchInput').val();
+            const fromDate = $('#fromDate').val();
+            const toDate = $('#toDate').val();
+            
+            let url = '/Payments/Index?';
+            if (search) url += `search=${search}&`;
+            if (fromDate) url += `fromDate=${fromDate}&`;
+            if (toDate) url += `toDate=${toDate}`;
+            
+            window.location.href = url;
+        }
+
+        $('#searchInput').on('keypress', function (e) {
+            if (e.which === 13) {
+                applyFilters();
+            }
+        });
+
+        // Handle dropdown z-index to ensure it appears above all cards
+        $('.payment-card .dropdown').on('show.bs.dropdown', function () {
+            // Reset all cards
+            $('.payment-card').removeClass('dropdown-active').css('z-index', '1');
+            // Set current card to highest z-index
+            $(this).closest('.payment-card').addClass('dropdown-active').css('z-index', '99999');
+        });
+
+        $('.payment-card .dropdown').on('hide.bs.dropdown', function () {
+            $(this).closest('.payment-card').removeClass('dropdown-active').css('z-index', '1');
+        });
+        
+        window.applyFilters = applyFilters;
+    }, 1000);
+
+    function deletePayment(paymentId) {
+        if (typeof $ === 'undefined') {
+            console.log('jQuery not available for delete function');
+            return;
+        }
+        Swal.fire({
+            title: 'Are you sure?',
+            text: "This will reverse the payment and update invoice/installment status!",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: 'Yes, delete it!'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                $.ajax({
+                    url: '/Payments/Delete/' + paymentId,
+                    type: 'POST',
+                    success: function (response) {
+                        if (response.success) {
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Deleted!',
+                                text: response.message,
+                                timer: 2000,
+                                showConfirmButton: false
+                            }).then(() => location.reload());
+                        } else {
+                            Swal.fire('Error', response.message, 'error');
+                        }
+                    },
+                    error: function () {
+                        Swal.fire('Error', 'Failed to delete payment', 'error');
+                    }
+                });
+            }
+        });
+    }
+</script>

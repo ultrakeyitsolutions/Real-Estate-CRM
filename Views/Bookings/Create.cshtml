@@ -1,0 +1,597 @@
+@model CRM.Models.BookingModel
+@{
+    ViewData["Title"] = "Create Booking";
+    var quotation = ViewBag.Quotation as CRM.Models.QuotationModel;
+    var lead = ViewBag.Lead as CRM.Models.LeadModel;
+    var property = ViewBag.Property as CRM.Models.PropertyModel;
+    var flat = ViewBag.Flat as CRM.Models.PropertyFlatModel;
+    var acceptedQuotations = ViewBag.AcceptedQuotations as List<CRM.Models.QuotationModel> ?? new List<CRM.Models.QuotationModel>();
+    var bookingPercentage = (decimal)(ViewBag.BookingPercentage ?? 20);
+}
+
+<style>
+    .create-booking-container {
+        max-width: 1000px;
+        margin: 0 auto;
+    }
+
+    .section-card {
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        margin-bottom: 2rem;
+        overflow: visible;
+    }
+
+    .section-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 1rem 1.5rem;
+        font-weight: 600;
+        font-size: 1.1rem;
+    }
+
+    .section-body {
+        padding: 2rem;
+    }
+
+    .summary-box {
+        background: linear-gradient(135deg, #f5f7fa 0%, #e9ecef 100%);
+        border-radius: 8px;
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .amount-display {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #667eea;
+    }
+
+    .payment-type-selector {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .payment-option {
+        border: 2px solid #e9ecef;
+        border-radius: 10px;
+        padding: 1.5rem;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .payment-option:hover {
+        border-color: #667eea;
+        background-color: #f8f9fa;
+    }
+
+    .payment-option.active {
+        border-color: #667eea;
+        background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+    }
+
+    .payment-option i {
+        font-size: 2.5rem;
+        color: #667eea;
+        margin-bottom: 1rem;
+    }
+
+    .upload-area {
+        border: 2px dashed #d1d9e6;
+        border-radius: 8px;
+        padding: 2rem;
+        text-align: center;
+        background-color: #f8f9fa;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .upload-area:hover {
+        border-color: #667eea;
+        background-color: #f5f7fa;
+    }
+
+    .upload-area i {
+        font-size: 3rem;
+        color: #667eea;
+        margin-bottom: 1rem;
+    }
+
+    .file-list {
+        margin-top: 1rem;
+    }
+
+    .file-item {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0.75rem;
+        background: white;
+        border-radius: 6px;
+        margin-bottom: 0.5rem;
+        border: 1px solid #e9ecef;
+    }
+
+    .submit-btn {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border: none;
+        padding: 1rem 3rem;
+        border-radius: 8px;
+        font-weight: 600;
+        font-size: 1.1rem;
+        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+    }
+
+    .submit-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+    }
+
+    /* Seamless input-group styling */
+    .input-group .input-group-text.border-end-0 {
+        border-right: 0 !important;
+        background-color: #f8f9fa !important;
+    }
+
+    .input-group .form-control.border-start-0 {
+        border-left: 0 !important;
+        background-color: #f8f9fa !important;
+        padding-left: 0 !important;
+    }
+
+    @@media (max-width: 768px) {
+        .payment-type-selector {
+            grid-template-columns: 1fr;
+        }
+
+        .section-body {
+            padding: 1rem;
+        }
+    }
+
+    /* Searchable Dropdown Styles */
+    .position-relative .dropdown-menu {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        z-index: 1050;
+        border: 1px solid #dee2e6;
+        border-radius: 0.375rem;
+        background-color: #fff;
+        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+    }
+
+    .position-relative .dropdown-item {
+        padding: 0.5rem 1rem;
+        cursor: pointer;
+        border-bottom: 1px solid #f8f9fa;
+    }
+
+    .position-relative .dropdown-item:hover {
+        background-color: #f8f9fa;
+    }
+
+    .position-relative .dropdown-item:last-child {
+        border-bottom: none;
+    }
+</style>
+
+<div class="content create-booking-container">
+    <!-- Breadcrumb -->
+    <nav class="mb-3" aria-label="breadcrumb">
+        <ol class="breadcrumb mb-0">
+            <li class="breadcrumb-item"><a href="/Home/Index">Home</a></li>
+            <li class="breadcrumb-item"><a href="/Bookings/Index">Bookings</a></li>
+            <li class="breadcrumb-item active">Create New</li>
+        </ol>
+    </nav>
+
+    <!-- Page Header -->
+    <div class="mb-4">
+        <h2><i class="fa-solid fa-handshake me-2 text-primary"></i>Create New Booking</h2>
+        <p class="text-muted">Confirm property booking and payment details</p>
+    </div>
+
+    <form id="bookingForm" method="post" enctype="multipart/form-data" action="/Bookings/Create">
+        <!-- Quotation/Property Selection -->
+        <div class="section-card">
+            <div class="section-header">
+                <i class="fa-solid fa-file-invoice me-2"></i>Quotation & Property Details
+            </div>
+            <div class="section-body">
+                @if (quotation != null)
+                {
+                    <!-- From Quotation -->
+                    <input type="hidden" id="QuotationId" name="QuotationId" value="@quotation.QuotationId" />
+                    <input type="hidden" id="LeadId" name="LeadId" value="@quotation.LeadId" />
+                    <input type="hidden" id="PropertyId" name="PropertyId" value="@quotation.PropertyId" />
+                    <input type="hidden" id="FlatId" name="FlatId" value="@quotation.FlatId" />
+                    <input type="hidden" id="TotalAmount" name="TotalAmount" value="@quotation.GrandTotal" />
+
+                    <div class="summary-box">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <p class="mb-1"><strong>Lead:</strong> @lead?.Name</p>
+                                <p class="mb-1"><strong>Property:</strong> @property?.PropertyName</p>
+                                <p class="mb-0"><strong>Flat:</strong> @flat?.FlatName - @flat?.BHK</p>
+                            </div>
+                            <div class="col-md-6 text-md-end">
+                                <p class="mb-1"><strong>Quotation:</strong> @quotation.QuotationNumber</p>
+                                <p class="mb-0 amount-display">₹@quotation.GrandTotal.ToString("N0")</p>
+                            </div>
+                        </div>
+                    </div>
+                }
+                else
+                {
+                    <!-- Select from Accepted Quotations -->
+                    <div class="row g-3">
+                        <div class="col-12">
+                            <label for="QuotationIdSelect" class="form-label">Select Accepted Quotation *</label>
+                            <div class="position-relative">
+                                <input type="text" class="form-control" id="quotationSearch" placeholder="Search quotations..." autocomplete="off" required>
+                                <input type="hidden" id="QuotationIdSelect" value="">
+                                <div class="dropdown-menu w-100" id="quotationDropdown" style="max-height: 200px; overflow-y: auto; display: none;">
+                                    @if (acceptedQuotations.Any())
+                                    {
+                                        <div class="dropdown-item" data-value="">Choose a quotation...</div>
+                                        @foreach (var q in acceptedQuotations)
+                                        {
+                                            var qLead = q.Lead;
+                                            var qProperty = q.Property;
+                                            var displayText = $"{q.QuotationNumber} - {qLead?.Name} - {qProperty?.PropertyName} - ₹{q.GrandTotal:N0}";
+                                            <div class="dropdown-item" data-value="@q.QuotationId" data-amount="@q.GrandTotal" data-name="@displayText">@displayText</div>
+                                        }
+                                    }
+                                    else
+                                    {
+                                        <div class="dropdown-item" data-value="" style="color: #6c757d; cursor: not-allowed;">No accepted quotation</div>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-12" id="quotationSummary" style="display: none;">
+                            <div class="summary-box">
+                                <div id="summaryContent"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <input type="hidden" id="QuotationId" name="QuotationId" />
+                    <input type="hidden" id="LeadId" name="LeadId" />
+                    <input type="hidden" id="PropertyId" name="PropertyId" />
+                    <input type="hidden" id="FlatId" name="FlatId" />
+                    <input type="hidden" id="TotalAmount" name="TotalAmount" />
+                }
+            </div>
+        </div>
+
+        <!-- Payment Details -->
+        <div class="section-card">
+            <div class="section-header">
+                <i class="fa-solid fa-credit-card me-2"></i>Payment Details
+            </div>
+            <div class="section-body">
+                <!-- Payment Type Selection -->
+                <label class="form-label">Select Payment Type *</label>
+                <div class="payment-type-selector">
+                    <div class="payment-option" data-type="FullPayment" id="fullPaymentOption">
+                        <i class="fa-solid fa-money-bill-wave"></i>
+                        <h5>Full Payment</h5>
+                        <p class="text-muted mb-0">Pay entire amount now</p>
+                    </div>
+                    <div class="payment-option" data-type="EMI" id="emiOption">
+                        <i class="fa-solid fa-calendar-days"></i>
+                        <h5>EMI Plan</h5>
+                        <p class="text-muted mb-0">Pay in installments</p>
+                    </div>
+                </div>
+                <input type="hidden" id="PaymentType" name="PaymentType" value="EMI" required />
+
+                <div id="emiFields">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label for="BookingAmount" class="form-label">Booking Amount (₹) *</label>
+                            <div class="input-group">
+                                <span class="input-group-text border-end-0 bg-light">₹</span>
+                                <input type="number" class="form-control border-start-0 bg-light ps-0" id="BookingAmount" name="BookingAmount" 
+                                       step="0.01" min="0" required readonly>
+                            </div>
+                            <small class="text-muted">Default: @bookingPercentage% of total amount</small>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="AgreementDate" class="form-label">Agreement Date (Optional)</label>
+                            <input type="date" class="form-control" id="AgreementDate" name="AgreementDate">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="PossessionDate" class="form-label">Expected Possession Date</label>
+                            <input type="date" class="form-control" id="PossessionDate" name="PossessionDate">
+                        </div>
+                        <div class="col-12">
+                            <label for="Notes" class="form-label">Notes</label>
+                            <textarea class="form-control" id="Notes" name="Notes" rows="2" 
+                                      placeholder="Additional booking notes..."></textarea>
+                        </div>
+                    </div>
+                </div>
+                <div id="fullPaymentFields" style="display:none;">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Total Payment Amount</label>
+                            <div class="input-group">
+                                <span class="input-group-text border-end-0 bg-light">₹</span>
+                                <input type="number" class="form-control border-start-0 bg-light ps-0" id="FullPaymentAmount" name="FullPaymentAmount" readonly>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="AgreementDateFull" class="form-label">Agreement Date (Optional)</label>
+                            <input type="date" class="form-control" id="AgreementDateFull" name="AgreementDateFull">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="PossessionDateFull" class="form-label">Expected Possession Date</label>
+                            <input type="date" class="form-control" id="PossessionDateFull" name="PossessionDateFull">
+                        </div>
+                        <div class="col-12">
+                            <label for="NotesFull" class="form-label">Notes</label>
+                            <textarea class="form-control" id="NotesFull" name="NotesFull" rows="2" 
+                                      placeholder="Additional booking notes..."></textarea>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Document Upload -->
+        <div class="section-card">
+            <div class="section-header">
+                <i class="fa-solid fa-file-upload me-2"></i>Upload Documents
+            </div>
+            <div class="section-body">
+                <div class="upload-area" id="uploadArea">
+                    <i class="fa-solid fa-cloud-upload-alt"></i>
+                    <h5>Click to upload documents</h5>
+                    <p class="text-muted mb-0">Aadhar, PAN, Agreement, Cheque copy, etc.</p>
+                </div>
+                <input type="file" id="documentsInput" name="documents" multiple style="display: none;" 
+                       accept=".pdf,.jpg,.jpeg,.png,.doc,.docx">
+                <div class="file-list" id="fileList"></div>
+            </div>
+        </div>
+
+        <!-- Submit Button -->
+        <div class="text-center mb-5">
+            <button type="submit" class="btn btn-primary submit-btn">
+                <i class="fa-solid fa-check me-2"></i>Confirm Booking
+            </button>
+        </div>
+    </form>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+const bookingPercentage = @bookingPercentage;
+
+$(function () {
+    // Initialize searchable dropdown
+    initializeQuotationSearch();
+
+    // Payment type selection logic
+    function togglePaymentType(type) {
+        if (type === 'FullPayment') {
+            $('#PaymentType').val('FullPayment');
+            $('#fullPaymentFields').show();
+            $('#emiFields').hide();
+            $('#fullPaymentOption').addClass('active');
+            $('#emiOption').removeClass('active');
+        } else {
+            $('#PaymentType').val('EMI');
+            $('#emiFields').show();
+            $('#fullPaymentFields').hide();
+            $('#emiOption').addClass('active');
+            $('#fullPaymentOption').removeClass('active');
+        }
+    }
+
+    $('#fullPaymentOption').on('click', function () {
+        togglePaymentType('FullPayment');
+    });
+    $('#emiOption').on('click', function () {
+        togglePaymentType('EMI');
+    });
+
+    // Initial state
+    togglePaymentType('EMI');
+
+    // Booking form submit logic
+    $('#bookingForm').on('submit', function (e) {
+        e.preventDefault();
+        const formData = new FormData(this);
+        const submitBtn = $(this).find('button[type="submit"]');
+        const originalText = submitBtn.html();
+        submitBtn.prop('disabled', true).html('<i class="fa-solid fa-spinner fa-spin me-2"></i>Creating Booking...');
+        $.ajax({
+            url: '/Bookings/Create',
+            type: 'POST',
+            data: formData,
+            processData: false,
+            contentType: false,
+            success: function (response) {
+                if (!response.success && response.message.includes('Another quotation for this customer and property is already accepted')) {
+                    Swal.fire({
+                        title: 'Quotation Conflict',
+                        text: response.message + ' Do you want to proceed and reject all other accepted quotations?',
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonText: 'Yes, proceed',
+                        cancelButtonText: 'No, cancel'
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            formData.append('ForceAccept', true);
+                            $.ajax({
+                                url: '/Bookings/Create',
+                                type: 'POST',
+                                data: formData,
+                                processData: false,
+                                contentType: false,
+                                success: function (forceResponse) {
+                                    if (forceResponse.success) {
+                                        window.location.href = '/Bookings/Index';
+                                    } else {
+                                        Swal.fire('Error', forceResponse.message, 'error');
+                                        submitBtn.prop('disabled', false).html(originalText);
+                                    }
+                                }
+                            });
+                        } else {
+                            submitBtn.prop('disabled', false).html(originalText);
+                        }
+                    });
+                } else if (response.success) {
+                    window.location.href = '/Bookings/Index';
+                } else {
+                    Swal.fire('Error', response.message, 'error');
+                    submitBtn.prop('disabled', false).html(originalText);
+                }
+            },
+            error: function () {
+                Swal.fire('Error', 'Failed to create booking', 'error');
+                submitBtn.prop('disabled', false).html(originalText);
+            }
+        });
+    });
+
+    // Quotation details loading
+    window.loadQuotationDetails = function(quotationId) {
+        $.ajax({
+            url: '/Bookings/GetQuotationDetails',
+            type: 'GET',
+            data: { quotationId },
+            success: function (response) {
+                if (response.success) {
+                    $('#QuotationId').val(quotationId);
+                    $('#LeadId').val(response.leadId);
+                    $('#PropertyId').val(response.propertyId);
+                    $('#FlatId').val(response.flatId);
+                    $('#TotalAmount').val(response.totalAmount);
+                    $('#FullPaymentAmount').val(response.totalAmount.toFixed(2));
+                    calculateBookingAmount();
+                    $('#summaryContent').html(`
+                        <div class="row">
+                            <div class="col-md-6">
+                                <p class="mb-1"><strong>Lead:</strong> ${response.leadName}</p>
+                                <p class="mb-1"><strong>Property:</strong> ${response.propertyName}</p>
+                                <p class="mb-0"><strong>Flat:</strong> ${response.flatName}</p>
+                            </div>
+                            <div class="col-md-6 text-md-end">
+                                <p class="mb-0 amount-display">₹${response.totalAmount.toLocaleString('en-IN')}</p>
+                            </div>
+                        </div>
+                    `);
+                    $('#quotationSummary').show();
+                }
+            }
+        });
+    }
+
+    // Booking amount calculation
+    function calculateBookingAmount() {
+        const totalAmount = parseFloat($('#TotalAmount').val()) || 0;
+        const bookingAmount = (totalAmount * bookingPercentage) / 100;
+        $('#BookingAmount').val(bookingAmount.toFixed(2));
+    }
+
+    // File display logic
+    function displaySelectedFiles() {
+        const fileList = $('#fileList');
+        const files = $('#documentsInput')[0].files;
+        fileList.empty();
+        if (files.length > 0) {
+            $.each(files, function (index, file) {
+                const fileItem = $(`
+                    <div class="file-item">
+                        <span><i class="fa-solid fa-file me-2"></i>${file.name}</span>
+                        <small class="text-muted">${(file.size / 1024).toFixed(2)} KB</small>
+                    </div>
+                `);
+                fileList.append(fileItem);
+            });
+        }
+    }
+
+    // Document upload area click
+    $('#uploadArea').on('click', function () {
+        $('#documentsInput').click();
+    });
+    $('#documentsInput').on('change', displaySelectedFiles);
+
+    // Quotation selection change
+    $('#QuotationIdSelect').on('change', function () {
+        var quotationId = $(this).val();
+        if (quotationId) {
+            loadQuotationDetails(quotationId);
+        }
+    });
+});
+
+function initializeQuotationSearch() {
+    const searchInput = $('#quotationSearch');
+    const hiddenInput = $('#QuotationIdSelect');
+    const dropdown = $('#quotationDropdown');
+    const dropdownItems = dropdown.find('.dropdown-item');
+
+    // Show dropdown on focus
+    searchInput.on('focus', function() {
+        dropdown.show();
+        filterDropdownItems('');
+    });
+
+    // Hide dropdown when clicking outside
+    $(document).on('click', function(e) {
+        if (!searchInput.is(e.target) && !dropdown.is(e.target) && dropdown.has(e.target).length === 0) {
+            dropdown.hide();
+        }
+    });
+
+    // Filter on input
+    searchInput.on('input', function() {
+        const searchTerm = $(this).val().toLowerCase();
+        filterDropdownItems(searchTerm);
+    });
+
+    // Handle dropdown item selection
+    dropdownItems.on('click', function() {
+        const value = $(this).data('value');
+        const name = $(this).data('name') || $(this).text();
+        
+        // Prevent selection of disabled "No accepted quotation" option
+        if ($(this).css('cursor') === 'not-allowed') {
+            return;
+        }
+        
+        hiddenInput.val(value);
+        searchInput.val(name);
+        dropdown.hide();
+        
+        // Trigger change event
+        if (value) {
+            loadQuotationDetails(value);
+        }
+    });
+
+    function filterDropdownItems(searchTerm) {
+        dropdownItems.each(function() {
+            const text = $(this).text().toLowerCase();
+            if (text.includes(searchTerm)) {
+                $(this).show();
+            } else {
+                $(this).hide();
+            }
+        });
+    }
+}
+</script>

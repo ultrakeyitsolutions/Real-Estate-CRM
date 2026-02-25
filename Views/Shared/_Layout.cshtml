@@ -1,0 +1,2968 @@
+﻿@inject Microsoft.AspNetCore.Http.IHttpContextAccessor HttpContextAccessor
+@inject CRM.AppDbContext _context
+@inject CRM.Services.PermissionService _permissionService
+@using System.IdentityModel.Tokens.Jwt
+@using System.Security.Claims
+@using Microsoft.EntityFrameworkCore
+
+@{
+    var token = HttpContextAccessor.HttpContext?.Request.Cookies["jwtToken"];
+    var emails = HttpContextAccessor.HttpContext?.Session.GetString("Email")
+                 ?? HttpContextAccessor.HttpContext?.Request.Cookies["Email"];
+
+    string role = "";
+    string username = "";
+    string email = "";
+    byte[] profileImageBytes = null;
+
+    if (!string.IsNullOrEmpty(token))
+    {
+        try
+        {
+            var handler = new JwtSecurityTokenHandler();
+            var jwt = handler.ReadJwtToken(token);
+            role = jwt.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Role || c.Type == "role")?.Value ?? "";
+            username = jwt.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Name || c.Type == "name")?.Value ?? "";
+            email = jwt.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Email || c.Type == "email")?.Value ?? emails ?? "";
+        }
+        catch { role = ""; username = ""; email = ""; }
+    }
+
+    if (!string.IsNullOrEmpty(username))
+    {
+        // Get UserId from claims instead of username lookup
+        var userIdClaim = Context.User.FindFirst("UserId")?.Value;
+        if (!string.IsNullOrEmpty(userIdClaim) && int.TryParse(userIdClaim, out int userId))
+        {
+            var userProfile = _context.UserProfiles.FirstOrDefault(u => u.UserId == userId);
+            profileImageBytes = userProfile?.ProfileImage;
+        }
+    }
+
+    string profileImageSrc = profileImageBytes != null
+        ? $"data:image/png;base64,{Convert.ToBase64String(profileImageBytes)}"
+        : "https://via.placeholder.com/40";
+
+    // Get company logo from branding settings
+    int? userChannelPartnerId = null;
+    bool isPartnerAgent = false;
+    if (!string.IsNullOrEmpty(username))
+    {
+        var userRecord = _context.Users.FirstOrDefault(u => u.Username == username);
+        userChannelPartnerId = userRecord?.ChannelPartnerId;
+        isPartnerAgent = userRecord?.ChannelPartnerId != null && (role == "Sales" || role == "Agent");
+    }
+    
+    // Try Settings logo first, then fallback to branding
+    var companyLogoSetting = _context.Settings.FirstOrDefault(s => s.SettingKey == "CompanyLogo" && s.ChannelPartnerId == userChannelPartnerId);
+    string companyLogo = companyLogoSetting?.SettingValue;
+    
+    // Fallback to branding logo if no settings logo
+    if (string.IsNullOrEmpty(companyLogo))
+    {
+        var brandingData = _context.Branding.FirstOrDefault();
+        companyLogo = brandingData?.CompanyLogo;
+    }
+    
+    // Get collapsed logo from settings
+    var collapsedLogoSetting = _context.Settings.FirstOrDefault(s => s.SettingKey == "CollapsedLogo" && s.ChannelPartnerId == userChannelPartnerId);
+    string collapsedLogo = collapsedLogoSetting?.SettingValue;
+    
+    bool hasCompanyLogo = !string.IsNullOrEmpty(companyLogo);
+    bool hasCollapsedLogo = !string.IsNullOrEmpty(collapsedLogo);
+}
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, shrink-to-fit=no">
+	<meta name="description" content="Responsive Admin &amp; Dashboard Template based on Bootstrap 5">
+	<meta name="author" content="AdminKit">
+	<meta name="keywords" content="adminkit, bootstrap, bootstrap 5, admin, dashboard, template, responsive, css, sass, html, theme, front-end, ui kit, web">
+
+	<link rel="preconnect" href="https://fonts.gstatic.com">
+	<link rel="icon" type="image/svg+xml" href="~/vendors/home-broker-dealer-icon.svg">
+	<link rel="icon" type="image/png" sizes="32x32" href="~/vendors/home-broker-dealer-icon.svg">
+	<link rel="shortcut icon" href="~/vendors/home-broker-dealer-icon.svg">
+
+	<link rel="canonical" href="https://demo-basic.adminkit.io/pages-blank.html" />
+
+	<title>@ViewData["Title"] - CRM</title>
+
+	<link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+	<link href="~/css/app.css" rel="stylesheet">
+	<link href="~/css/responsive-fixes.css" rel="stylesheet">
+	<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+	<!-- Font Awesome -->
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+</head>
+
+<body>
+	@Html.AntiForgeryToken()
+	<div class="wrapper">
+		<nav id="sidebar" class="sidebar js-sidebar">
+			<div class="sidebar-content js-simplebar">
+				<a class="sidebar-brand" asp-area="" asp-controller="Home" asp-action="Index">
+					@if (hasCompanyLogo)
+					{
+						<img src="@companyLogo" alt="Company Logo" class="sidebar-logo-full" style="max-height: 40px; max-width: 150px; object-fit: contain;">
+						@if (hasCollapsedLogo)
+						{
+							<img src="@collapsedLogo" alt="Collapsed Logo" class="sidebar-logo-collapsed" style="max-height: 35px; max-width: 35px; object-fit: contain; display: none;">
+						}
+						else
+						{
+							<img src="@companyLogo" alt="Company Logo" class="sidebar-logo-collapsed" style="max-height: 35px; max-width: 35px; object-fit: contain; display: none;">
+						}
+					}
+						else
+						{
+							<span class="align-middle sidebar-text-full" style="white-space: nowrap;">RealEstate CRM</span>
+							<span class="align-middle sidebar-text-collapsed" style="display: none; font-size: 1.2rem; font-weight: bold;">RC</span>
+						}
+				</a>
+				@if (Context.Session.GetString("IsImpersonating") == "true")
+				{
+					<div class="impersonation-banner" onclick="stopImpersonation()" title="Impersonating @username - Click to stop">
+						<i class="fas fa-user-secret"></i>
+						<span class="impersonation-text"> Impersonating @username</span>
+						<button class="btn btn-sm btn-outline-light ms-2" onclick="event.stopPropagation(); stopImpersonation()" title="Stop Impersonation">
+							<i class="fas fa-times"></i>
+						</button>
+					</div>
+				}
+
+				<ul class="sidebar-nav">
+					<!-- DASHBOARD SECTION -->
+					<li class="sidebar-item has-dropdown @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Home" ? "has-active" : "")">
+						<a class="sidebar-link collapsed" data-bs-toggle="collapse" href="#dashboardCollapse" role="button" aria-expanded="false">
+							<i class="align-middle" data-feather="sliders"></i> <span class="align-middle">Dashboard</span>
+							<i class="align-middle ms-auto" data-feather="chevron-down"></i>
+						</a>
+						<div class="collapse" id="dashboardCollapse">
+							<ul class="sidebar-dropdown list-unstyled">
+								@if (role == "Partner")
+								{
+									<li class="sidebar-item @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Home" && ViewContext.RouteData.Values["Action"]?.ToString() == "SalesOverview" ? "active" : "")">
+										<a class="sidebar-link" asp-area="" asp-controller="Home" asp-action="SalesOverview">
+											<i class="align-middle" data-feather="home"></i> <span class="align-middle">Partner Dashboard</span>
+										</a>
+									</li>
+									<li class="sidebar-item @(ViewContext.RouteData.Values["Controller"]?.ToString() == "PartnerTracking" ? "active" : "")">
+										<a class="sidebar-link" asp-area="" asp-controller="PartnerTracking" asp-action="Index">
+											<i class="align-middle" data-feather="activity"></i> <span class="align-middle">Lead Tracking</span>
+										</a>
+									</li>
+								}
+								else
+								{
+									<li class="sidebar-item @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Home" && ViewContext.RouteData.Values["Action"]?.ToString() == "Index" ? "active" : "")">
+										@* <a class="sidebar-link" asp-area="" asp-controller="Home" asp-action="Index">
+											<i class="align-middle" data-feather="home"></i> <span class="align-middle">@(role == "Admin" ? "Admin Dashboard" : "Main Dashboard")</span>
+										</a> *@
+										<a class="sidebar-link" asp-area="" asp-controller="Home" asp-action="Index">
+											<i class="align-middle" data-feather="activity"></i>
+											<span class="align-middle">@(role == "Admin" ? "Admin Dashboard" : "Main Dashboard")</span>
+										</a>
+
+									</li>
+								}
+								@if (role != "Sales" && role != "Agent" && role != "Partner")
+								{
+									<li class="sidebar-item @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Home" && ViewContext.RouteData.Values["Action"]?.ToString() == "SalesOverview" ? "active" : "")">
+										@* <a class="sidebar-link" asp-area="" asp-controller="Home" asp-action="SalesOverview">
+											<i class="align-middle" data-feather="trending-up"></i> <span class="align-middle">Sales Overview</span>
+										</a> *@
+										<a class="sidebar-link" asp-area="" asp-controller="Home" asp-action="SalesOverview">
+											<i class="align-middle" data-feather="shopping-cart"></i>
+											<span class="align-middle">Sales Overview</span>
+										</a>
+
+									</li>
+									@if (role == "Admin" || role == "Manager")
+									{
+										<li class="sidebar-item @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Home" && ViewContext.RouteData.Values["Action"]?.ToString() == "TeamDashboard" ? "active" : "")">
+										 <a class="sidebar-link" asp-area="" asp-controller="Home" asp-action="TeamDashboard">
+												<i class="align-middle" data-feather="users"></i> <span class="align-middle">Team Dashboard</span>
+											</a> 
+											
+
+
+										</li>
+									}
+								}
+								@if (role == "Admin")
+								{
+									<!-- MILESTONE PAYMENT TRACKING SECTION -->
+									<li class="sidebar-item @(ViewContext.RouteData.Values["Controller"]?.ToString() == "MilestoneTracking" ? "active" : "")">
+										<a class="sidebar-link" asp-area="" asp-controller="MilestoneTracking" asp-action="Index">
+											<i class="align-middle" data-feather="check-square"></i> <span class="align-middle">Milestone Payment Tracking</span>
+										</a>
+									</li>
+								}
+								
+							</ul>
+						</div>
+					</li>
+					@* @if (role == "Admin")
+					{
+						<li class="sidebar-item @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Home" && ViewContext.RouteData.Values["Action"]?.ToString() == "AdminDashboard" ? "active" : "")">
+								<a class="sidebar-link" asp-area="" asp-controller="Home" asp-action="AdminDashboard">
+								<i class="align-middle" data-feather="bar-chart"></i> <span class="align-middle">Admin Dashboard</span>
+							</a>
+						</li>
+					} *@
+
+					<!-- LEADS & PROPERTIES SECTION -->
+					<li class="sidebar-item has-dropdown @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Leads" || ViewContext.RouteData.Values["Controller"]?.ToString() == "SalesPipelines" || ViewContext.RouteData.Values["Controller"]?.ToString() == "Tasks" || ViewContext.RouteData.Values["Controller"]?.ToString() == "WebhookLeads" || ViewContext.RouteData.Values["Controller"]?.ToString() == "Properties" ? "has-active" : "")">
+						<a class="sidebar-link collapsed" data-bs-toggle="collapse" href="#leadsPropertiesCollapse" role="button" aria-expanded="false">
+							<i class="align-middle" data-feather="folder"></i> <span class="align-middle">Leads & Properties</span>
+							<i class="align-middle ms-auto" data-feather="chevron-down"></i>
+						</a>
+						<div class="collapse" id="leadsPropertiesCollapse">
+							<ul class="sidebar-dropdown list-unstyled">
+								@{
+									bool canViewLeads = false;
+									if (role == "Admin") {
+										canViewLeads = true;
+									} else if (!string.IsNullOrEmpty(role)) {
+										// Get current user's ChannelPartnerId for permission checking
+										var currentUser = _context.Users.FirstOrDefault(u => u.Username == username);
+										var userChannelPartnerId = currentUser?.ChannelPartnerId;
+										
+										// Check permission from database for all non-Admin roles
+										var permissionExists = _context.RolePagePermissions
+											.Include(rpp => rpp.Page)
+											.Include(rpp => rpp.Permission)
+											.Any(rpp => rpp.RoleName == role && 
+														rpp.Page.Controller == "Leads" && 
+														rpp.Page.Action == "Index" && 
+														rpp.Permission.PermissionName == "View" && 
+														rpp.IsGranted &&
+														(rpp.ChannelPartnerId == userChannelPartnerId || rpp.ChannelPartnerId == null));
+										canViewLeads = permissionExists;
+									}
+								}
+								@if (canViewLeads)
+								{
+									<li class="sidebar-item @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Leads" ? "active" : "")">
+										@* <a class="sidebar-link" asp-area="" asp-controller="Leads" asp-action="Index">
+											<i class="align-middle" data-feather="users"></i> <span class="align-middle">Leads</span>
+										</a> *@
+										<a class="sidebar-link" asp-area="" asp-controller="Leads" asp-action="Index">
+											<i class="align-middle" data-feather="user-plus"></i>
+											<span class="align-middle">Leads</span>
+										</a>
+
+									</li>
+								}
+								@{
+									bool canViewSalesPipelines = false;
+									if (role == "Admin") {
+										canViewSalesPipelines = true;
+									} else if (!string.IsNullOrEmpty(role)) {
+										var currentUser = _context.Users.FirstOrDefault(u => u.Username == username);
+										var userChannelPartnerId = currentUser?.ChannelPartnerId;
+										var salesPipelinesPermissionExists = _context.RolePagePermissions
+											.Include(rpp => rpp.Page)
+											.Include(rpp => rpp.Permission)
+											.Any(rpp => rpp.RoleName == role && 
+														rpp.Page.Controller == "SalesPipelines" && 
+														rpp.Page.Action == "Index" && 
+														rpp.Permission.PermissionName == "View" && 
+														rpp.IsGranted &&
+														(rpp.ChannelPartnerId == userChannelPartnerId || rpp.ChannelPartnerId == null));
+										canViewSalesPipelines = salesPipelinesPermissionExists;
+									}
+								}
+								@if (canViewSalesPipelines)
+								{
+									<li class="sidebar-item @(ViewContext.RouteData.Values["Controller"]?.ToString() == "SalesPipelines" ? "active" : "")">
+										<a class="sidebar-link" asp-area="" asp-controller="SalesPipelines" asp-action="Index">
+											<i class="align-middle" data-feather="trello"></i> <span class="align-middle">Sales Pipeline</span>
+										</a>
+									</li>
+								}
+								@{
+									bool canViewTasks = false;
+									if (role == "Admin") {
+										canViewTasks = true;
+									} else if (!string.IsNullOrEmpty(role)) {
+										var currentUser = _context.Users.FirstOrDefault(u => u.Username == username);
+										var userChannelPartnerId = currentUser?.ChannelPartnerId;
+										var tasksPermissionExists = _context.RolePagePermissions
+											.Include(rpp => rpp.Page)
+											.Include(rpp => rpp.Permission)
+											.Any(rpp => rpp.RoleName == role && 
+														rpp.Page.Controller == "Tasks" && 
+														rpp.Page.Action == "Index" && 
+														rpp.Permission.PermissionName == "View" && 
+														rpp.IsGranted &&
+														(rpp.ChannelPartnerId == userChannelPartnerId || rpp.ChannelPartnerId == null));
+										canViewTasks = tasksPermissionExists;
+									}
+								}
+								@if (canViewTasks)
+								{
+									<li class="sidebar-item @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Tasks" ? "active" : "")">
+										<a class="sidebar-link" asp-area="" asp-controller="Tasks" asp-action="Index">
+											<i class="align-middle" data-feather="calendar"></i> <span class="align-middle">Tasks</span>
+										</a>
+									</li>
+								}
+								@if (role != "Sales" && role != "Agent")
+								{
+									<li class="sidebar-item @(ViewContext.RouteData.Values["Controller"]?.ToString() == "WebhookLeads" ? "active" : "")">
+										@* <a class="sidebar-link" asp-area="" asp-controller="WebhookLeads" asp-action="Index">
+											<i class="align-middle" data-feather="user-plus"></i> <span class="align-middle">Unassigned Leads</span>
+										</a> *@
+										<a class="sidebar-link" asp-area="" asp-controller="WebhookLeads" asp-action="Index">
+											<i class="align-middle" data-feather="user-x"></i>
+											<span class="align-middle">Unassigned Leads</span>
+										</a>
+
+									</li>
+								}
+								@{
+									bool canViewProperties = false;
+									if (role == "Admin") {
+										canViewProperties = true;
+									} else if (!string.IsNullOrEmpty(role)) {
+										// Get current user's ChannelPartnerId for permission checking
+										var currentUser = _context.Users.FirstOrDefault(u => u.Username == username);
+										var userChannelPartnerId = currentUser?.ChannelPartnerId;
+										
+										// Check permission from database for all non-Admin roles
+										var propertiesPermissionExists = _context.RolePagePermissions
+											.Include(rpp => rpp.Page)
+											.Include(rpp => rpp.Permission)
+											.Any(rpp => rpp.RoleName == role && 
+														rpp.Page.Controller == "Properties" && 
+														rpp.Page.Action == "Index" && 
+														rpp.Permission.PermissionName == "View" && 
+														rpp.IsGranted &&
+														(rpp.ChannelPartnerId == userChannelPartnerId || rpp.ChannelPartnerId == null));
+										canViewProperties = propertiesPermissionExists;
+									}
+								}
+								@if (canViewProperties)
+								{
+									<li class="sidebar-item @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Properties" ? "active" : "")">
+										<a class="sidebar-link" asp-area="" asp-controller="Properties" asp-action="Index">
+											<i class="align-middle" data-feather="home"></i> <span class="align-middle">Properties</span>
+										</a>
+									</li>
+								}
+							</ul>
+						</div>
+					</li>
+
+					@* <li class="sidebar-item @(ViewContext.RouteData.Values["Controller"]?.ToString() == "PartnerLead" ? "active" : "")">
+						<a class="sidebar-link" asp-area="" asp-controller="PartnerLead" asp-action="List">
+							<i class="align-middle" data-feather="list"></i> <span class="align-middle">Partner Leads</span>
+						</a>
+					</li> *@
+
+					<!-- SALES SECTION -->
+					@if (!isPartnerAgent)
+					{
+						<li class="sidebar-item has-dropdown @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Quotations" || ViewContext.RouteData.Values["Controller"]?.ToString() == "Bookings" || ViewContext.RouteData.Values["Controller"]?.ToString() == "Invoices" || ViewContext.RouteData.Values["Controller"]?.ToString() == "Payments" ? "has-active" : "")">
+							<a class="sidebar-link collapsed" data-bs-toggle="collapse" href="#salesCollapse" role="button" aria-expanded="false">
+								<i class="align-middle" data-feather="shopping-cart"></i> <span class="align-middle">Sales</span>
+								<i class="align-middle ms-auto" data-feather="chevron-down"></i>
+							</a>
+							<div class="collapse" id="salesCollapse">
+								<ul class="sidebar-dropdown list-unstyled">
+									@{
+										bool canViewQuotations = false;
+										if (role == "Admin") {
+											canViewQuotations = true;
+										} else if (!string.IsNullOrEmpty(role)) {
+											var currentUser = _context.Users.FirstOrDefault(u => u.Username == username);
+											var userChannelPartnerId = currentUser?.ChannelPartnerId;
+											var quotationsPermissionExists = _context.RolePagePermissions
+												.Include(rpp => rpp.Page)
+												.Include(rpp => rpp.Permission)
+												.Any(rpp => rpp.RoleName == role && 
+															rpp.Page.Controller == "Quotations" && 
+															rpp.Page.Action == "Index" && 
+															rpp.Permission.PermissionName == "View" && 
+															rpp.IsGranted &&
+															(rpp.ChannelPartnerId == userChannelPartnerId || rpp.ChannelPartnerId == null));
+											canViewQuotations = quotationsPermissionExists;
+										}
+									}
+									@if (canViewQuotations)
+									{
+										<li class="sidebar-item @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Quotations" ? "active" : "")">
+											@* <a class="sidebar-link" asp-area="" asp-controller="Quotations" asp-action="Index">
+												<i class="align-middle" data-feather="file-text"></i> <span class="align-middle">Quotations</span>
+											</a> *@
+											<a class="sidebar-link" asp-area="" asp-controller="Quotations" asp-action="Index">
+												<i class="align-middle" data-feather="clipboard"></i>
+												<span class="align-middle">Quotations</span>
+											</a>
+
+										</li>
+									}
+									@{
+										bool canViewBookings = false;
+										if (role == "Admin") {
+											canViewBookings = true;
+										} else if (!string.IsNullOrEmpty(role)) {
+											var currentUser = _context.Users.FirstOrDefault(u => u.Username == username);
+											var userChannelPartnerId = currentUser?.ChannelPartnerId;
+											var bookingsPermissionExists = _context.RolePagePermissions
+												.Include(rpp => rpp.Page)
+												.Include(rpp => rpp.Permission)
+												.Any(rpp => rpp.RoleName == role && 
+															rpp.Page.Controller == "Bookings" && 
+															rpp.Page.Action == "Index" && 
+															rpp.Permission.PermissionName == "View" && 
+															rpp.IsGranted &&
+															(rpp.ChannelPartnerId == userChannelPartnerId || rpp.ChannelPartnerId == null));
+											canViewBookings = bookingsPermissionExists;
+										}
+									}
+									@if (canViewBookings)
+									{
+										<li class="sidebar-item @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Bookings" ? "active" : "")">
+											<a class="sidebar-link" asp-area="" asp-controller="Bookings" asp-action="Index">
+												<i class="align-middle" data-feather="book-open"></i> <span class="align-middle">Bookings</span>
+											</a>
+										</li>
+									}
+									@{
+										bool canViewInvoices = false;
+										if (role == "Admin") {
+											canViewInvoices = true;
+										} else if (!string.IsNullOrEmpty(role)) {
+											var currentUser = _context.Users.FirstOrDefault(u => u.Username == username);
+											var userChannelPartnerId = currentUser?.ChannelPartnerId;
+											var invoicesPermissionExists = _context.RolePagePermissions
+												.Include(rpp => rpp.Page)
+												.Include(rpp => rpp.Permission)
+												.Any(rpp => rpp.RoleName == role && 
+															rpp.Page.Controller == "Invoices" && 
+															rpp.Page.Action == "Index" && 
+															rpp.Permission.PermissionName == "View" && 
+															rpp.IsGranted &&
+															(rpp.ChannelPartnerId == userChannelPartnerId || rpp.ChannelPartnerId == null));
+											canViewInvoices = invoicesPermissionExists;
+										}
+									}
+									@if (canViewInvoices)
+									{
+										<li class="sidebar-item @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Invoices" ? "active" : "")">
+											<a class="sidebar-link" asp-area="" asp-controller="Invoices" asp-action="Index">
+												<i class="align-middle" data-feather="file-text"></i> <span class="align-middle">Invoices</span>
+											</a>
+										</li>
+									}
+									@{
+										bool canViewPayments = false;
+										if (role == "Admin") {
+											canViewPayments = true;
+										} else if (!string.IsNullOrEmpty(role)) {
+											var currentUser = _context.Users.FirstOrDefault(u => u.Username == username);
+											var userChannelPartnerId = currentUser?.ChannelPartnerId;
+											var paymentsPermissionExists = _context.RolePagePermissions
+												.Include(rpp => rpp.Page)
+												.Include(rpp => rpp.Permission)
+												.Any(rpp => rpp.RoleName == role && 
+															rpp.Page.Controller == "Payments" && 
+															rpp.Page.Action == "Index" && 
+															rpp.Permission.PermissionName == "View" && 
+															rpp.IsGranted &&
+															(rpp.ChannelPartnerId == userChannelPartnerId || rpp.ChannelPartnerId == null));
+											canViewPayments = paymentsPermissionExists;
+										}
+									}
+									@if (canViewPayments)
+									{
+										<li class="sidebar-item @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Payments" ? "active" : "")">
+											<a class="sidebar-link" asp-area="" asp-controller="Payments" asp-action="Index">
+												<i class="align-middle" data-feather="credit-card"></i> <span class="align-middle">Payments</span>
+											</a>
+										</li>
+									}
+								</ul>
+							</div>
+						</li>
+					}
+
+					<!-- FINANCE SECTION -->
+					@if (role != "Sales" && role != "Agent")
+					{
+						<li class="sidebar-item has-dropdown @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Expenses" || ViewContext.RouteData.Values["Controller"]?.ToString() == "Revenue" || ViewContext.RouteData.Values["Controller"]?.ToString() == "Profit" ? "has-active" : "")">
+							<a class="sidebar-link collapsed" data-bs-toggle="collapse" href="#financeCollapse" role="button" aria-expanded="false">
+								<i class="align-middle" data-feather="dollar-sign"></i> <span class="align-middle">Finance</span>
+								<i class="align-middle ms-auto" data-feather="chevron-down"></i>
+							</a>
+							<div class="collapse" id="financeCollapse">
+								<ul class="sidebar-dropdown list-unstyled">
+									<li class="sidebar-item @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Expenses" ? "active" : "")">
+										<a class="sidebar-link" asp-area="" asp-controller="Expenses" asp-action="Index">
+											<i class="align-middle" data-feather="minus-circle"></i> <span class="align-middle">Expenses</span>
+										</a>
+									</li>
+									<li class="sidebar-item @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Revenue" ? "active" : "")">
+										<a class="sidebar-link" asp-area="" asp-controller="Revenue" asp-action="Index">
+											<i class="align-middle" data-feather="plus-circle"></i> <span class="align-middle">Revenue</span>
+										</a>
+									</li>
+									<li class="sidebar-item @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Profit" ? "active" : "")">
+										<a class="sidebar-link" asp-area="" asp-controller="Profit" asp-action="Index">
+											<i class="align-middle" data-feather="trending-up"></i> <span class="align-middle">Profit</span>
+										</a>
+									</li>
+								</ul>
+							</div>
+						</li>
+					}
+
+					<!-- TEAM MANAGEMENT SECTION -->
+					@if (role != "Sales" && role != "Agent")
+					{
+						<li class="sidebar-item has-dropdown @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Agent" || (ViewContext.RouteData.Values["Controller"]?.ToString() == "ManageUsers" && ViewContext.RouteData.Values["Action"]?.ToString() == "PartnerApproval") ? "has-active" : "")">
+							<a class="sidebar-link collapsed" data-bs-toggle="collapse" href="#teamCollapse" role="button" aria-expanded="false">
+								<i class="align-middle" data-feather="users"></i> <span class="align-middle">Team Management</span>
+								<i class="align-middle ms-auto" data-feather="chevron-down"></i>
+							</a>
+							<div class="collapse" id="teamCollapse">
+								<ul class="sidebar-dropdown list-unstyled">
+									<li class="sidebar-item @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Agent" ? "active" : "")">
+										@* <a class="sidebar-link" asp-area="" asp-controller="Agent" asp-action="List">
+											<i class="align-middle" data-feather="user"></i> <span class="align-middle">Agent List</span>
+										</a> *@
+										<a class="sidebar-link" asp-area="" asp-controller="Agent" asp-action="List">
+											<i class="align-middle" data-feather="user-check"></i>
+											<span class="align-middle">Agent List</span>
+										</a>
+
+									</li>
+									@if (role == "Admin")
+									{
+										<li class="sidebar-item @(ViewContext.RouteData.Values["Controller"]?.ToString() == "ManageUsers" && ViewContext.RouteData.Values["Action"]?.ToString() == "PartnerApproval" ? "active" : "")">
+											@* <a class="sidebar-link" asp-area="" asp-controller="ManageUsers" asp-action="PartnerApproval">
+												<i class="align-middle" data-feather="briefcase"></i> <span class="align-middle">Channel Partners</span>
+											</a> *@
+											<a class="sidebar-link" asp-area="" asp-controller="ManageUsers" asp-action="PartnerApproval">
+												<i class="align-middle" data-feather="share-2"></i>
+												<span class="align-middle">Channel Partner</span>
+											</a>
+
+										</li>
+									}
+								</ul>
+							</div>
+						</li>
+					}
+
+					<!-- ATTENDANCE SECTION -->
+					<li class="sidebar-item has-dropdown @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Attendance" ? "has-active" : "")">
+						<a class="sidebar-link collapsed" data-bs-toggle="collapse" href="#attendanceCollapse" role="button" aria-expanded="false">
+							<i class="align-middle" data-feather="calendar"></i> <span class="align-middle">Attendance</span>
+							<i class="align-middle ms-auto" data-feather="chevron-down"></i>
+						</a>
+						<div class="collapse" id="attendanceCollapse">
+							<ul class="sidebar-dropdown list-unstyled">
+								@if (role == "Sales" || role == "Agent")
+								{
+									<li class="sidebar-item @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Attendance" && ViewContext.RouteData.Values["Action"]?.ToString() == "Calendar" ? "active" : "")">
+										<a class="sidebar-link" asp-area="" asp-controller="Attendance" asp-action="Calendar">
+											<i class="align-middle" data-feather="user"></i> <span class="align-middle">My Attendance</span>
+										</a>
+									</li>
+								}
+								@if (role == "Admin" || role == "Manager" || role == "Partner")
+								{
+									<li class="sidebar-item @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Attendance" && ViewContext.RouteData.Values["Action"]?.ToString() == "AgentList" ? "active" : "")">
+										@* <a class="sidebar-link" asp-area="" asp-controller="Attendance" asp-action="AgentList">
+											<i class="align-middle" data-feather="user-check"></i> <span class="align-middle">Agent Attendance</span>
+										</a> *@
+										<a class="sidebar-link" asp-area="" asp-controller="Attendance" asp-action="AgentList">
+											<i class="align-middle" data-feather="clock"></i>
+											<span class="align-middle">Agent Attendance</span>
+										</a>
+
+									</li>
+								}
+							</ul>
+						</div>
+					</li>
+
+					<!-- PAYOUTS SECTION -->
+					@if (role != "Sales" && role != "Agent")
+					{
+						<li class="sidebar-item has-dropdown @(ViewContext.RouteData.Values["Controller"]?.ToString() == "AgentPayout" || ViewContext.RouteData.Values["Controller"]?.ToString() == "PartnerCommission" ? "has-active" : "")">
+							<a class="sidebar-link collapsed" data-bs-toggle="collapse" href="#payoutsCollapse" role="button" aria-expanded="false">
+								<i class="align-middle" data-feather="credit-card"></i> <span class="align-middle">Payouts</span>
+								<i class="align-middle ms-auto" data-feather="chevron-down"></i>
+							</a>
+							<div class="collapse" id="payoutsCollapse">
+								<ul class="sidebar-dropdown list-unstyled">
+									<li class="sidebar-item @(ViewContext.RouteData.Values["Controller"]?.ToString() == "AgentPayout" ? "active" : "")">
+										@* <a class="sidebar-link" asp-area="" asp-controller="AgentPayout" asp-action="Index">
+											<i class="align-middle" data-feather="user"></i> <span class="align-middle">Agent Payouts</span>
+										</a> *@
+										<a class="sidebar-link" asp-area="" asp-controller="AgentPayout" asp-action="Index">
+											<i class="align-middle" data-feather="send"></i>
+											<span class="align-middle">Agent Payouts</span>
+										</a>
+
+									</li>
+									@if (role == "Admin")
+									{
+										<li class="sidebar-item @(ViewContext.RouteData.Values["Controller"]?.ToString() == "PartnerCommission" ? "active" : "")">
+											<a class="sidebar-link" asp-area="" asp-controller="PartnerCommission" asp-action="Index">
+												<i class="align-middle" data-feather="briefcase"></i> <span class="align-middle">Partner Payouts</span>
+											</a>
+										</li>
+									}
+								</ul>
+							</div>
+						</li>
+					}
+
+					<!-- USER MANAGEMENT SECTION -->
+					@if (role != "Sales" && role != "Agent")
+					{
+						<li class="sidebar-item has-dropdown @(ViewContext.RouteData.Values["Controller"]?.ToString() == "ManageUsers" ? "has-active" : "")">
+							<a class="sidebar-link collapsed" data-bs-toggle="collapse" href="#userManagementCollapse" role="button" aria-expanded="false">
+								<i class="align-middle" data-feather="settings"></i> <span class="align-middle">User Management</span>
+								<i class="align-middle ms-auto" data-feather="chevron-down"></i>
+							</a>
+							<div class="collapse" id="userManagementCollapse">
+								<ul class="sidebar-dropdown list-unstyled">
+									<li class="sidebar-item @(ViewContext.RouteData.Values["Controller"]?.ToString() == "ManageUsers" && ViewContext.RouteData.Values["Action"]?.ToString() == "Index" ? "active" : "")">
+										@* <a class="sidebar-link" asp-area="" asp-controller="ManageUsers" asp-action="Index">
+											<i class="align-middle" data-feather="users"></i> <span class="align-middle">Manage Users</span>
+										</a> *@
+										<a class="sidebar-link" asp-area="" asp-controller="ManageUsers" asp-action="Index">
+											<i class="align-middle" data-feather="sliders"></i>
+											<span class="align-middle">Manage Users</span>
+										</a>
+
+									</li>
+									<li class="sidebar-item @(ViewContext.RouteData.Values["Controller"]?.ToString() == "ManageUsers" && ViewContext.RouteData.Values["Action"]?.ToString() == "Roles" ? "active" : "")">
+										<a class="sidebar-link" asp-area="" asp-controller="ManageUsers" asp-action="Roles">
+											<i class="align-middle" data-feather="shield"></i> <span class="align-middle">Roles Management</span>
+										</a>
+									</li>
+								</ul>
+							</div>
+						</li>
+					}
+
+
+
+
+
+					<!-- SETTINGS & PROFILE SECTION -->
+					<li class="sidebar-item has-dropdown @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Profile" || ViewContext.RouteData.Values["Controller"]?.ToString() == "Settings" ? "has-active" : "")">
+						<a class="sidebar-link collapsed" data-bs-toggle="collapse" href="#settingsCollapse" role="button" aria-expanded="false">
+							<i class="align-middle" data-feather="settings"></i> <span class="align-middle">Settings</span>
+							<i class="align-middle ms-auto" data-feather="chevron-down"></i>
+						</a>
+						<div class="collapse" id="settingsCollapse">
+							<ul class="sidebar-dropdown list-unstyled">
+								<li class="sidebar-item @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Profile" ? "active" : "")">
+									<a class="sidebar-link" asp-area="" asp-controller="Profile" asp-action="Index">
+										<i class="align-middle" data-feather="user"></i> <span class="align-middle">My Profile</span>
+									</a>
+								</li>
+								@{
+									bool canViewSettings = false;
+									if (role == "Admin") {
+										canViewSettings = true;
+									} else if (!string.IsNullOrEmpty(role)) {
+										// Get current user's ChannelPartnerId for permission checking
+										var currentUser = _context.Users.FirstOrDefault(u => u.Username == username);
+										var userChannelPartnerId = currentUser?.ChannelPartnerId;
+										
+										var settingsPermissionExists = _context.RolePagePermissions
+											.Include(rpp => rpp.Page)
+											.Include(rpp => rpp.Permission)
+											.Any(rpp => rpp.RoleName == role && 
+														rpp.Page.Controller == "Settings" && 
+														rpp.Page.Action == "Index" && 
+														rpp.Permission.PermissionName == "View" && 
+														rpp.IsGranted &&
+														(rpp.ChannelPartnerId == userChannelPartnerId || rpp.ChannelPartnerId == null));
+										canViewSettings = settingsPermissionExists;
+									}
+								}
+								@if (canViewSettings)
+								{
+									<li class="sidebar-item @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Settings" ? "active" : "")">
+										<a class="sidebar-link" asp-area="" asp-controller="Settings" asp-action="Index">
+											<i class="align-middle" data-feather="settings"></i> <span class="align-middle">System Settings</span>
+										</a>
+									</li>
+								}
+								@if (role == "Admin" || role == "Partner")
+								{
+									<li class="sidebar-item @(ViewContext.RouteData.Values["Controller"]?.ToString() == "EmailSettings" ? "active" : "")">
+										<a class="sidebar-link" asp-area="" asp-controller="EmailSettings" asp-action="Index">
+											<i class="align-middle" data-feather="mail"></i> <span class="align-middle">Email Settings</span>
+										</a>
+									</li>
+								}
+							</ul>
+						</div>
+					</li>
+
+					<!-- SUBSCRIPTIONS SECTION -->
+					@if (role == "Admin" || role == "Partner")
+					{
+						<li class="sidebar-item has-dropdown @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Subscription" ? "has-active" : "")">
+							<a class="sidebar-link collapsed" data-bs-toggle="collapse" href="#subscriptionsCollapse" role="button" aria-expanded="false">
+								<i class="align-middle" data-feather="credit-card"></i> <span class="align-middle">Subscriptions</span>
+								<i class="align-middle ms-auto" data-feather="chevron-down"></i>
+							</a>
+							<div class="collapse" id="subscriptionsCollapse">
+								<ul class="sidebar-dropdown list-unstyled">
+									@if (role == "Admin")
+									{
+										<li class="sidebar-item @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Subscription" && ViewContext.RouteData.Values["Action"]?.ToString() == "Plans" ? "active" : "")">
+											<a class="sidebar-link" asp-area="" asp-controller="Subscription" asp-action="Plans">
+												<i class="align-middle" data-feather="layers"></i> <span class="align-middle">Subscription Plans</span>
+											</a>
+										</li>
+										@* Hidden - Addons feature not implemented yet
+										<li class="sidebar-item @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Subscription" && ViewContext.RouteData.Values["Action"]?.ToString() == "Addons" ? "active" : "")">
+											<a class="sidebar-link" asp-area="" asp-controller="Subscription" asp-action="Addons">
+												<i class="align-middle" data-feather="plus-square"></i> <span class="align-middle">Membership Addons</span>
+											</a>
+										</li>
+										*@
+										<li class="sidebar-item @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Subscription" && ViewContext.RouteData.Values["Action"]?.ToString() == "ManagePartnerSubscriptions" ? "active" : "")">
+											@* <a class="sidebar-link" asp-area="" asp-controller="Subscription" asp-action="ManagePartnerSubscriptions">
+												<i class="align-middle" data-feather="users"></i> <span class="align-middle">Partner Subscriptions</span>
+											</a> *@
+											<a class="sidebar-link" asp-area="" asp-controller="Subscription" asp-action="ManagePartnerSubscriptions">
+												<i class="align-middle" data-feather="bookmark"></i>
+												<span class="align-middle">Partner Subscriptions</span>
+											</a>
+
+										</li>
+										@* <li class="sidebar-item @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Subscription" && ViewContext.RouteData.Values["Action"]?.ToString() == "Transactions" ? "active" : "")">
+											<a class="sidebar-link" asp-area="" asp-controller="Subscription" asp-action="Transactions">
+												<i class="align-middle" data-feather="credit-card"></i> <span class="align-middle">Subscription Transactions</span>
+											</a>
+										</li> *@
+										<li class="sidebar-item @(ViewContext.RouteData.Values["Controller"]?.ToString() == "RazorpayTransactions" ? "active" : "")">
+											<a class="sidebar-link" asp-area="" asp-controller="RazorpayTransactions" asp-action="Index">
+												<i class="align-middle" data-feather="database"></i> <span class="align-middle">Razorpay Transactions</span>
+											</a>
+										</li>
+										<li class="sidebar-item @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Subscription" && ViewContext.RouteData.Values["Action"]?.ToString() == "PendingRefunds" ? "active" : "")">
+											<a class="sidebar-link" asp-area="" asp-controller="Subscription" asp-action="PendingRefunds">
+												<i class="align-middle" data-feather="dollar-sign"></i> <span class="align-middle">Pending Refunds</span>
+											</a>
+										</li>
+									}
+									@if (role == "Partner")
+									{
+										<li class="sidebar-item @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Subscription" && ViewContext.RouteData.Values["Action"]?.ToString() == "MyPlan" ? "active" : "")">
+											<a class="sidebar-link" asp-area="" asp-controller="Subscription" asp-action="MyPlan">
+												<i class="align-middle" data-feather="star"></i> <span class="align-middle">My Plan</span>
+											</a>
+										</li>
+										@* <li class="sidebar-item @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Subscription" && ViewContext.RouteData.Values["Action"]?.ToString() == "Transactions" ? "active" : "")">
+											<a class="sidebar-link" asp-area="" asp-controller="Subscription" asp-action="Transactions">
+												<i class="align-middle" data-feather="credit-card"></i> <span class="align-middle">Subscription Transactions</span>
+											</a>
+										</li> *@
+										<li class="sidebar-item @(ViewContext.RouteData.Values["Controller"]?.ToString() == "PartnerTransactions" ? "active" : "")">
+											<a class="sidebar-link" asp-area="" asp-controller="PartnerTransactions" asp-action="Index">
+												<i class="align-middle" data-feather="credit-card"></i> <span class="align-middle">My Transactions</span>
+											</a>
+										</li>
+										<li class="sidebar-item @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Subscription" && ViewContext.RouteData.Values["Action"]?.ToString() == "PendingRefunds" ? "active" : "")">
+											<a class="sidebar-link" asp-area="" asp-controller="Subscription" asp-action="PendingRefunds">
+												<i class="align-middle" data-feather="clock"></i> <span class="align-middle">My Refunds</span>
+											</a>
+										</li>
+									}
+								</ul>
+							</div>
+						</li>
+					}
+
+					<!-- FINANCIAL SETTINGS SECTION -->
+					@if (role == "Admin")
+					{
+						<li class="sidebar-item has-dropdown @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Financial" ? "has-active" : "")">
+							<a class="sidebar-link collapsed" data-bs-toggle="collapse" href="#financialSettingsCollapse" role="button" aria-expanded="false">
+								<i class="align-middle" data-feather="settings"></i> <span class="align-middle">Financial Settings</span>
+								<i class="align-middle ms-auto" data-feather="chevron-down"></i>
+							</a>
+							<div class="collapse" id="financialSettingsCollapse">
+								<ul class="sidebar-dropdown list-unstyled">
+									<li class="sidebar-item @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Financial" && ViewContext.RouteData.Values["Action"]?.ToString() == "PaymentGateways" ? "active" : "")">
+										<a class="sidebar-link" asp-area="" asp-controller="Financial" asp-action="PaymentGateways">
+											<i class="align-middle" data-feather="credit-card"></i> <span class="align-middle">Payment Gateways</span>
+										</a>
+									</li>
+									<li class="sidebar-item @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Financial" && ViewContext.RouteData.Values["Action"]?.ToString() == "BankAccounts" ? "active" : "")">
+										@* <a class="sidebar-link" asp-area="" asp-controller="Financial" asp-action="BankAccounts">
+											<i class="align-middle" data-feather="home"></i> <span class="align-middle">Bank Accounts</span>
+										</a> *@
+										<a class="sidebar-link" asp-area="" asp-controller="Financial" asp-action="BankAccounts">
+											<i class="align-middle" data-feather="book-open"></i>
+											<span class="align-middle">Bank Accounts</span>
+										</a>
+
+									</li>
+								</ul>
+							</div>
+						</li>
+					}
+
+				</ul>
+
+				<div class="sidebar-cta">
+				</div>
+			</div>
+		</nav>
+
+		<div class="main">
+			<nav class="navbar navbar-expand navbar-light navbar-bg">
+				<a class="sidebar-toggle js-sidebar-toggle">
+          <i class="hamburger align-self-center"></i>
+        </a>
+
+				<!-- Global Search Bar -->
+				@await Html.PartialAsync("_GlobalSearch")
+
+				<div class="navbar-collapse collapse">
+					<ul class="navbar-nav navbar-align">
+						<!-- Dark/Light Mode Toggle -->
+						<li class="nav-item d-flex align-items-center">
+							<a class="nav-icon" href="#" id="themeToggle" title="Toggle Dark/Light Mode">
+								<i class="align-middle" data-feather="moon" id="themeIcon"></i>
+							</a>
+						</li>
+						<li class="nav-item dropdown d-flex align-items-center">
+							<a class="nav-icon dropdown-toggle" href="#" id="alertsDropdown" data-bs-toggle="dropdown">
+								<div class="position-relative">
+									<i class="align-middle" data-feather="bell"></i>
+									<span class="indicator" id="notificationCount">0</span>
+								</div>
+							</a>
+							<div class="dropdown-menu dropdown-menu-lg dropdown-menu-end py-0" aria-labelledby="alertsDropdown">
+								<div class="dropdown-menu-header" id="notificationHeader">
+									Loading...
+								</div>
+								<div class="list-group" id="notificationList">
+									<!-- Notifications will be loaded here -->
+								</div>
+								<div class="dropdown-menu-footer">
+									<a href="#" id="markAllRead" class="text-muted">Mark all as read</a>
+								</div>
+							</div>
+						</li>
+
+						<li class="nav-item dropdown d-flex align-items-center">
+							<a class="nav-link dropdown-toggle" href="/Profile/Index" data-bs-toggle="dropdown">
+                @if (profileImageBytes != null)
+                {
+                    <img src="@profileImageSrc" class="avatar img-fluid rounded me-1" alt="@username" />
+                }
+                else
+                {
+                    <div class="avatar rounded me-1 d-inline-flex align-items-center justify-content-center" style="width: 32px; height: 32px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; font-weight: 600; font-size: 14px;">
+                        @(!string.IsNullOrEmpty(username) ? username.Substring(0, 1).ToUpper() : "U")
+                    </div>
+                }
+                <span class="text-dark">@(!string.IsNullOrEmpty(username) ? username : "User")</span>
+                @if (Context.Session.GetString("IsImpersonating") == "true")
+                {
+                    <span class="badge bg-warning text-dark ms-1">Impersonating</span>
+                }
+              </a>
+							<div class="dropdown-menu dropdown-menu-end">
+								<a class="dropdown-item" asp-area="" asp-controller="Profile" asp-action="Index"><i class="align-middle me-1" data-feather="user"></i> Profile</a>
+								<a class="dropdown-item" href="#"><i class="align-middle me-1" data-feather="pie-chart"></i> Analytics</a>
+								@* <div class="dropdown-divider"></div> *@
+								@* @if (role == "Admin")
+								{
+									@if (Context.Session.GetString("IsImpersonating") == "true")
+									{
+										<a class="dropdown-item" href="#" onclick="stopImpersonation()"><i class="align-middle me-1" data-feather="user-x"></i> Stop Impersonation</a>
+									}
+									else
+									{
+										<div class="dropdown-submenu">
+											<a class="dropdown-item dropdown-toggle" href="#" id="impersonateDropdown"><i class="align-middle me-1" data-feather="users"></i> Impersonate User</a>
+											<div class="dropdown-menu" id="impersonateMenu">
+												<div class="dropdown-item-text">Loading users...</div>
+											</div>
+										</div>
+									}
+									<div class="dropdown-divider"></div>
+								} *@
+								<a class="dropdown-item" asp-area="" asp-controller="Settings" asp-action="Index"><i class="align-middle me-1" data-feather="settings"></i> Settings & Privacy</a>
+								@if (role == "Admin")
+								{
+									<a class="dropdown-item" asp-area="" asp-controller="Settings" asp-action="Impersonation"><i class="align-middle me-1" data-feather="user-check"></i> Impersonate User</a>
+								}
+								<a class="dropdown-item" asp-area="" asp-controller="Home" asp-action="HelpCenter"><i class="align-middle me-1" data-feather="help-circle"></i> Help Center</a>
+								<div class="dropdown-divider"></div>
+								<a class="dropdown-item" asp-area="" asp-controller="Account" asp-action="Logout"><i class="align-middle me-1" data-feather="log-out"></i> Log out</a>
+							</div>
+						</li>
+					</ul>
+				</div>
+			</nav>
+
+			<main class="content">
+				<div class="container-fluid p-0">
+					@RenderBody()
+				</div>
+			</main>
+
+			<footer class="footer">
+				<div class="container-fluid">
+					<div class="row text-muted">
+						<div class="col-6 text-start">
+							<p class="mb-0">
+								<a class="text-muted" href="#" target="_blank"><strong>RealEstate CRM</strong></a> &copy; 2025
+							</p>
+						</div>
+						<div class="col-6 text-end">
+							<ul class="list-inline">
+								<li class="list-inline-item">
+									<a class="text-muted" asp-area="" asp-controller="Home" asp-action="Support">Support</a>
+								</li>
+								<li class="list-inline-item">
+									<a class="text-muted" asp-area="" asp-controller="Home" asp-action="HelpCenter">Help Center</a>
+								</li>
+								<li class="list-inline-item">
+									<a class="text-muted" asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
+								</li>
+								<li class="list-inline-item">
+									<a class="text-muted" asp-area="" asp-controller="Home" asp-action="Terms">Terms</a>
+								</li>
+							</ul>
+						</div>
+					</div>
+				</div>
+			</footer>
+		</div>
+	</div>
+
+	<!-- Hide all existing spinners and loaders -->
+	<style>
+		.spinner, .spinner-border, .spinner-grow, .loading, .loader, [class*="spin"], [class*="loading"] {
+			display: none !important;
+		}
+	</style>
+
+
+
+	<script src="~/lib/jquery/dist/jquery.min.js"></script>
+	<script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+	<script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
+	<script src="~/js/app.js"></script>
+	
+	<!-- Layout Fixes -->
+	<style>
+		/* Global scrollbar styles - Hide scrollbar but keep functionality */
+		* {
+			scrollbar-width: 2; /* Firefox */
+			-ms-overflow-style: 6; /* IE/Edge */
+		}
+		
+		*::-webkit-scrollbar {
+			display: 2; /* Chrome/Safari */
+		}
+		
+		html, body {
+			scrollbar-width: none;
+			-ms-overflow-style: none;
+		}
+		
+		html::-webkit-scrollbar, body::-webkit-scrollbar {
+			display: none;
+		}
+
+
+		/* Desktop - Sidebar always visible, navbar starts beside it */
+		@@media (min-width: 992px) {
+			.sidebar {
+				background: #1f2937 !important;
+				position: fixed !important;
+				left: 0;
+				top: 0;
+				bottom: 0;
+				z-index: 1030;
+				width: 240px;
+				transition: width 0.3s ease;
+				overflow-y: auto;
+				overflow-x: hidden;
+			}
+
+				.sidebar .sidebar-brand img,
+				.sidebar .sidebar-logo,
+				.sidebar .sidebar-logo-full {
+					height: 53px !important; /* increase height */
+					width: auto !important; /* maintain ratio */
+					max-width: 220px !important; /* optional width control */
+					object-fit: contain;
+				}
+
+				.sidebar img {
+					height: 60px !important;
+					width: auto !important;
+					max-height: none !important;
+				}
+			/* Main content area starts after sidebar */
+			.main {
+				margin-left: 260px;
+				transition: margin-left 0.3s ease;
+				padding-top: 3.5rem;
+				min-height: 100vh;
+				width: calc(100vw - 260px);
+				max-width: calc(100vw - 260px);
+				overflow-x: auto;
+				overflow-y: auto;
+			}
+			
+			/* Navbar positioned beside sidebar */
+			.navbar-bg {
+				position: fixed;
+				top: 0;
+				left: 260px;
+				right: 0;
+				z-index: 1040;
+				box-shadow: 0 0.125rem 0.25rem rgba(0,0,0,0.075);
+				transition: left 0.3s ease;
+				width: calc(100vw - 260px);
+				display: flex;
+				align-items: center;
+				gap: 20px;
+			}
+			
+			/* Collapsed state - show only icons */
+			.sidebar.collapsed {
+				width: 80px !important;
+				min-width: 80px !important;
+				max-width: 80px !important;
+				overflow-y: auto;
+				overflow-x: hidden;
+			}
+
+			.sidebar.collapsed .sidebar-content {
+				overflow: hidden;
+			}
+			
+			.sidebar.collapsed ~ .main {
+				margin-left: 80px !important;
+				width: calc(100vw - 80px) !important;
+				max-width: calc(100vw - 80px) !important;
+				overflow-y: auto !important;
+			}
+			
+			.sidebar.collapsed ~ .main .navbar-bg {
+				left: 80px !important;
+				width: calc(100vw - 80px) !important;
+			}
+			
+			/* Hide text when collapsed, show only icons */
+			.sidebar.collapsed .sidebar-brand span {
+				display: none;
+			}
+
+			.sidebar.collapsed .sidebar-brand img {
+				display: none;
+			}
+
+			/* Show full logo/text when expanded */
+			.sidebar-logo-full,
+			.sidebar-text-full {
+				display: inline-block !important;
+			}
+
+			.sidebar-logo-collapsed,
+			.sidebar-text-collapsed {
+				display: none !important;
+			}
+
+			/* Show compact logo/text when collapsed */
+			.sidebar.collapsed .sidebar-logo-full,
+			.sidebar.collapsed .sidebar-text-full {
+				display: none !important;
+			}
+
+			.sidebar.collapsed .sidebar-logo-collapsed,
+			.sidebar.collapsed .sidebar-text-collapsed {
+				display: inline-block !important;
+			}
+			
+			.sidebar.collapsed .sidebar-link span.align-middle {
+				display: none;
+			}
+			
+			.sidebar.collapsed .sidebar-header {
+				opacity: 0;
+				height: 0;
+				overflow: hidden;
+			}
+			
+			.sidebar.collapsed .sidebar-cta {
+				display: none;
+			}
+
+			/* Hide sidebar CTA block */
+			.sidebar-cta {
+				display: none !important;
+			}
+			
+			.sidebar.collapsed .sidebar-link {
+				text-align: center;
+				padding: 0.75rem 0;
+			}
+			
+			.sidebar.collapsed .sidebar-link i,
+			.sidebar.collapsed .sidebar-link svg {
+				margin: 0 auto;
+			}
+			
+			/* Show brand icon centered when collapsed */
+			.sidebar.collapsed .sidebar-brand {
+				text-align: center;
+				padding: 1rem 0;
+			}
+		}
+		
+		/* Mobile - sidebar overlay */
+		@@media (max-width: 991px) {
+			.sidebar {
+				position: fixed;
+				left: -260px;
+				z-index: 1050;
+				transition: left 0.3s ease;
+				width: 260px;
+				top: 0;
+				bottom: 0;
+				overflow-y: auto;
+			}
+			
+			.sidebar.show {
+				left: 0;
+			}
+			
+			.main {
+				margin-left: 0 !important;
+				padding-top: 3.5rem;
+				width: 100vw !important;
+				max-width: 100vw !important;
+				overflow-x: auto;
+			}
+			
+			.navbar-bg {
+				position: fixed;
+				top: 0;
+				left: 0;
+				right: 0;
+				z-index: 1040;
+				width: 100vw;
+				display: flex !important;
+				justify-content: space-between !important;
+				align-items: center !important;
+				padding: 0 5px !important;
+			}
+			
+			.navbar-collapse {
+				flex: 0 0 auto !important;
+				margin-left: auto !important;
+			}
+			
+			/* Fix mobile navbar alignment */
+			.navbar-nav {
+				display: flex !important;
+				align-items: center !important;
+				height: 56px !important;
+				flex-direction: row !important;
+				margin-left: 0 !important;
+			}
+			
+			.navbar-nav .nav-item {
+				height: 56px !important;
+				display: flex !important;
+				align-items: center !important;
+				margin: 0 !important;
+				padding: 0 3px !important;
+			}
+			
+			.navbar-nav .nav-item .nav-icon,
+			.navbar-nav .nav-item .nav-link {
+				height: 56px !important;
+				display: flex !important;
+				align-items: center !important;
+				padding: 0 5px !important;
+				margin: 0 !important;
+				line-height: 1 !important;
+			}
+			
+			/* Overlay when sidebar is open */
+			body.sidebar-open::after {
+				content: '';
+				position: fixed;
+				top: 0;
+				left: 0;
+				right: 0;
+				bottom: 0;
+				background: rgba(0, 0, 0, 0.5);
+				z-index: 1045;
+			}
+		}
+	</style>
+	
+	<!-- Light/Dark Mode Styles -->
+	<style>
+		/* Light Mode Sidebar */
+		.sidebar {
+			background: #f3f4f6 !important;
+			box-shadow: 0 0 2rem 0 rgba(0, 0, 0, .05) !important;
+			
+		}
+
+
+
+		.sidebar-brand {
+			color: #212529 !important;
+			font-weight: 700 !important;
+		}
+
+		.sidebar-link {
+			color: #212529 !important;
+			font-weight: 600 !important;
+		}
+
+		.sidebar-link:hover {
+			color: #6f42c1 !important;
+			background: #f8f9fa !important;
+		}
+
+		.sidebar-item.active > .sidebar-link {
+			background: #9966cc !important;
+			color: #ffffff !important;
+			font-weight: 700 !important;
+		}
+
+		.sidebar-item.active > .sidebar-link span.align-middle {
+			color: #ffffff !important;
+		}
+
+		.sidebar-item.active > .sidebar-link i,
+		.sidebar-item.active > .sidebar-link svg {
+			stroke: #ffffff !important;
+			color: #ffffff !important;
+		}
+
+		.sidebar-dropdown .sidebar-link {
+			color: #495057 !important;
+			font-weight: 500 !important;
+		}
+
+		.sidebar-dropdown .sidebar-link:hover {
+			color: #6f42c1 !important;
+			background: #f1f3f4 !important;
+		}
+
+		.sidebar-dropdown .sidebar-item.active > .sidebar-link {
+			background: #9966cc !important;
+			color: #ffffff !important;
+			font-weight: 600 !important;
+		}
+
+		.sidebar-dropdown .sidebar-item.active > .sidebar-link span.align-middle {
+			color: #ffffff !important;
+		}
+
+		.sidebar-dropdown .sidebar-item.active > .sidebar-link i,
+		.sidebar-dropdown .sidebar-item.active > .sidebar-link svg {
+			stroke: #ffffff !important;
+			color: #ffffff !important;
+		}
+
+		/* Dropdown header (main section) visibility */
+		.sidebar-item.has-dropdown > .sidebar-link {
+			color: #212529 !important;
+			font-weight: 600 !important;
+		}
+
+		.sidebar-item.has-dropdown > .sidebar-link:hover {
+			color: #6f42c1 !important;
+			background: #f8f9fa !important;
+		}
+
+		.sidebar-item.has-dropdown.has-active > .sidebar-link {
+			color: #6f42c1 !important;
+			font-weight: 700 !important;
+		}
+
+		/* Feather icons in light mode */
+		.feather {
+			width: 18px;
+			height: 18px;
+			stroke: rgb(16 15 15);
+			stroke-width: 2;
+			stroke-linecap: round;
+			stroke-linejoin: round;
+			fill: none;
+		}
+
+		/* Sidebar text styling */
+		.sidebar-link span.align-middle {
+			transition: opacity 0.3s ease, width 0.3s ease;
+			display: inline-block;
+			margin-left: 0.25rem;
+			color: black;
+		}
+
+		/* Dark Mode Variables */
+		body.dark-mode {
+			--bs-body-bg: #1a1d2e;
+			--bs-body-color: #e4e6eb;
+			background-color: #1a1d2e !important;
+			color: #e4e6eb !important;
+		}
+
+		/* Text with background should be dark for contrast */
+		.dark-mode *[style*="background"],
+		.dark-mode *[class*="bg-"],
+		.dark-mode .bg-primary,
+		.dark-mode .bg-secondary,
+		.dark-mode .bg-success,
+		.dark-mode .bg-danger,
+		.dark-mode .bg-warning,
+		.dark-mode .bg-info,
+		.dark-mode .bg-light,
+		.dark-mode .bg-dark,
+		.dark-mode .badge,
+		.dark-mode .btn,
+		.dark-mode .alert,
+		.dark-mode .stage-badge,
+		.dark-mode .status-badge,
+		.dark-mode .status-active,
+		.dark-mode .status-hot,
+		.dark-mode .status-warm,
+		.dark-mode .status-cold,
+		.dark-mode .status-inactive,
+		.dark-mode .action-btn,
+		.dark-mode .stats-card,
+		.dark-mode .btn-action,
+		.dark-mode .btn-edit,
+		.dark-mode .btn-delete,
+		.dark-mode .dropdown-item:hover,
+		.dark-mode .dropdown-item:focus {
+			background-color: #2c3049 !important;
+			color: #e4e6eb !important;
+		}
+
+		.dark-mode .list-group-item:hover,
+		.dark-mode .nav-link:hover {
+			background-color: #2c3049 !important;
+			color: #e4e6eb !important;
+		}
+
+		.dark-mode .pagination .page-link:hover,
+		.dark-mode .pagination .page-item.active .page-link {
+			background-color: #2c3049 !important;
+			color: #e4e6eb !important;
+		}
+
+		/* Exception for elements that should remain white text */
+		.dark-mode .btn-outline-primary,
+		.dark-mode .btn-outline-secondary,
+		.dark-mode .btn-outline-success,
+		.dark-mode .btn-outline-danger,
+		.dark-mode .btn-outline-warning,
+		.dark-mode .btn-outline-info,
+		.dark-mode .btn-outline-light,
+		.dark-mode .btn-outline-dark,
+		.dark-mode .navbar-bg,
+		.dark-mode .sidebar {
+			color: #e4e6eb !important;
+		}
+
+		.dark-mode .sidebar {
+			background: #222639 !important;
+			box-shadow: 0 0 2rem 0 rgba(255, 255, 255, .05) !important;
+		}
+
+		.dark-mode .sidebar-brand {
+			color: #ffffff !important;
+		}
+
+		.dark-mode .sidebar-link {
+			color: #a6adc8 !important;
+		}
+
+		.dark-mode .sidebar-link:hover {
+			color: #a6adc8 !important;
+			background: transparent !important;
+		}
+
+		.dark-mode .sidebar-link:hover span.align-middle {
+			color: #a6adc8 !important;
+		}
+
+		.dark-mode .sidebar-item.active > .sidebar-link {
+			background: #2c3049 !important;
+			color: #ffffff !important;
+		}
+
+		.dark-mode .sidebar-header {
+			color: #6c7293 !important;
+		}
+
+		/* Feather icons in dark mode */
+		.dark-mode .feather {
+			stroke: #ffffff !important;
+		}
+
+		/* Sidebar text in dark mode */
+		.dark-mode .sidebar-link span.align-middle {
+			color: #a6adc8 !important;
+		}
+
+
+
+		.dark-mode .sidebar-item.active > .sidebar-link span.align-middle {
+			color: #ffffff !important;
+		}
+
+		.dark-mode .navbar-bg {
+			background-color: #222639 !important;
+			box-shadow: 0 0 2rem 0 rgba(255, 255, 255, .05) !important;
+		}
+
+		.dark-mode .main {
+			background-color: #1a1d2e !important;
+		}
+
+		.dark-mode .content {
+			background-color: #1a1d2e !important;
+		}
+
+		/* Comprehensive background detection - any element with background color/image */
+		.dark-mode *[style*="background-color"],
+		.dark-mode *[style*="background-image"],
+		.dark-mode *[style*="background:"],
+		.dark-mode *[class*="-card"],
+		.dark-mode *[class*="-badge"],
+		.dark-mode *[class*="-button"],
+		.dark-mode *[class*="-btn"] {
+			color: #212529 !important;
+		}
+
+		/* Force dark text on all common background elements */
+		.dark-mode .quotation-card,
+		.dark-mode .booking-card,
+		.dark-mode .invoice-card,
+		.dark-mode .payment-card,
+		.dark-mode .expense-card,
+		.dark-mode .revenue-card,
+		.dark-mode .lead-card,
+		.dark-mode .user-card,
+		.dark-mode .role-card {
+			color: #e4e6eb !important;
+		}
+
+		/* But force dark text on badges and status elements within cards */
+		.dark-mode .quotation-card .badge,
+		.dark-mode .booking-card .badge,
+		.dark-mode .invoice-card .badge,
+		.dark-mode .payment-card .badge,
+		.dark-mode .expense-card .badge,
+		.dark-mode .revenue-card .badge,
+		.dark-mode .lead-card .badge,
+		.dark-mode .user-card .badge,
+		.dark-mode .role-card .badgeer-card .badge,
+		.dark-mode .role-card .badge,
+		.dark-mode .quotation-card .stage-badge,
+		.dark-mode .booking-card .stage-badge,
+		.dark-mode .invoice-card .stage-badge,
+		.dark-mode .payment-card .stage-badge,
+		.dark-mode .expense-card .stage-badge,
+		.dark-mode .revenue-card .stage-badge,
+		.dark-mode .lead-card .stage-badge,
+		.dark-mode .user-card .stage-badge,
+		.dark-mode .role-card .stage-badge,
+		.dark-mode .quotation-card .status-badge,
+		.dark-mode .booking-card .status-badge,
+		.dark-mode .invoice-card .status-badge,
+		.dark-mode .payment-card .status-badge,
+		.dark-mode .expense-card .status-badge,
+		.dark-mode .revenue-card .status-badge,
+		.dark-mode .lead-card .status-badge,
+		.dark-mode .user-card .status-badge,
+		.dark-mode .role-card .status-badge {
+			color: #212529 !important;
+		}
+
+		.dark-mode .card {
+			background-color: #222639 !important;
+			color: #e4e6eb !important;
+			border-color: #2c3049 !important;
+		}
+
+		/* All card types */
+		.dark-mode .quotation-card,
+		.dark-mode .booking-card,
+		.dark-mode .invoice-card,
+		.dark-mode .payment-card,
+		.dark-mode .expense-card,
+		.dark-mode .revenue-card,
+		.dark-mode .lead-card,
+		.dark-mode .user-card,
+		.dark-mode .role-card {
+			background-color: #222639 !important;
+			color: #e4e6eb !important;
+			border-color: #2c3049 !important;
+		}
+
+		.dark-mode .card-header {
+			background-color: #2c3049 !important;
+			border-color: #2c3049 !important;
+			color: #e4e6eb !important;
+		}
+
+		.dark-mode .table {
+			color: #e4e6eb !important;
+			border-color: #2c3049 !important;
+		}
+
+		.dark-mode .table-striped tbody tr:nth-of-type(odd) {
+			background-color: rgba(255, 255, 255, 0.02) !important;
+		}
+
+		.dark-mode .table-hover tbody tr:hover {
+			background-color: rgba(255, 255, 255, 0.05) !important;
+		}
+
+		.dark-mode .form-control,
+		.dark-mode .form-select {
+			background-color: #2c3049 !important;
+			border-color: #3d4461 !important;
+			color: #e4e6eb !important;
+		}
+
+		.dark-mode .form-control:focus,
+		.dark-mode .form-select:focus {
+			background-color: #2c3049 !important;
+			border-color: #667eea !important;
+			color: #e4e6eb !important;
+		}
+
+		.dark-mode .modal-content {
+			background-color: #222639 !important;
+			color: #e4e6eb !important;
+		}
+
+		.dark-mode .modal-header {
+			border-color: #2c3049 !important;
+		}
+
+		.dark-mode .modal-footer {
+			border-color: #2c3049 !important;
+		}
+
+		.dark-mode .dropdown-menu {
+			background-color: #222639 !important;
+			border-color: #2c3049 !important;
+		}
+
+		.dark-mode .dropdown-item {
+			color: #e4e6eb !important;
+		}
+
+		.dark-mode .dropdown-item:hover {
+			background-color: #2c3049 !important;
+		}
+
+		.dark-mode .list-group-item {
+			background-color: #222639 !important;
+			border-color: #2c3049 !important;
+			color: #e4e6eb !important;
+		}
+
+		.dark-mode .text-dark {
+			color: #e4e6eb !important;
+		}
+
+		.dark-mode .text-muted {
+			color: #a6adc8 !important;
+		}
+
+		.dark-mode .border {
+			border-color: #2c3049 !important;
+		}
+
+		.dark-mode .footer {
+			background-color: #222639 !important;
+			color: #a6adc8 !important;
+		}
+
+		.dark-mode .alert {
+			background-color: #2c3049 !important;
+			border-color: #3d4461 !important;
+			color: #e4e6eb !important;
+		}
+
+		.dark-mode .badge {
+			filter: brightness(1.2);
+		}
+
+		.dark-mode .sidebar-cta {
+			background: #2c3049 !important;
+		}
+
+		.dark-mode .nav-icon {
+			color: #e4e6eb !important;
+		}
+
+		.dark-mode .hamburger span {
+			background-color: #e4e6eb !important;
+		}
+
+		/* Page specific dark mode styles */
+		.dark-mode h1, .dark-mode h2, .dark-mode h3, .dark-mode h4, .dark-mode h5, .dark-mode h6 {
+			color: #e4e6eb !important;
+		}
+
+		.dark-mode p, .dark-mode span, .dark-mode div {
+			color: #e4e6eb !important;
+		}
+
+		.dark-mode .breadcrumb {
+			background-color: transparent !important;
+		}
+
+		.dark-mode .breadcrumb-item a {
+			color: #a6adc8 !important;
+		}
+
+		.dark-mode .breadcrumb-item.active {
+			color: #e4e6eb !important;
+		}
+
+		/* Card specific styles */
+		.dark-mode .quotation-card,
+		.dark-mode .booking-card,
+		.dark-mode .invoice-card,
+		.dark-mode .payment-card,
+		.dark-mode .expense-card,
+		.dark-mode .revenue-card,
+		.dark-mode .user-card,
+		.dark-mode .role-card,
+		.dark-mode .payout-card,
+		.dark-mode .detail-card,
+		.dark-mode .filter-card {
+			background-color: #222639 !important;
+			color: #e4e6eb !important;
+			border-color: #2c3049 !important;
+		}
+
+		/* Header styles */
+		.dark-mode .quotations-header,
+		.dark-mode .bookings-header,
+		.dark-mode .invoices-header,
+		.dark-mode .payments-header,
+		.dark-mode .expenses-header,
+		.dark-mode .revenue-header,
+		.dark-mode .modern-header,
+		.dark-mode .details-header,
+		.dark-mode .payout-header {
+			color: white !important;
+		}
+
+		/* Stats cards */
+		.dark-mode .stats-card {
+			background: rgba(255, 255, 255, 0.1) !important;
+			color: white !important;
+		}
+
+		.dark-mode .form-control:focus,
+		.dark-mode .form-select:focus {
+			background-color: #2c3049 !important;
+			border-color: #667eea !important;
+			color: #e4e6eb !important;
+		}
+
+		.dark-mode .modal-content {
+			background-color: #222639 !important;
+			color: #e4e6eb !important;
+		}
+
+		.dark-mode .modal-header {
+			border-color: #2c3049 !important;
+		}
+
+		.dark-mode .modal-footer {
+			border-color: #2c3049 !important;
+		}
+
+		.dark-mode .dropdown-menu {
+			background-color: #222639 !important;
+			border-color: #2c3049 !important;
+		}
+
+		.dark-mode .dropdown-item {
+			color: #e4e6eb !important;
+		}
+
+		.dark-mode .dropdown-item:hover {
+			background-color: #2c3049 !important;
+		}
+
+		.dark-mode .list-group-item {
+			background-color: #222639 !important;
+			border-color: #2c3049 !important;
+			color: #e4e6eb !important;
+		}
+
+		.dark-mode .text-dark {
+			color: #e4e6eb !important;
+		}
+
+		.dark-mode .text-muted {
+			color: #a6adc8 !important;
+		}
+
+		.dark-mode .border {
+			border-color: #2c3049 !important;
+		}
+
+		.dark-mode .footer {
+			background-color: #222639 !important;
+			color: #a6adc8 !important;
+		}
+
+		.dark-mode .alert {
+			background-color: #2c3049 !important;
+			border-color: #3d4461 !important;
+			color: #e4e6eb !important;
+		}
+
+		.dark-mode .badge {
+			filter: brightness(1.2);
+		}
+
+		/* Sidebar CTA dark mode */
+		.dark-mode .sidebar-cta {
+			background: #2c3049 !important;
+		}
+
+		.dark-mode .nav-icon {
+			color: #e4e6eb !important;
+		}
+
+		.dark-mode .hamburger span {
+			background-color: #e4e6eb !important;
+		}
+
+		/* Avatar styles */
+		.avatar {
+			border: 2px solid rgba(255, 255, 255, 0.1);
+		}
+
+		.dark-mode .avatar {
+			border: 2px solid rgba(255, 255, 255, 0.2) !important;
+		}
+
+		/* Notification Styles */
+		.notification-link {
+			transition: all 0.2s ease;
+			border-left: 3px solid transparent !important;
+		}
+
+		.notification-link:hover {
+			background-color: rgba(0, 123, 255, 0.1) !important;
+			text-decoration: none;
+		}
+
+		.notification-urgent {
+			background-color: rgba(220, 53, 69, 0.05) !important;
+		}
+
+		.notification-high {
+			background-color: rgba(253, 126, 20, 0.05) !important;
+		}
+
+		.notification-normal {
+			background-color: rgba(13, 110, 253, 0.05) !important;
+		}
+
+		.notification-low {
+			background-color: rgba(108, 117, 125, 0.05) !important;
+		}
+
+		.dark-mode .notification-urgent {
+			background-color: rgba(220, 53, 69, 0.1) !important;
+		}
+
+		.dark-mode .notification-high {
+			background-color: rgba(253, 126, 20, 0.1) !important;
+		}
+
+		.dark-mode .notification-normal {
+			background-color: rgba(13, 110, 253, 0.1) !important;
+		}
+
+		.dark-mode .notification-low {
+			background-color: rgba(108, 117, 125, 0.1) !important;
+		}
+
+		/* Notification badge */
+		#notificationCount {
+			position: absolute;
+			top: -8px;
+			right: -8px;
+			background: #dc3545;
+			color: white;
+			border-radius: 50%;
+			min-width: 18px;
+			height: 18px;
+			font-size: 11px;
+			font-weight: bold;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			line-height: 1;
+			padding: 2px 4px;
+			box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+		}
+
+		.indicator {
+			position: absolute;
+			top: -8px;
+			right: -8px;
+			background: #dc3545;
+			color: white;
+			border-radius: 50%;
+			min-width: 18px;
+			height: 18px;
+			font-size: 11px;
+			font-weight: bold;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			line-height: 1;
+			padding: 2px 4px;
+			box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+		}
+
+		/* Notification dropdown */
+		.dropdown-menu-lg {
+			min-width: 350px;
+			max-width: 400px;
+			max-height: 400px;
+			overflow-y: auto;
+		}
+		
+		@@media (max-width: 991px) {
+			.dropdown-menu-lg {
+				min-width: 260px !important;
+				max-width: 280px !important;
+				right: 0 !important;
+				left: auto !important;
+				margin-right: 5px !important;
+				max-height: 350px !important;
+			}
+			
+			.dropdown-menu-lg .list-group-item {
+				padding: 8px 10px !important;
+				font-size: 0.8rem !important;
+				min-height: 60px !important;
+			}
+			
+			.dropdown-menu-lg .notification-link .fw-bold {
+				font-size: 0.75rem !important;
+			}
+			
+			.dropdown-menu-lg .notification-link .small {
+				font-size: 0.7rem !important;
+			}
+			
+			.dropdown-menu-header {
+				padding: 8px 10px !important;
+				font-size: 0.8rem !important;
+			}
+			
+			.dropdown-menu-footer {
+				padding: 8px 10px !important;
+				font-size: 0.75rem !important;
+			}
+		}
+		
+		.list-group {
+			max-height: 300px;
+			overflow-y: auto;
+		}
+
+		.dropdown-menu-header {
+			padding: 12px 16px;
+			background-color: #f8f9fa;
+			border-bottom: 1px solid #dee2e6;
+			font-weight: 600;
+			color: #495057;
+		}
+
+		.dark-mode .dropdown-menu-header {
+			background-color: #2c3049 !important;
+			border-bottom: 1px solid #3d4461 !important;
+			color: #e4e6eb !important;
+		}
+
+		.dropdown-menu-footer {
+			padding: 12px 16px;
+			background-color: #f8f9fa;
+			border-top: 1px solid #dee2e6;
+			text-align: center;
+		}
+
+		.dark-mode .dropdown-menu-footer {
+			background-color: #2c3049 !important;
+			border-top: 1px solid #3d4461 !important;
+		}
+
+		.dropdown-menu-footer a {
+			color: #6c757d;
+			text-decoration: none;
+			font-size: 14px;
+		}
+
+		.dropdown-menu-footer a:hover {
+			color: #495057;
+		}
+
+		.dark-mode .dropdown-menu-footer a {
+			color: #a6adc8 !important;
+		}
+
+		.dark-mode .dropdown-menu-footer a:hover {
+			color: #e4e6eb !important;
+		}
+
+		/* Sidebar Dropdown Styles */
+		.sidebar-item.has-dropdown > .sidebar-link {
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+		}
+
+		.sidebar-dropdown {
+			padding-left: 0;
+			margin: 0;
+		}
+
+		.sidebar-dropdown .sidebar-item {
+			padding-left: 2rem;
+		}
+
+		.sidebar-dropdown .sidebar-link {
+			padding: 0.5rem 1rem;
+			font-size: 0.9rem;
+		}
+
+		/* Don't highlight dropdown header, only child items */
+		.sidebar-item.has-dropdown.has-active > .sidebar-link {
+			background: transparent !important;
+			color: inherit !important;
+		}
+
+		.dark-mode .sidebar-dropdown .sidebar-link {
+			color: #a6adc8 !important;
+		}
+
+		.dark-mode .sidebar-dropdown .sidebar-link:hover {
+			color: #a6adc8 !important;
+			background: transparent !important;
+		}
+
+		.dark-mode .sidebar-dropdown .sidebar-item.active > .sidebar-link {
+			background: #3d4461 !important;
+			color: #ffffff !important;
+		}
+
+		/* Collapsed sidebar styles */
+		.sidebar.collapsed .sidebar-item.has-dropdown > .sidebar-link span.align-middle:not(.ms-auto) {
+			display: none;
+		}
+
+		.sidebar.collapsed .sidebar-item.has-dropdown > .sidebar-link .ms-auto {
+			display: none;
+		}
+
+		.sidebar.collapsed .sidebar-item.has-dropdown > .sidebar-link {
+			text-align: center;
+			justify-content: center;
+		}
+
+		/* When collapsed, hide dropdown containers and show items individually */
+		.sidebar.collapsed .sidebar-item.has-dropdown {
+			display: none;
+		}
+
+		.sidebar.collapsed .sidebar-dropdown .sidebar-item {
+			display: block !important;
+			padding-left: 0;
+			position: relative;
+			z-index: 1;
+		}
+
+		.sidebar.collapsed .sidebar-dropdown .sidebar-link {
+			text-align: center;
+			padding: 0.75rem 0;
+			font-size: 0.9rem;
+			display: flex;
+			justify-content: center;
+			align-items: center;
+		}
+
+		.sidebar.collapsed .sidebar-dropdown .sidebar-link span.align-middle {
+			display: none;
+		}
+
+		.sidebar.collapsed .sidebar-dropdown .sidebar-link i {
+			margin: 0 auto;
+		}
+
+		/* Accordion dark mode styles */
+		.dark-mode .accordion-item {
+			background-color: #222639 !important;
+			border-color: #2c3049 !important;
+		}
+
+		.dark-mode .accordion-button {
+			background-color: #2c3049 !important;
+			color: #e4e6eb !important;
+			border-color: #3d4461 !important;
+		}
+
+		.dark-mode .accordion-button:not(.collapsed) {
+			background-color: #3d4461 !important;
+			color: #e4e6eb !important;
+		}
+
+		.dark-mode .accordion-body {
+			background-color: #222639 !important;
+			color: #e4e6eb !important;
+		}
+
+		/* Impersonation page dark mode styles */
+		.dark-mode .role-section {
+			background-color: #222639 !important;
+			border-color: #2c3049 !important;
+		}
+
+		.dark-mode .filter-section {
+			background-color: #222639 !important;
+			border-color: #2c3049 !important;
+		}
+
+		.dark-mode .user-item {
+			border-color: #2c3049 !important;
+			background-color: #1a1d2e !important;
+		}
+
+		.dark-mode .user-item:hover {
+			background-color: #2c3049 !important;
+		}
+
+		.dark-mode .user-name {
+			color: #e4e6eb !important;
+		}
+
+		.dark-mode .user-email {
+			color: #a6adc8 !important;
+		}
+	</style>
+
+
+
+	<!-- Dark Mode Toggle Script -->
+	<script>
+		// Initialize dark mode from localStorage
+		document.addEventListener('DOMContentLoaded', function() {
+			const darkMode = localStorage.getItem('darkMode');
+			const themeToggle = document.getElementById('themeToggle');
+			const themeIcon = document.getElementById('themeIcon');
+			
+			// Apply saved theme
+			if (darkMode === 'enabled') {
+				document.body.classList.add('dark-mode');
+				updateIcon(true);
+			}
+
+			// Toggle theme on button click
+			themeToggle.addEventListener('click', function(e) {
+				e.preventDefault();
+				document.body.classList.toggle('dark-mode');
+				
+				const isDark = document.body.classList.contains('dark-mode');
+				localStorage.setItem('darkMode', isDark ? 'enabled' : 'disabled');
+				updateIcon(isDark);
+			});
+
+			function updateIcon(isDark) {
+				if (isDark) {
+					themeIcon.setAttribute('data-feather', 'sun');
+				} else {
+					themeIcon.setAttribute('data-feather', 'moon');
+				}
+				feather.replace();
+			}
+
+			// Initial icon update
+			feather.replace();
+
+			// Sidebar dropdown functionality
+			initializeSidebarDropdowns();
+		});
+
+		// Sidebar dropdown initialization
+		function initializeSidebarDropdowns() {
+			// Auto-expand active dropdowns
+			$('.sidebar-item.has-dropdown.has-active').each(function() {
+				const $this = $(this);
+				const $collapse = $this.find('.collapse');
+				const $link = $this.find('.sidebar-link');
+				
+				$collapse.addClass('show');
+				$link.removeClass('collapsed').attr('aria-expanded', 'true');
+				$link.find('[data-feather="chevron-down"]').attr('data-feather', 'chevron-up');
+			});
+
+			// Handle dropdown toggle
+			$('.sidebar-item.has-dropdown > .sidebar-link').on('click', function(e) {
+				e.preventDefault();
+				const $this = $(this);
+				const $parent = $this.parent();
+				const $collapse = $parent.find('.collapse');
+				const $chevron = $this.find('[data-feather^="chevron"]');
+
+				// Don't toggle if sidebar is collapsed
+				if ($('.sidebar').hasClass('collapsed')) {
+					return;
+				}
+
+				// Toggle collapse
+				$collapse.toggleClass('show');
+				$this.toggleClass('collapsed');
+				
+				// Update aria-expanded
+				const isExpanded = $collapse.hasClass('show');
+				$this.attr('aria-expanded', isExpanded);
+				
+				// Update chevron icon
+				if (isExpanded) {
+					$chevron.attr('data-feather', 'chevron-up');
+				} else {
+					$chevron.attr('data-feather', 'chevron-down');
+				}
+				
+				// Re-render feather icons
+				feather.replace();
+			});
+
+			// Handle sidebar collapse/expand behavior
+			$('.sidebar-toggle').on('click', function() {
+				setTimeout(function() {
+					if ($('.sidebar').hasClass('collapsed')) {
+						// When collapsed, show individual menu items
+						$('.sidebar-dropdown .sidebar-item').each(function() {
+							$(this).insertAfter($(this).closest('.sidebar-item.has-dropdown'));
+						});
+					} else {
+						// When expanded, restore dropdown structure
+						$('.sidebar-nav > .sidebar-item').each(function() {
+							const $item = $(this);
+							if (!$item.hasClass('has-dropdown') && $item.prev().hasClass('has-dropdown')) {
+								const $dropdown = $item.prev().find('.sidebar-dropdown');
+								if ($dropdown.length) {
+									$item.appendTo($dropdown);
+								}
+							}
+						});
+						
+						// Close all dropdowns first
+						$('.sidebar-item.has-dropdown .collapse').removeClass('show');
+						$('.sidebar-item.has-dropdown .sidebar-link').addClass('collapsed').attr('aria-expanded', 'false');
+						$('.sidebar-item.has-dropdown [data-feather^="chevron"]').attr('data-feather', 'chevron-down');
+						
+						// Then re-expand only active dropdowns
+						$('.sidebar-item.has-dropdown.has-active').each(function() {
+							const $this = $(this);
+							const $collapse = $this.find('.collapse');
+							const $link = $this.find('.sidebar-link');
+							
+							$collapse.addClass('show');
+							$link.removeClass('collapsed').attr('aria-expanded', 'true');
+							$link.find('[data-feather^="chevron"]').attr('data-feather', 'chevron-up');
+						});
+					}
+					feather.replace();
+				}, 100);
+			});
+		}
+	</script>
+
+	<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+	
+	<!-- Subscription Limits Upgrade Prompt Script -->
+	<script>
+		// Global function to handle subscription upgrade prompts
+		window.handleSubscriptionUpgrade = function(response) {
+			if (response && response.showUpgrade) {
+				Swal.fire({
+					icon: 'warning',
+					title: 'Subscription Limit Reached',
+					text: response.message,
+					showCancelButton: true,
+					confirmButtonColor: '#6f42c1',
+					cancelButtonColor: '#6c757d',
+					confirmButtonText: 'Upgrade Plan',
+					cancelButtonText: 'Cancel'
+				}).then((result) => {
+					if (result.isConfirmed) {
+						window.location.href = response.upgradeUrl || '/Subscription/MyPlan';
+					}
+				});
+				return true; // Indicates upgrade prompt was shown
+			}
+			return false; // No upgrade prompt needed
+		};
+		
+		// Check TempData for upgrade prompts on page load
+		$(document).ready(function() {
+			@if (TempData["ShowUpgrade"] != null && TempData["UpgradePrompt"] != null)
+			{
+				<text>
+				Swal.fire({
+					icon: 'warning',
+					title: 'Subscription Limit Reached',
+					text: '@TempData["UpgradePrompt"]',
+					showCancelButton: true,
+					confirmButtonColor: '#6f42c1',
+					cancelButtonColor: '#6c757d',
+					confirmButtonText: 'Upgrade Plan',
+					cancelButtonText: 'Cancel'
+				}).then((result) => {
+					if (result.isConfirmed) {
+						window.location.href = '/Subscription/MyPlan';
+					}
+				});
+				</text>
+			}
+		});
+	</script>
+	
+	<!-- Universal Pagination Script -->
+	<script>
+		function initializePagination(itemsPerPage = 10) {
+			const items = document.querySelectorAll('.paginated-item');
+			const totalItems = items.length;
+			const totalPages = Math.ceil(totalItems / itemsPerPage);
+			let currentPage = 1;
+
+			function showPage(page) {
+				const start = (page - 1) * itemsPerPage;
+				const end = start + itemsPerPage;
+
+				items.forEach((item, index) => {
+					item.style.display = (index >= start && index < end) ? 'block' : 'none';
+				});
+
+				updatePaginationControls(page);
+			}
+
+			function updatePaginationControls(page) {
+				let paginationHtml = '<nav><ul class="pagination justify-content-center">';
+				
+				// Previous button
+				paginationHtml += `<li class="page-item ${page === 1 ? 'disabled' : ''}">`;
+				paginationHtml += `<a class="page-link" href="#" onclick="goToPage(${page - 1})" ${page === 1 ? 'tabindex="-1"' : ''}>Previous</a></li>`;
+				
+				// Page numbers
+				for (let i = 1; i <= totalPages; i++) {
+					if (i === 1 || i === totalPages || (i >= page - 2 && i <= page + 2)) {
+						paginationHtml += `<li class="page-item ${i === page ? 'active' : ''}">`;
+						paginationHtml += `<a class="page-link" href="#" onclick="goToPage(${i})">${i}</a></li>`;
+					} else if (i === page - 3 || i === page + 3) {
+						paginationHtml += '<li class="page-item disabled"><span class="page-link">...</span></li>';
+					}
+				}
+				
+				// Next button
+				paginationHtml += `<li class="page-item ${page === totalPages ? 'disabled' : ''}">`;
+				paginationHtml += `<a class="page-link" href="#" onclick="goToPage(${page + 1})" ${page === totalPages ? 'tabindex="-1"' : ''}>Next</a></li>`;
+				
+				paginationHtml += '</ul></nav>';
+				
+				const paginationContainer = document.getElementById('pagination-container');
+				if (paginationContainer) {
+					paginationContainer.innerHTML = paginationHtml;
+				}
+			}
+
+			window.goToPage = function(page) {
+				if (page >= 1 && page <= totalPages) {
+					currentPage = page;
+					showPage(page);
+				}
+			};
+
+			// Initialize first page
+			if (totalItems > 0) {
+				showPage(1);
+			}
+		}
+
+		// Auto-initialize pagination when DOM is ready
+		document.addEventListener('DOMContentLoaded', function() {
+			if (document.querySelectorAll('.paginated-item').length > 0) {
+				initializePagination();
+			}
+		});
+	</script>
+	
+	<!-- Notification Loading Script -->
+	<script>
+		// Make loadNotifications globally accessible
+		window.loadNotifications = function() {
+				if (typeof $ === 'undefined') {
+					console.error('jQuery not loaded');
+					return;
+				}
+				
+				// Load both notifications and today's tasks
+				$.when(
+					$.get('/Notification/GetNotifications'),
+					$.get('/Tasks/GetTodayTaskNotifications')
+				).done(function(notificationResponse, taskResponse) {
+					var data = notificationResponse[0];
+					var taskData = taskResponse[0];
+					console.log('Notifications received:', data);
+					console.log('Tasks received:', taskData);
+					
+					if (!data.success) {
+						console.error('Error loading notifications:', data.message);
+						$('#notificationList').html('<div class="list-group-item text-center text-danger">Error loading notifications</div>');
+						return;
+					}
+					
+					var count = data.count || 0;
+					var notifications = data.notifications || [];
+					var taskCount = taskData.count || 0;
+					var tasks = taskData.tasks || [];
+					
+					// Combine notifications and tasks
+					var totalCount = count + taskCount;
+					var allItems = [];
+					
+					// Add regular notifications
+					notifications.forEach(function(notification) {
+						allItems.push({
+							type: 'notification',
+							data: notification
+						});
+					});
+					
+					// Add today's tasks as notifications
+					tasks.forEach(function(task) {
+						allItems.push({
+							type: 'task',
+							data: {
+								id: 'task_' + task.leadId,
+								title: 'Follow-up Due Today',
+								message: task.name + ' - ' + task.contact,
+								type: 'FollowUpDue',
+								link: '/Leads/Details/' + task.leadId,
+								priority: 'High',
+								createdOn: 'Today'
+							}
+						});
+					});
+					
+					// Update notification count badge
+					var $badge = $('#notificationCount');
+					if (totalCount > 0) {
+						$badge.text(totalCount).show();
+					} else {
+						$badge.hide();
+					}
+					
+					$('#notificationHeader').text(totalCount + ' New Notifications' + (taskCount > 0 ? ' (' + taskCount + ' tasks due today)' : ''));
+					
+					var html = '';
+					if (totalCount === 0) {
+						html = '<div class="list-group-item text-center text-muted">No new notifications or tasks</div>';
+					} else {
+						allItems.forEach(function(item) {
+							var notification = item.data;
+							var iconClass = getNotificationIcon(notification.type);
+							var priorityClass = getPriorityClass(notification.priority);
+							var link = notification.link || '#';
+							var notificationId = item.type === 'notification' ? notification.id : null;
+							
+							html += '<a href="' + link + '" class="list-group-item notification-link ' + priorityClass + '"' + 
+								(notificationId ? ' data-notification-id="' + notificationId + '"' : '') + 
+								' style="min-height: 70px; padding: 12px; border-left: 3px solid ' + getPriorityColor(notification.priority) + ';">'
+								+ '<div class="row g-0 align-items-center h-100">'
+								+ '<div class="col-2 d-flex justify-content-center"><i class="' + iconClass + '" data-feather="' + iconClass + '"></i></div>'
+								+ '<div class="col-10">'
+								+ '<div class="fw-bold text-truncate">' + notification.title + '</div>'
+								+ '<div class="small mt-1 text-truncate">' + notification.message + '</div>'
+								+ '<div class="small mt-1 text-muted"><i class="far fa-clock"></i> ' + notification.createdOn + '</div>'
+								+ '</div></div></a>';
+						});
+					}
+					$('#notificationList').html(html);
+					
+					// Add click handlers for marking as read
+					$('.notification-link').click(function(e) {
+						var notificationId = $(this).data('notification-id');
+						if (notificationId) {
+							markNotificationAsRead(notificationId);
+						}
+					});
+					
+					if (typeof feather !== 'undefined') {
+						feather.replace();
+					}
+				}).fail(function(xhr, status, error) {
+					console.error('Error loading notifications:', status, error);
+					$('#notificationList').html('<div class="list-group-item text-center text-danger">Error loading notifications</div>');
+				});
+		};
+		
+		// Helper functions for notification display
+		function getNotificationIcon(type) {
+			switch(type) {
+				case 'LeadAdded': return 'user-plus';
+				case 'LeadAssigned': return 'user-check';
+				case 'QuotationCreated': return 'file-text';
+				case 'InvoiceCreated': return 'file-text';
+				case 'PaymentReceived': return 'credit-card';
+				case 'FollowUpReminder': return 'clock';
+				case 'FollowUpDue': return 'calendar';
+				case 'BookingCreated': return 'book-open';
+				case 'ChannelPartnerRequest': return 'briefcase';
+				case 'SystemAlert': return 'alert-triangle';
+				default: return 'bell';
+			}
+		}
+		
+		function getPriorityClass(priority) {
+			switch(priority) {
+				case 'Urgent': return 'notification-urgent';
+				case 'High': return 'notification-high';
+				case 'Normal': return 'notification-normal';
+				case 'Low': return 'notification-low';
+				default: return 'notification-normal';
+			}
+		}
+		
+		function getPriorityColor(priority) {
+			switch(priority) {
+				case 'Urgent': return '#dc3545';
+				case 'High': return '#fd7e14';
+				case 'Normal': return '#0d6efd';
+				case 'Low': return '#6c757d';
+				default: return '#0d6efd';
+			}
+		}
+		
+		// Mark individual notification as read
+		function markNotificationAsRead(notificationId) {
+			if (typeof $ === 'undefined') {
+				console.error('jQuery not loaded');
+				return;
+			}
+			$.post('/Notification/MarkAsRead', { notificationId: notificationId }, function(data) {
+				if (data.success) {
+					// Refresh notifications after marking as read
+					setTimeout(loadNotifications, 500);
+				}
+			});
+		}
+		
+		// Ensure jQuery is loaded before running
+		if (typeof jQuery !== 'undefined') {
+			$(document).ready(function() {
+				// Initial load
+				loadNotifications();
+			
+			// Mark all as read button
+			$('#markAllRead').click(function(e) {
+				e.preventDefault();
+				$.post('/Notification/MarkAllAsRead', function(data) {
+					if (data.success) {
+						loadNotifications();
+						// Close dropdown
+						$('#alertsDropdown').dropdown('hide');
+					}
+				});
+			});
+			
+				// Refresh notifications every 10 seconds for real-time updates
+				setInterval(loadNotifications, 10000);
+				
+				// Removed popup toast - notifications only show in bell icon
+				
+				// Add keyboard shortcuts
+				$(document).keydown(function(e) {
+					if (e.ctrlKey && e.shiftKey && e.keyCode === 78) { // Ctrl+Shift+N
+						e.preventDefault();
+						createTestNotification();
+					}
+					if (e.ctrlKey && e.shiftKey && e.keyCode === 67) { // Ctrl+Shift+C
+						e.preventDefault();
+						clearAllNotifications();
+					}
+				});
+				
+				// Refresh notifications when window gets focus (user returns to tab)
+				$(window).focus(function() {
+					loadNotifications();
+				});
+				
+				// Refresh notifications when clicking on notification bell
+				$('#alertsDropdown').click(function() {
+					loadNotifications();
+				});
+			});
+		} else {
+			console.error('jQuery not loaded - notifications disabled');
+		}
+		
+		// Show notification toast
+		function showNotificationToast(message) {
+			if (typeof Swal !== 'undefined') {
+				Swal.fire({
+					toast: true,
+					position: 'top-end',
+					icon: 'info',
+					title: message,
+					showConfirmButton: false,
+					timer: 3000,
+					timerProgressBar: true
+				});
+			}
+		}
+		
+		// Test notification function (for debugging)
+		window.createTestNotification = function() {
+			if (typeof $ === 'undefined') {
+				alert('jQuery not loaded');
+				return;
+			}
+			$.post('/Notification/CreateTestNotification', function(data) {
+				if (data.success) {
+					showNotificationToast('Test notification created!');
+					setTimeout(loadNotifications, 1000);
+				} else {
+					showNotificationToast('Error: ' + data.message);
+				}
+			}).fail(function() {
+				showNotificationToast('Error creating test notification');
+			});
+		};
+		
+		// Clear all notifications function (Admin only)
+		window.clearAllNotifications = function() {
+			if (typeof $ === 'undefined') {
+				alert('jQuery not loaded');
+				return;
+			}
+			if (confirm('Are you sure you want to clear ALL notifications? This cannot be undone.')) {
+				$.post('/Notification/ClearAllNotifications', function(data) {
+					if (data.success) {
+						showNotificationToast('All notifications cleared!');
+						loadNotifications();
+					} else {
+						showNotificationToast('Error: ' + data.message);
+					}
+				}).fail(function() {
+					showNotificationToast('Error clearing notifications');
+				});
+			}
+		};
+	</script>
+	
+	<!-- Impersonation Script -->
+	<script>
+		// Load users for impersonation dropdown
+		function loadImpersonationUsers() {
+			$.get('/Account/GetUsersForImpersonation', function(data) {
+				if (data.success) {
+					var html = '';
+					for (var role in data.users) {
+						html += '<h6 class="dropdown-header">' + role + '</h6>';
+						data.users[role].forEach(function(user) {
+							html += '<a class="dropdown-item" href="#" onclick="startImpersonation(' + user.UserId + ', \'' + user.Username + '\')">';
+							html += '<i class="align-middle me-1" data-feather="user"></i> ' + user.Username + '</a>';
+						});
+					}
+					$('#impersonateMenu').html(html);
+					feather.replace();
+				} else {
+					$('#impersonateMenu').html('<div class="dropdown-item-text text-danger">Error loading users</div>');
+				}
+			}).fail(function() {
+				$('#impersonateMenu').html('<div class="dropdown-item-text text-danger">Error loading users</div>');
+			});
+		}
+
+		// Start impersonation
+		function startImpersonation(userId, username) {
+			if (confirm('Are you sure you want to impersonate ' + username + '?')) {
+				$.post('/Account/StartImpersonation', { userId: userId }, function(data) {
+					if (data.success) {
+						Swal.fire({
+							icon: 'success',
+							title: 'Impersonation Started',
+							text: data.message,
+							timer: 2000,
+							showConfirmButton: false
+						}).then(() => {
+							window.location.reload();
+						});
+					} else {
+						Swal.fire('Error', data.message, 'error');
+					}
+				}).fail(function() {
+					Swal.fire('Error', 'Failed to start impersonation', 'error');
+				});
+			}
+		}
+
+		// Stop impersonation
+		function stopImpersonation() {
+			Swal.fire({
+				title: 'Stop Impersonation?',
+				text: 'Are you sure you want to stop impersonation and return to admin?',
+				icon: 'warning',
+				showCancelButton: true,
+				confirmButtonColor: '#dc3545',
+				cancelButtonColor: '#6c757d',
+				confirmButtonText: 'Yes, Stop Impersonation',
+				cancelButtonText: 'Cancel'
+			}).then((result) => {
+				if (result.isConfirmed) {
+					$.post('/Account/StopImpersonation', function(data) {
+						if (data.success) {
+							Swal.fire({
+								icon: 'success',
+								title: 'Impersonation Stopped',
+								text: data.message,
+								timer: 2000,
+								showConfirmButton: false
+							}).then(() => {
+								window.location.href = data.redirectUrl || '/Settings/Impersonation';
+							});
+						} else {
+							Swal.fire('Error', data.message, 'error');
+						}
+					}).fail(function() {
+						Swal.fire('Error', 'Failed to stop impersonation', 'error');
+					});
+				}
+			});
+		}
+
+		// Load users when dropdown is clicked
+		$(document).ready(function() {
+			$('#impersonateDropdown').click(function(e) {
+				e.preventDefault();
+				loadImpersonationUsers();
+			});
+		});
+	</script>
+	
+	<!-- Impersonation Styles -->
+	<style>
+		.dropdown-submenu {
+			position: relative;
+		}
+
+		.dropdown-submenu .dropdown-menu {
+			top: 0;
+			left: 100%;
+			margin-top: -1px;
+			min-width: 200px;
+			max-height: 300px;
+			overflow-y: auto;
+		}
+
+		.dropdown-submenu:hover .dropdown-menu {
+			display: block;
+		}
+
+		.dropdown-header {
+			font-weight: 600;
+			color: #6c757d;
+			padding: 0.5rem 1rem;
+			margin-bottom: 0;
+			font-size: 0.875rem;
+			border-bottom: 1px solid #dee2e6;
+		}
+
+		.dark-mode .dropdown-header {
+			color: #a6adc8 !important;
+			border-bottom: 1px solid #2c3049 !important;
+		}
+
+		.badge.bg-warning {
+			animation: pulse 2s infinite;
+		}
+
+		@@keyframes pulse {
+			0% { opacity: 1; }
+			50% { opacity: 0.7; }
+			100% { opacity: 1; }
+		}
+
+		/* Impersonation Banner */
+		.impersonation-banner {
+			background: linear-gradient(45deg, #ff6b6b, #ffa500);
+			color: white;
+			padding: 8px 12px;
+			margin: 10px;
+			border-radius: 6px;
+			font-size: 12px;
+			font-weight: 600;
+			text-align: center;
+			box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+			animation: pulse 2s infinite;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+		}
+
+		.impersonation-banner button {
+			border: 1px solid rgba(255,255,255,0.5) !important;
+			padding: 2px 6px !important;
+			font-size: 10px !important;
+		}
+
+		.impersonation-banner button:hover {
+			background: rgba(255,255,255,0.2) !important;
+			border-color: white !important;
+		}
+
+		.sidebar.collapsed .impersonation-banner {
+			margin: 5px;
+			padding: 8px;
+			font-size: 14px;
+			cursor: pointer;
+			width: 70px;
+			height: 30px;
+			border-radius: 15px;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+		}
+
+		.sidebar.collapsed .impersonation-banner button {
+			display: none;
+		}
+
+		.sidebar.collapsed .impersonation-banner .impersonation-text {
+			display: none;
+		}
+
+		/* Mobile impersonation banner - show only icon */
+		@@media (max-width: 991px) {
+			.impersonation-banner {
+				position: fixed;
+				top: 10px;
+				right: 10px;
+				z-index: 1060;
+				width: 40px;
+				height: 40px;
+				border-radius: 50%;
+				padding: 0;
+				margin: 0;
+				font-size: 16px;
+				justify-content: center;
+				align-items: center;
+				cursor: pointer;
+				title: "Impersonating - Tap to stop";
+			}
+
+			.impersonation-banner i {
+				margin: 0 !important;
+			}
+
+			.impersonation-banner button {
+				display: none !important;
+			}
+
+			/* Hide text on mobile */
+			.impersonation-banner .impersonation-text {
+				display: none;
+			}
+
+			/* Hide navbar impersonation badge on mobile */
+			.badge.bg-warning {
+				display: none !important;
+			}
+		}
+	</style>
+	
+	<!-- WhatsApp Integration Modal -->
+	@await Html.PartialAsync("_WhatsAppModal")
+	
+	<!-- FCM Token Auto-Registration -->
+	<script type="module">
+	import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
+	import { getMessaging, getToken } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-messaging.js";
+	
+	const firebaseConfig = {
+	  apiKey: "AIzaSyA0uE-uwqI40j0f_LgXHUBVnIC6XdIo6Lk",
+	  authDomain: "realestatecrm-b1b4f.firebaseapp.com",
+	  projectId: "realestatecrm-b1b4f",
+	  storageBucket: "realestatecrm-b1b4f.firebasestorage.app",
+	  messagingSenderId: "500882729962",
+	  appId: "1:500882729962:web:c2012a8f2202a9696ee093",
+	  measurementId: "G-YXQW7DG9M1"
+	};
+	
+	const app = initializeApp(firebaseConfig);
+	const messaging = getMessaging(app);
+	const vapidKey = 'BJtdDW_n_5JtS8EUIGVfoeAAp3R6iW-rXjq2SNjz2ndU6SJJ937pIYCZGoy6CQYmebEt30d8vSPBE-jodaCgZx0';
+	
+	// Auto-register FCM token for logged-in users
+	async function registerFcmToken() {
+		try {
+			const permission = await Notification.requestPermission();
+			if (permission === 'granted') {
+				const currentToken = await getToken(messaging, { vapidKey });
+				if (currentToken) {
+					// Save real FCM token to server
+					console.log('Saving FCM token:', currentToken.substring(0, 20) + '...');
+					saveTokenToServer(currentToken);
+					return;
+				}
+			}
+		} catch (err) {
+			console.log('FCM registration failed:', err.message);
+		}
+		
+		// Fallback: Save development token for localhost
+		if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+			const devToken = 'dev_token_' + Math.random().toString(36).substring(2, 15);
+			console.log('Using development token:', devToken);
+			saveTokenToServer(devToken);
+		}
+	}
+	
+	function saveTokenToServer(token) {
+		$.post('/Fcm/SaveToken', {
+			token: token,
+			__RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val()
+		}).done(function(response) {
+			if (response.success) {
+				console.log('Token registered successfully');
+			} else {
+				console.log('Token registration failed');
+			}
+		}).fail(function(xhr, status, error) {
+			console.log('Token save error:', error);
+		});
+	}
+	
+	// Register token when page loads (for logged-in users)
+	if (typeof jQuery !== 'undefined') {
+		$(document).ready(function() {
+			// Only register if user is logged in (check for username)
+			@if (!string.IsNullOrEmpty(username))
+			{
+				<text>setTimeout(registerFcmToken, 2000);</text>
+			}
+		});
+	}
+	</script>
+	
+	@await RenderSectionAsync("Scripts", required: false)
+</body>
+
+</html>
+
+	<style>
+		@@media (max-width: 991px) {
+			.nav-item.dropdown .dropdown-menu-lg {
+				position: absolute !important;
+				right: 5px !important;
+				left: auto !important;
+				transform: translateX(0) !important;
+			}
+			
+			.dropdown-menu-lg::before {
+				content: '';
+				position: absolute;
+				top: -8px;
+				right: 15px;
+				width: 0;
+				height: 0;
+				border-left: 8px solid transparent;
+				border-right: 8px solid transparent;
+				border-bottom: 8px solid #f8f9fa;
+			}
+			
+			.dark-mode .dropdown-menu-lg::before {
+				border-bottom-color: #2c3049 !important;
+			}
+		}
+		
+		/* Footer mobile optimization - single line */
+		@@media (max-width: 767px) {
+			.footer .row {
+				flex-wrap: nowrap !important;
+			}
+			
+			.footer .col-6 {
+				flex: 0 0 auto !important;
+				width: auto !important;
+			}
+			
+			.footer .text-start {
+				white-space: nowrap;
+			}
+			
+			.footer .text-end {
+				flex: 1;
+				text-align: right !important;
+			}
+			
+			.footer .list-inline {
+				margin-bottom: 0;
+				white-space: nowrap;
+			}
+			
+			.footer .list-inline-item {
+				padding: 0 0.25rem;
+			}
+			
+			.footer .list-inline-item a {
+				font-size: 0.8rem;
+			}
+			
+			.footer p {
+				font-size: 0.8rem;
+				margin-bottom: 0 !important;
+			}
+		}
+	</style>

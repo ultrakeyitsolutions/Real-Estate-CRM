@@ -1,0 +1,459 @@
+@model List<CRM.Models.RevenueModel>
+@{
+    ViewData["Title"] = "Revenue";
+}
+<style>
+    .revenue-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 2rem;
+        border-radius: 12px;
+        margin-bottom: 2rem;
+    }
+    .stats-card {
+        background: rgba(255,255,255,0.15);
+        backdrop-filter: blur(10px);
+        border-radius: 10px;
+        padding: 1.5rem;
+        text-align: center;
+    }
+    .stats-number {
+        font-size: 2rem;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+    }
+    .filter-card {
+        background: white;
+        border-radius: 12px;
+        padding: 1.5rem;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        margin-bottom: 2rem;
+    }
+    .revenue-card {
+        background: white;
+        border-radius: 12px;
+        padding: 1.5rem;
+        margin-bottom: 1rem;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: visible !important;
+        z-index: 1;
+    }
+    .revenue-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+    }
+
+    .revenue-card:has(.dropdown.show) {
+        z-index: 9999 !important;
+        overflow: visible !important;
+    }
+
+    .revenue-card .dropdown {
+        position: static !important;
+    }
+
+    .revenue-card .dropdown-menu {
+        z-index: 10000 !important;
+        position: absolute !important;
+    }
+    .type-badge {
+        padding: 0.5rem 1rem;
+        border-radius: 20px;
+        font-weight: 600;
+        font-size: 0.875rem;
+        background-color: #cfe2ff;
+        color: #084298;
+    }
+    .create-btn {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border: none;
+        color: white;
+        padding: 0.75rem 2rem;
+        border-radius: 8px;
+        font-weight: 600;
+        box-shadow: 0 4px 12px rgba(102,126,234,0.3);
+        transition: all 0.3s ease;
+    }
+    .create-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(102,126,234,0.4);
+        color: white;
+    }
+    .empty-state {
+        text-align: center;
+        padding: 4rem 2rem;
+    }
+    .empty-state i {
+        font-size: 5rem;
+        color: #e9ecef;
+        margin-bottom: 1.5rem;
+    }
+    @@media (max-width: 768px) {
+        .revenue-card { padding: 1rem; }
+        .stats-number { font-size: 1.5rem; }
+    }
+</style>
+<div class="content">
+    <!-- Breadcrumb -->
+    <nav class="mb-3" aria-label="breadcrumb">
+        <ol class="breadcrumb mb-0">
+            <li class="breadcrumb-item"><a href="/Home/Index">Home</a></li>
+            <li class="breadcrumb-item active">Revenue</li>
+        </ol>
+    </nav>
+    <!-- Header with Stats -->
+    <div class="revenue-header">
+        <div class="row align-items-center mb-4">
+            <div class="col-md-6">
+                <h2 class="mb-0"><i class="fa-solid fa-coins me-2"></i>Revenue</h2>
+                <p class="mb-0 mt-2 opacity-75">Track all revenue sources and payments</p>
+            </div>
+            @if (User.IsInRole("Admin") || User.IsInRole("Sales") || User.IsInRole("Agent"))
+            {
+                <div class="col-md-6 text-md-end">
+                    <button onclick="openRevenueModal()" class="btn create-btn">
+                        <i class="fa-solid fa-plus me-2"></i>New Revenue
+                    </button>
+                </div>
+            }
+        </div>
+        <div class="row g-3">
+            <div class="col-md-4">
+                <div class="stats-card">
+                    <div class="stats-number">@Model.Count</div>
+                    <div>Total Revenue Entries</div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="stats-card">
+                    <div class="stats-number">₹@Model.Sum(r => r.Amount).ToString("N0")</div>
+                    <div>Total Revenue</div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="stats-card">
+                    <div class="stats-number">@Model.Count(r => r.Type == "Sale")</div>
+                    <div>Sales</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Filter Section -->
+    <div class="filter-card">
+        <div class="row g-3 align-items-end">
+            <div class="col-md-3">
+                <label for="searchInput" class="form-label">Search</label>
+                <input type="text" class="form-control" id="searchInput" placeholder="Search anything...">
+            </div>
+            <div class="col-md-2">
+                <label for="typeFilter" class="form-label">Type</label>
+                <select class="form-select" id="typeFilter">
+                    <option value="">All Types</option>
+                    <option value="Sale">Sale</option>
+                    <option value="Booking">Booking</option>
+                    <option value="Rental">Rental</option>
+                    <option value="Service">Service</option>
+                    <option value="Other">Other</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label for="dateRangeFilter" class="form-label">Date Range</label>
+                <select class="form-select" id="dateRangeFilter">
+                    <option value="all">All Time</option>
+                    <option value="today">Today</option>
+                    <option value="thisWeek">This Week</option>
+                    <option value="thisMonth">This Month</option>
+                    <option value="last3Months">Last 3 Months</option>
+                    <option value="custom">Custom Range</option>
+                </select>
+            </div>
+            <div class="col-md-2" id="customDateRange" style="display: none;">
+                <label class="form-label">Custom Range</label>
+                <input type="date" class="form-control mb-1" id="startDate">
+                <input type="date" class="form-control" id="endDate">
+            </div>
+            @if (User.IsInRole("Admin") || User.IsInRole("Sales") || User.IsInRole("Agent"))
+            {
+                <div class="col-md-2">
+                    <button class="btn btn-success w-100" type="button" onclick="exportData()">
+                        <i class="fa-solid fa-file-excel me-2"></i>Export Excel
+                    </button>
+                </div>
+            }
+        </div>
+    </div>
+    <!-- Revenue List -->
+    @if (Model.Any())
+    {
+        foreach (var revenue in Model)
+        {
+            <div class="card revenue-card paginated-item">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col-md-6">
+                            <h5 class="mb-2">
+                                <i class="fa-solid fa-file-invoice-dollar text-success me-2"></i>
+                                @revenue.Type
+                            </h5>
+                            <p class="mb-1 text-muted">
+                                <i class="fa-solid fa-calendar me-2"></i>
+                                @revenue.Date.ToString("MMM dd, yyyy")
+                            </p>
+                            <p class="mb-0 text-muted">
+                                <i class="fa-solid fa-comment-dots me-2"></i>
+                                @revenue.Description
+                            </p>
+                        </div>
+                        <div class="col-md-3 text-center">
+                            <small class="text-muted d-block mb-1">Amount</small>
+                            <h4 class="text-success mb-0">₹@revenue.Amount.ToString("N0")</h4>
+                        </div>
+                        <div class="col-md-2 text-center">
+                            <span class="type-badge">@revenue.Type</span>
+                        </div>
+                        <div class="col-md-1 text-end">
+                            <div class="dropdown">
+                                <button class="btn btn-sm btn-outline-primary" type="button" data-bs-toggle="dropdown">
+                                    <i class="fa-solid fa-ellipsis-vertical"></i>
+                                </button>
+                                <ul class="dropdown-menu dropdown-menu-end">
+                                    <li>
+                                        <a class="dropdown-item" href="/Revenue/Details/@revenue.RevenueId">
+                                            <i class="fa-solid fa-eye me-2"></i>View Details
+                                        </a>
+                                    </li>
+                                    @if (User.IsInRole("Admin") || User.IsInRole("Sales") || User.IsInRole("Agent"))
+                                    {
+                                        <li>
+                                            <a class="dropdown-item" href="#" onclick="editRevenue(@revenue.RevenueId)">
+                                                <i class="fa-solid fa-edit me-2"></i>Edit
+                                            </a>
+                                        </li>
+                                    }
+                                    @if (User.IsInRole("Admin") || User.IsInRole("Sales") || User.IsInRole("Agent"))
+                                    {
+                                        <li><hr class="dropdown-divider"></li>
+                                        <li>
+                                            <a class="dropdown-item text-danger" href="#" onclick="deleteRevenue(@revenue.RevenueId)">
+                                                <i class="fa-solid fa-trash me-2"></i>Delete
+                                            </a>
+                                        </li>
+                                    }
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+        
+        <!-- Pagination -->
+        <div id="pagination-container" class="mt-4"></div>
+    }
+    else
+    {
+        <div class="empty-state">
+            <i class="fa-solid fa-coins"></i>
+            <h3>No Revenue Found</h3>
+            <p class="text-muted">Start by adding your first revenue entry</p>
+            @if (User.IsInRole("Admin") || User.IsInRole("Sales") || User.IsInRole("Agent"))
+            {
+                <button onclick="openRevenueModal()" class="btn create-btn mt-3">
+                    <i class="fa-solid fa-plus me-2"></i>Create Revenue
+                </button>
+            }
+        </div>
+    }
+</div>
+
+@await Html.PartialAsync("_RevenueModal")
+
+@section Scripts {
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script>
+let allRevenueData = @Html.Raw(Json.Serialize(Model.Select(r => new { 
+    Type = r.Type, 
+    Description = r.Description, 
+    Amount = r.Amount, 
+    Date = r.Date.ToString("yyyy-MM-dd"),
+    DateFormatted = r.Date.ToString("MMM dd, yyyy")
+})));
+
+$(document).ready(function () {
+    function getDateRange(range) {
+        const today = new Date();
+        const startOfWeek = new Date(today.setDate(today.getDate() - today.getDay()));
+        const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+        const last3Months = new Date(today.getFullYear(), today.getMonth() - 3, 1);
+        
+        switch(range) {
+            case 'today':
+                return { start: new Date().toISOString().split('T')[0], end: new Date().toISOString().split('T')[0] };
+            case 'thisWeek':
+                return { start: startOfWeek.toISOString().split('T')[0], end: new Date().toISOString().split('T')[0] };
+            case 'thisMonth':
+                return { start: startOfMonth.toISOString().split('T')[0], end: new Date().toISOString().split('T')[0] };
+            case 'last3Months':
+                return { start: last3Months.toISOString().split('T')[0], end: new Date().toISOString().split('T')[0] };
+            default:
+                return null;
+        }
+    }
+    
+    function updateStatsCards() {
+        var visibleCards = $('.revenue-card:visible');
+        var totalEntries = visibleCards.length;
+        var totalAmount = 0;
+        var saleCount = 0;
+        
+        visibleCards.each(function() {
+            var amount = $(this).find('h4.text-success').text().replace('₹', '').replace(/,/g, '');
+            totalAmount += parseFloat(amount) || 0;
+            
+            var type = $(this).find('.type-badge').text().trim();
+            if (type === 'Sale') saleCount++;
+        });
+        
+        $('.stats-card').eq(0).find('.stats-number').text(totalEntries);
+        $('.stats-card').eq(1).find('.stats-number').text('₹' + totalAmount.toLocaleString('en-IN'));
+        $('.stats-card').eq(2).find('.stats-number').text(saleCount);
+    }
+    
+    function applyFilters() {
+        var search = $('#searchInput').val().toLowerCase();
+        var type = $('#typeFilter').val();
+        var dateRange = $('#dateRangeFilter').val();
+        var startDate = $('#startDate').val();
+        var endDate = $('#endDate').val();
+        var anyVisible = false;
+        
+        var dateFilter = null;
+        if (dateRange !== 'all') {
+            if (dateRange === 'custom' && startDate && endDate) {
+                dateFilter = { start: startDate, end: endDate };
+            } else if (dateRange !== 'custom') {
+                dateFilter = getDateRange(dateRange);
+            }
+        }
+        
+        $('.revenue-card').each(function () {
+            var card = $(this);
+            var cardText = card.text().toLowerCase();
+            var cardType = card.find('.type-badge').text().trim();
+            var cardDateText = card.find('p').first().text();
+            var cardDate = cardDateText.match(/\w{3} \d{2}, \d{4}/);
+            
+            var matchesSearch = !search || cardText.includes(search);
+            var matchesType = !type || cardType === type;
+            var matchesDate = true;
+            
+            if (dateFilter && cardDate) {
+                var date = new Date(cardDate[0]).toISOString().split('T')[0];
+                matchesDate = date >= dateFilter.start && date <= dateFilter.end;
+            }
+            
+            if (matchesSearch && matchesType && matchesDate) {
+                card.show();
+                anyVisible = true;
+            } else {
+                card.hide();
+            }
+        });
+        
+        updateStatsCards();
+        
+        if (!anyVisible) {
+            $('.empty-state').show();
+        } else {
+            $('.empty-state').hide();
+        }
+    }
+    
+    $('#searchInput').on('input', applyFilters);
+    $('#typeFilter').on('change', applyFilters);
+    $('#dateRangeFilter').on('change', function() {
+        if ($(this).val() === 'custom') {
+            $('#customDateRange').show();
+        } else {
+            $('#customDateRange').hide();
+            applyFilters();
+        }
+    });
+    $('#startDate, #endDate').on('change', applyFilters);
+    applyFilters();
+
+    // Handle dropdown z-index to ensure it appears above all cards
+    $('.revenue-card .dropdown').on('show.bs.dropdown', function () {
+        // Reset all cards to z-index 1
+        $('.revenue-card').css('z-index', '1');
+        
+        // Set the active dropdown's card to highest z-index
+        $(this).closest('.revenue-card').css('z-index', '9999');
+    });
+
+    $('.revenue-card .dropdown').on('hide.bs.dropdown', function () {
+        $(this).closest('.revenue-card').css('z-index', '1');
+    });
+});
+
+function exportData() {
+    const visibleData = [];
+    $('.revenue-card:visible').each(function() {
+        const card = $(this);
+        const type = card.find('h5').text().trim();
+        const description = card.find('p').eq(1).text().replace(/.*\s+/, '').trim();
+        const amount = card.find('h4.text-success').text().replace('₹', '').replace(/,/g, '').trim();
+        const date = card.find('p').eq(0).text().replace(/.*\s+/, '').trim();
+        
+        visibleData.push({ Type: type, Description: description, Amount: amount, Date: date });
+    });
+    
+    if (visibleData.length === 0) {
+        alert('No data to export');
+        return;
+    }
+    
+    const ws = XLSX.utils.json_to_sheet(visibleData);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Revenue');
+    XLSX.writeFile(wb, `Revenue_Report_${new Date().toISOString().split('T')[0]}.xlsx`);
+}
+
+function deleteRevenue(revenueId) {
+    Swal.fire({
+        title: 'Are you sure?',
+        text: 'Do you want to delete this revenue entry?',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#667eea',
+        cancelButtonColor: '#6c757d',
+        confirmButtonText: 'Yes, delete it!'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            $.ajax({
+                url: '/Revenue/DeleteRevenue',
+                type: 'POST',
+                data: { revenueId },
+                success: function (response) {
+                    if (response.success) {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Deleted!',
+                            text: 'Revenue entry deleted successfully.'
+                        }).then(() => { location.reload(); });
+                    } else {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: response.message
+                        });
+                    }
+                }
+            });
+        }
+    });
+}
+</script>
+}

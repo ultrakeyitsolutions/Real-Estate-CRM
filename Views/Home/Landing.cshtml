@@ -1,0 +1,2045 @@
+@{
+    ViewData["Title"] = "Home";
+    Layout = "_LandingLayout";
+}
+
+<!-- Floating Background Elements -->
+<div class="floating-shapes">
+    <div class="shape"></div>
+    <div class="shape"></div>
+    <div class="shape"></div>
+</div>
+
+@{
+    var branding = ViewBag.Branding as CRM.Models.BrandingModel;
+    var hasCompanyLogo = !string.IsNullOrEmpty(branding?.CompanyLogo);
+}
+
+<!-- Progressive Logo Loading Overlay -->
+<div id="spinner" class="show position-fixed w-100 vh-100 top-0 start-0 d-flex align-items-center justify-content-center" style="background: white; z-index: 99999;">
+    <div style="text-align: center; position: relative;">
+        @if (hasCompanyLogo)
+        {
+            <div id="logoContainer" style="position: relative; width: 200px; height: 200px; margin: 0 auto 20px;">
+                <img id="logoImage" src="@branding.CompanyLogo" alt="Loading..." style="width: 100%; height: 100%; object-fit: contain; opacity: 0.2; transition: opacity 0.3s ease;">
+            </div>
+        }
+        else
+        {
+            <div id="logoContainer" style="position: relative; width: 300px; height: 200px; margin: 0 auto 20px; display: flex; align-items: center; justify-content: center; font-size: 2.5rem; font-weight: bold;">
+                <span id="logoText" style="color: #333; opacity: 0.2; transition: opacity 0.3s ease; white-space: nowrap; text-align: center;">RealEstate CRM</span>
+            </div>
+        }
+        <div style="width: 300px; height: 4px; background: #f0f0f0; border-radius: 2px; overflow: hidden; margin: 0 auto 10px;">
+            <div id="loadingBar" style="width: 0%; height: 100%; background: linear-gradient(90deg, #667eea, #764ba2); transition: width 0.3s ease;"></div>
+        </div>
+        <div id="progressText" style="color: #666; font-size: 14px; font-weight: 500;">0%</div>
+    </div>
+</div>
+<!-- Navbar Start -->
+<nav class="navbar navbar-expand-lg bg-white navbar-light shadow sticky-top p-0">
+    <div class="container-fluid px-4 px-lg-5">
+        @* <a href="#" class="navbar-brand d-flex align-items-center">
+            @if (hasCompanyLogo)
+            {
+                <img src="@branding.CompanyLogo" style="max-height: 50px; max-width: 200px; object-fit: contain;" alt="Company Logo" />
+            }
+            else
+            {
+                <img src="~/vendors/home-broker-dealer-icon.svg" style="max-height: 40px; margin-right: 12px;" alt="RealEstate CRM" />
+                <h2 class="m-0 text-primary" style="margin-bottom: 0 !important;">RealEstate CRM</h2>
+            }
+        </a>
+        <button type="button" class="navbar-toggler" data-bs-toggle="collapse" data-bs-target="#navbarCollapse">
+            <span class="navbar-toggler-icon"></span>
+        </button> *@
+        <a href="#" class="navbar-brand d-flex align-items-center">
+            <img src="~/vendors/home-broker-dealer-icon.svg"
+                 style="max-height: 50px; margin-right: 12px;" />
+            <h2 class="m-0 text-primary">RealEstate CRM</h2>
+        </a>
+
+        <button type="button"
+                class="navbar-toggler"
+                data-bs-toggle="collapse"
+                data-bs-target="#navbarCollapse">
+
+            <span class="navbar-toggler-icon"></span>
+
+        </button>
+        <div class="collapse navbar-collapse justify-content-end" id="navbarCollapse">
+            <div class="navbar-nav align-items-center">
+                <a href="#home" class="nav-item nav-link active">Home</a>
+                <a href="#about" class="nav-item nav-link">About</a>
+                <a href="#projects" class="nav-item nav-link">Projects</a>
+                <a href="#contact" class="nav-item nav-link">Services</a>
+                <a href="#footer" class="nav-item nav-link">Company Info</a>
+                <a href="/Account/Login" class="btn btn-primary ms-3">Login<i class="fa fa-arrow-right ms-2"></i></a>
+            </div>
+        </div>
+    </div>
+</nav>
+<!-- Navbar End -->
+<!-- Scrolling Quotes Start -->
+<div class="container-fluid p-0">
+    <div class="scrolling-quotes-container">
+        <div class="quote-slide active" style="background-image: url('https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=1920&h=400&fit=crop');">
+            <div class="quote-overlay">
+                <h2 class="quote-text">"Your Dream House is Our Dream"</h2>
+            </div>
+        </div>
+        <div class="quote-slide" style="background-image: url('https://images.unsplash.com/photo-1582268611958-ebfd161ef9cf?w=1920&h=400&fit=crop');">
+            <div class="quote-overlay">
+                <h2 class="quote-text">"Building Homes, Creating Memories"</h2>
+            </div>
+        </div>
+        <div class="quote-slide" style="background-image: url('https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=1920&h=400&fit=crop');">
+            <div class="quote-overlay">
+                <h2 class="quote-text">"Quality Construction, Lifetime Satisfaction"</h2>
+            </div>
+        </div>
+        <div class="quote-slide" style="background-image: url('https://images.unsplash.com/photo-1449824913935-59a10b8d2000?w=1920&h=400&fit=crop');">
+            <div class="quote-overlay">
+                <h2 class="quote-text">"Where Luxury Meets Affordability"</h2>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Scrolling Quotes End -->
+<!-- Carousel Start -->
+<div class="container-fluid p-0 mb-2" id="home">
+    <div id="headerCarousel" class="carousel slide" data-bs-ride="carousel">
+        <div class="carousel-inner">
+            <div class="carousel-item active">
+                <img class="d-block w-100" src="https://images.unsplash.com/photo-1556761175-b413da4baf72?w=1920&h=1080&fit=crop" alt="CRM Solution" style="height: 300px; object-fit: cover;">
+                <div class="carousel-caption d-flex align-items-center justify-content-start h-100" style="top: 0; left: 0; right: 0; bottom: 0; background: rgba(24, 29, 56, .7);">
+                    <div class="container">
+                        <div class="row justify-content-start">
+                            <div class="col-sm-10 col-lg-8 mb-3">
+                                <h5 class="text-primary text-uppercase mb-3 animated slideInDown">Best CRM Solution</h5>
+                                <h1 class="display-3 text-white animated slideInDown">Manage Your Business</h1>
+                                <p class="fs-5 text-white mb-4 pb-2">Transform your business with our comprehensive CRM platform. Streamline your sales, manage customer relationships, and grow your business efficiently.</p>
+                                <a href="#projects" class="btn btn-primary py-md-3 px-md-5 me-3 animated slideInLeft">Explore Projects</a>
+                                @* <a href="#contact" class="btn btn-light py-md-3 px-md-5 animated slideInRight">Get Started</a> *@
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="carousel-item">
+                <img class="d-block w-100" src="https://images.unsplash.com/photo-1541888946425-d81bb19240f5?w=1920&h=1080&fit=crop" alt="Property Solutions" style="height: 300px; object-fit: cover;">
+                <div class="carousel-caption d-flex align-items-center justify-content-start h-100" style="top: 0; left: 0; right: 0; bottom: 0; background: rgba(24, 29, 56, .7);">
+                    <div class="container">
+                        <div class="row justify-content-start">
+                            <div class="col-sm-10 col-lg-8 mb-3">
+                                <h5 class="text-primary text-uppercase mb-3 animated slideInDown">Property Solutions</h5>
+                                <h1 class="display-3 text-white animated slideInDown">Premium Real Estate Projects</h1>
+                                <p class="fs-5 text-white mb-4 pb-2">Discover our exclusive collection of residential and commercial properties. Find your perfect space with modern amenities and prime locations.</p>
+                                <a href="#projects" class="btn btn-primary py-md-3 px-md-5 me-3 animated slideInLeft">View Properties</a>
+                                @* <a href="#contact" class="btn btn-light py-md-3 px-md-5 animated slideInRight">Contact Us</a> *@
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Carousel End -->
+<!-- Service Start -->
+<div id="service-section" class="py-2">
+    <div class="container-fluid">
+        <div class="row g-4 justify-content-center">
+            <div class="col-xl-3 col-lg-3 col-md-6 col-sm-6 wow fadeInUp" data-wow-delay="0.1s">
+                <div class="service-item text-center pt-2">
+                    <div class="p-3">
+                        <i class="fa fa-3x fa-hard-hat text-primary mb-3"></i>
+                        <h5 class="mb-2">Quality Construction</h5>
+                        <p class="mb-0">Premium construction with high-grade materials and modern building techniques</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-xl-3 col-lg-3 col-md-6 col-sm-6 wow fadeInUp" data-wow-delay="0.3s">
+                <div class="service-item text-center pt-2">
+                    <div class="p-3">
+                        <i class="fa fa-3x fa-map-marker-alt text-primary mb-3"></i>
+                        <h5 class="mb-2">Prime Locations</h5>
+                        <p class="mb-0">Strategically located properties with excellent connectivity to business and entertainment</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-xl-3 col-lg-3 col-md-6 col-sm-6 wow fadeInUp" data-wow-delay="0.5s">
+                <div class="service-item text-center pt-2">
+                    <div class="p-3">
+                        <i class="fa fa-3x fa-swimming-pool text-primary mb-3"></i>
+                        <h5 class="mb-2">Modern Amenities</h5>
+                        <p class="mb-0">World-class amenities including swimming pool, gym, clubhouse, and landscaped gardens</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-xl-3 col-lg-3 col-md-6 col-sm-6 wow fadeInUp" data-wow-delay="0.7s">
+                <div class="service-item text-center pt-2">
+                    <div class="p-3">
+                        <i class="fa fa-3x fa-shield-alt text-primary mb-3"></i>
+                        <h5 class="mb-2">Trusted Developer</h5>
+                        <p class="mb-0">Years of experience with a proven track record of delivering quality projects on time</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Service End -->
+<!-- Testimonial Start -->
+<div id="testimonials-section" class="py-2 wow fadeInUp" data-wow-delay="0.1s">
+    <div class="container-fluid">
+        <div class="text-center">
+            <h6 class="section-title bg-white text-center text-primary px-3">Testimonials</h6>
+            <h1 class="mb-4">What Our Customers Say!</h1>
+        </div>
+        <div class="testimonial-slider">
+            <div class="testimonial-track">
+                <div class="testimonial-card">
+                    <div class="card h-100 border-0 shadow">
+                        <div class="card-body text-center p-4">
+                            <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop&crop=face" class="rounded-circle mb-3" width="80" height="80" alt="Customer">
+                            <p class="mb-3">"Excellent service and beautiful construction quality. The amenities are world-class and the location is perfect for our family."</p>
+                            <h6 class="fw-bold mb-1">Rajesh Sharma</h6>
+                            <small class="text-muted">Property Owner</small>
+                            <div class="mt-2">
+                                <i class="fa fa-star text-warning"></i>
+                                <i class="fa fa-star text-warning"></i>
+                                <i class="fa fa-star text-warning"></i>
+                                <i class="fa fa-star text-warning"></i>
+                                <i class="fa fa-star text-warning"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="testimonial-card">
+                    <div class="card h-100 border-0 shadow">
+                        <div class="card-body text-center p-4">
+                            <img src="https://images.unsplash.com/photo-1494790108755-2616b612b786?w=100&h=100&fit=crop&crop=face" class="rounded-circle mb-3" width="80" height="80" alt="Customer">
+                            <p class="mb-3">"Amazing project with timely delivery. The construction quality exceeded our expectations. Great investment opportunity."</p>
+                            <h6 class="fw-bold mb-1">Priya Kapoor</h6>
+                            <small class="text-muted">Happy Customer</small>
+                            <div class="mt-2">
+                                <i class="fa fa-star text-warning"></i>
+                                <i class="fa fa-star text-warning"></i>
+                                <i class="fa fa-star text-warning"></i>
+                                <i class="fa fa-star text-warning"></i>
+                                <i class="fa fa-star text-warning"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="testimonial-card">
+                    <div class="card h-100 border-0 shadow">
+                        <div class="card-body text-center p-4">
+                            <img src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop&crop=face" class="rounded-circle mb-3" width="80" height="80" alt="Customer">
+                            <p class="mb-3">"Professional team and transparent dealings. The property has all modern amenities and excellent connectivity."</p>
+                            <h6 class="fw-bold mb-1">Amit Mehta</h6>
+                            <small class="text-muted">Investor</small>
+                            <div class="mt-2">
+                                <i class="fa fa-star text-warning"></i>
+                                <i class="fa fa-star text-warning"></i>
+                                <i class="fa fa-star text-warning"></i>
+                                <i class="fa fa-star text-warning"></i>
+                                <i class="fa fa-star text-warning"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="testimonial-card">
+                    <div class="card h-100 border-0 shadow">
+                        <div class="card-body text-center p-4">
+                            <img src="https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=100&h=100&fit=crop&crop=face" class="rounded-circle mb-3" width="80" height="80" alt="Customer">
+                            <p class="mb-3">"Outstanding construction quality and beautiful interiors. The project was completed on schedule and service is excellent."</p>
+                            <h6 class="fw-bold mb-1">Sunita Gupta</h6>
+                            <small class="text-muted">Homeowner</small>
+                            <div class="mt-2">
+                                <i class="fa fa-star text-warning"></i>
+                                <i class="fa fa-star text-warning"></i>
+                                <i class="fa fa-star text-warning"></i>
+                                <i class="fa fa-star text-warning"></i>
+                                <i class="fa fa-star text-warning"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="testimonial-card">
+                    <div class="card h-100 border-0 shadow">
+                        <div class="card-body text-center p-4">
+                            <img src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&h=100&fit=crop&crop=face" class="rounded-circle mb-3" width="80" height="80" alt="Customer">
+                            <p class="mb-3">"Best decision we made! The property has appreciated well and the community is very well-maintained. Excellent amenities."</p>
+                            <h6 class="fw-bold mb-1">Vikram Tiwari</h6>
+                            <small class="text-muted">Satisfied Customer</small>
+                            <div class="mt-2">
+                                <i class="fa fa-star text-warning"></i>
+                                <i class="fa fa-star text-warning"></i>
+                                <i class="fa fa-star text-warning"></i>
+                                <i class="fa fa-star text-warning"></i>
+                                <i class="fa fa-star text-warning"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Testimonial End -->
+<!-- Statistics Start -->
+<div id="statistics-section" class="py-4">
+    <div class="container-fluid">
+        <div class="row g-4 justify-content-center">
+            <div class="col-xl-4 col-lg-4 col-md-6 col-sm-6 wow fadeInUp" data-wow-delay="0.1s">
+                <div class="fact-item bg-light rounded text-center h-100 p-4">
+                    <i class="fa fa-users fa-3x text-primary mb-3"></i>
+                    <h1 class="display-5 mb-2">
+                        <span class="counter fw-bold text-primary" data-target="@(ViewBag.LeadsCount ?? 150)">0</span><span class="fw-bold text-primary">+</span>
+                    </h1>
+                    <h5 class="mb-2 fw-bold">Happy Leads</h5>
+                    <p class="mb-0">Customers who trusted us with their dream home requirements</p>
+                </div>
+            </div>
+            <div class="col-xl-4 col-lg-4 col-md-6 col-sm-6 wow fadeInUp" data-wow-delay="0.3s">
+                <div class="fact-item bg-light rounded text-center h-100 p-4">
+                    <i class="fa fa-building fa-3x text-primary mb-3"></i>
+                    <h1 class="display-5 mb-2">
+                        <span class="counter fw-bold text-primary" data-target="@(ViewBag.ProjectsCount ?? 25)">0</span><span class="fw-bold text-primary">+</span>
+                    </h1>
+                    <h5 class="mb-2 fw-bold">Completed Projects</h5>
+                    <p class="mb-0">Successfully delivered residential and commercial projects</p>
+                </div>
+            </div>
+            <div class="col-xl-4 col-lg-4 col-md-6 col-sm-6 wow fadeInUp" data-wow-delay="0.5s">
+                <div class="fact-item bg-light rounded text-center h-100 p-4">
+                    <i class="fa fa-smile fa-3x text-primary mb-3"></i>
+                    <h1 class="display-5 mb-2">
+                        <span class="counter fw-bold text-primary" data-target="98">0</span><span class="fw-bold text-primary">%</span>
+                    </h1>
+                    <h5 class="mb-2 fw-bold">Customer Satisfaction</h5>
+                    <p class="mb-0">Clients satisfied with our quality and timely delivery</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Statistics End -->
+<!-- About Start -->
+<div class="py-4" id="about">
+    <div class="container-fluid">
+        <div class="row g-4">
+            <div class="col-lg-6 wow fadeInUp" data-wow-delay="0.1s" style="min-height: 400px;">
+                <div class="position-relative h-100">
+                    @if (!string.IsNullOrEmpty(branding?.AboutUsImage))
+                    {
+                        <img class="img-fluid position-absolute w-100 h-100" src="@branding.AboutUsImage" alt="About Us" style="object-fit: cover;">
+                    }
+                    else
+                    {
+                        <img class="img-fluid position-absolute w-100 h-100" src="~/uploads/Construction.jpg" alt="" style="object-fit: cover;">
+                    }
+                </div>
+            </div>
+            <div class="col-lg-6 wow fadeInUp" data-wow-delay="0.3s">
+                <h6 class="section-title bg-white text-start text-primary pe-3">About Us</h6>
+                <h1 class="mb-4">Welcome to @(Model.ContainsKey("CompanyName") ? Model["CompanyName"] : "Our Company")</h1>
+                @if (!string.IsNullOrEmpty(branding?.AboutUsText))
+                {
+                    <p class="mb-4">@Html.Raw(branding.AboutUsText.Replace("\n", "<br/>"))</p>
+                }
+                else
+                {
+                    <p class="mb-4">We are a leading real estate company dedicated to providing exceptional property solutions. With years of experience in the industry, we help clients find their dream homes and make smart investment decisions.</p>
+                    <p class="mb-4">Our team of experienced professionals ensures that every transaction is smooth, transparent, and beneficial for our clients. We pride ourselves on our commitment to excellence and customer satisfaction.</p>
+                }
+                <div class="row gy-2 gx-4 mb-4">
+                    <div class="col-sm-6">
+                        <p class="mb-0"><i class="fa fa-arrow-right text-primary me-2"></i>Expert Real Estate Agents</p>
+                    </div>
+                    <div class="col-sm-6">
+                        <p class="mb-0"><i class="fa fa-arrow-right text-primary me-2"></i>Premium Property Portfolio</p>
+                    </div>
+                    <div class="col-sm-6">
+                        <p class="mb-0"><i class="fa fa-arrow-right text-primary me-2"></i>Legal Documentation Support</p>
+                    </div>
+                    <div class="col-sm-6">
+                        <p class="mb-0"><i class="fa fa-arrow-right text-primary me-2"></i>24/7 Customer Service</p>
+                    </div>
+                </div>
+                <a class="btn btn-primary py-3 px-5 mt-2" href="#contact">Contact Us</a>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- About End -->
+<!-- Projects Start -->
+<div class="py-4" id="projects">
+    <div class="container-fluid">
+        <div class="text-center wow fadeInUp" data-wow-delay="0.1s">
+            <h6 class="section-title bg-white text-center text-primary px-3">Projects</h6>
+            <h1 class="mb-4">Our Featured Projects</h1>
+        </div>
+        <div class="row g-3 justify-content-center">
+            @if (ViewBag.Properties != null)
+            {
+                @foreach (var property in ViewBag.Properties)
+                {
+                    <div class="col-lg-4 col-md-6 wow fadeInUp" data-wow-delay="0.1s">
+                        <div class="course-item bg-light" style="cursor: pointer;" onclick="window.location.href='/Home/ProjectDetails/@property.PropertyId'">
+                            <div class="position-relative overflow-hidden">
+                                @if (property.Images != null && property.Images.Count > 0)
+                                {
+                                    @if (property.Images.Count == 1)
+                                    {
+                                        <img class="img-fluid" src="/Home/GetPropertyImage/@property.Images[0]" alt="@property.PropertyName" style="height: 250px; object-fit: cover;">
+                                    }
+                                    else
+                                    {
+                                        <div id="carousel@(property.PropertyId)" class="carousel slide" data-bs-ride="carousel">
+                                            <div class="carousel-inner">
+                                                @for (int i = 0; i < property.Images.Count; i++)
+                                                {
+                                                    <div class="carousel-item @(i == 0 ? "active" : "")">
+                                                        <img class="img-fluid w-100" src="/Home/GetPropertyImage/@property.Images[i]" alt="@property.PropertyName" style="height: 250px; object-fit: cover;">
+                                                    </div>
+                                                }
+                                            </div>
+                                            <button class="carousel-control-prev" type="button" data-bs-target="#carousel@(property.PropertyId)" data-bs-slide="prev" onclick="event.stopPropagation();">
+                                                <span class="carousel-control-prev-icon"></span>
+                                            </button>
+                                            <button class="carousel-control-next" type="button" data-bs-target="#carousel@(property.PropertyId)" data-bs-slide="next" onclick="event.stopPropagation();">
+                                                <span class="carousel-control-next-icon"></span>
+                                            </button>
+                                        </div>
+                                    }
+                                }
+                                else
+                                {
+                                    <img class="img-fluid" src="~/uploads/Construction.jpg" alt="@property.PropertyName" style="height: 250px; object-fit: cover;">
+                                }
+                                <div class="w-100 d-flex justify-content-center position-absolute bottom-0 start-0 mb-4">
+                                    <a href="#" class="flex-shrink-0 btn btn-sm btn-primary px-3 border-end" style="border-radius: 30px 0 0 30px;" onclick="event.stopPropagation(); showInterestForm(@property.PropertyId, '@property.PropertyName')">Show Interest</a>
+                                    <a href="/Home/ProjectDetails/@property.PropertyId" class="flex-shrink-0 btn btn-sm btn-primary px-3" style="border-radius: 0 30px 30px 0;" onclick="event.stopPropagation();">Details</a>
+                                </div>
+                            </div>
+                            <div class="text-center p-4 pb-0">
+                                <h3 class="mb-0">₹@(property.MinPrice.ToString("N0"))</h3>
+                                <div class="mb-3">
+                                    <small class="fa fa-star text-primary"></small>
+                                    <small class="fa fa-star text-primary"></small>
+                                    <small class="fa fa-star text-primary"></small>
+                                    <small class="fa fa-star text-primary"></small>
+                                    <small class="fa fa-star text-primary"></small>
+                                </div>
+                                <h5 class="mb-4">@property.PropertyName</h5>
+                            </div>
+                            <div class="d-flex border-top">
+                                <small class="flex-fill text-center border-end py-2"><i class="fa fa-map-marker-alt text-primary me-2"></i>@(property.Location ?? "Location")</small>
+                                <small class="flex-fill text-center border-end py-2"><i class="fa fa-building text-primary me-2"></i>@(property.AreaSqft ?? 0) Sqft</small>
+                                <small class="flex-fill text-center py-2"><i class="fa fa-home text-primary me-2"></i>2-3.5 BHK</small>
+                            </div>
+                        </div>
+                    </div>
+                }
+            }
+        </div>
+    </div>
+</div>
+<!-- Projects End -->
+<!-- Why Choose Us Start -->
+<div class="py-4" id="contact">
+    <div class="container-fluid">
+        <div class="text-center wow fadeInUp" data-wow-delay="0.1s">
+            <h6 class="section-title bg-white text-center text-primary px-3">Why Choose Us</h6>
+            <h1 class="mb-4">Your Trusted Real Estate Partner</h1>
+        </div>
+        <div class="row g-4">
+            <div class="col-lg-6 col-md-12 wow fadeInUp" data-wow-delay="0.1s">
+                <div class="row g-3">
+                    <div class="col-12">
+                        <div class="d-flex align-items-start">
+                            <div class="d-flex align-items-center justify-content-center flex-shrink-0 bg-primary rounded-circle" style="width: 60px; height: 60px;">
+                                <i class="fa fa-award text-white fa-2x"></i>
+                            </div>
+                            <div class="ms-4">
+                                <h5 class="text-primary mb-2">15+ Years Experience</h5>
+                                <p class="mb-0">Proven track record in delivering quality real estate solutions with deep market knowledge and expertise.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-12">
+                        <div class="d-flex align-items-start">
+                            <div class="d-flex align-items-center justify-content-center flex-shrink-0 bg-primary rounded-circle" style="width: 60px; height: 60px;">
+                                <i class="fa fa-handshake text-white fa-2x"></i>
+                            </div>
+                            <div class="ms-4">
+                                <h5 class="text-primary mb-2">Transparent Dealings</h5>
+                                <p class="mb-0">Complete transparency in all transactions with no hidden costs or surprises. Your trust is our priority.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-12">
+                        <div class="d-flex align-items-start">
+                            <div class="d-flex align-items-center justify-content-center flex-shrink-0 bg-primary rounded-circle" style="width: 60px; height: 60px;">
+                                <i class="fa fa-clock text-white fa-2x"></i>
+                            </div>
+                            <div class="ms-4">
+                                <h5 class="text-primary mb-2">Timely Delivery</h5>
+                                <p class="mb-0">We value your time and ensure all projects are completed within the promised timeline without compromising quality.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-6 col-md-12 wow fadeInUp" data-wow-delay="0.3s">
+                <div class="row g-3">
+                    <div class="col-12">
+                        <div class="d-flex align-items-start">
+                            <div class="d-flex align-items-center justify-content-center flex-shrink-0 bg-primary rounded-circle" style="width: 60px; height: 60px;">
+                                <i class="fa fa-headset text-white fa-2x"></i>
+                            </div>
+                            <div class="ms-4">
+                                <h5 class="text-primary mb-2">24/7 Customer Support</h5>
+                                <p class="mb-0">Round-the-clock customer service to address your queries and provide assistance whenever you need it.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-12">
+                        <div class="d-flex align-items-start">
+                            <div class="d-flex align-items-center justify-content-center flex-shrink-0 bg-primary rounded-circle" style="width: 60px; height: 60px;">
+                                <i class="fa fa-shield-alt text-white fa-2x"></i>
+                            </div>
+                            <div class="ms-4">
+                                <h5 class="text-primary mb-2">Legal Compliance</h5>
+                                <p class="mb-0">All our projects are fully compliant with legal requirements and come with proper documentation and approvals.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-12">
+                        <div class="d-flex align-items-start">
+                            <div class="d-flex align-items-center justify-content-center flex-shrink-0 bg-primary rounded-circle" style="width: 60px; height: 60px;">
+                                <i class="fa fa-money-bill-wave text-white fa-2x"></i>
+                            </div>
+                            <div class="ms-4">
+                                <h5 class="text-primary mb-2">Best Value for Money</h5>
+                                <p class="mb-0">Competitive pricing with premium quality construction and amenities. Get the best return on your investment.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Why Choose Us End -->
+<!-- Footer Start -->
+<div class="container-fluid bg-dark text-light footer pt-4 mt-4 wow fadeIn" data-wow-delay="0.1s" id="footer">
+    <div class="container-fluid py-4">
+        <div class="row g-5">
+            @{
+                var footerAddress = Context.RequestServices.GetService<CRM.AppDbContext>()?.Settings.FirstOrDefault(s => s.SettingKey == "CompanyAddress")?.SettingValue ?? "";
+                var footerPhone = Context.RequestServices.GetService<CRM.AppDbContext>()?.Settings.FirstOrDefault(s => s.SettingKey == "CompanyPhone")?.SettingValue ?? "";
+                var footerEmail = Context.RequestServices.GetService<CRM.AppDbContext>()?.Settings.FirstOrDefault(s => s.SettingKey == "CompanyEmail")?.SettingValue ?? "";
+                var footerCompanyName = Context.RequestServices.GetService<CRM.AppDbContext>()?.Settings.FirstOrDefault(s => s.SettingKey == "CompanyName")?.SettingValue ?? "RealEstate CRM";
+                var footerMapUrl = Context.RequestServices.GetService<CRM.AppDbContext>()?.Settings.FirstOrDefault(s => s.SettingKey == "CompanyMapUrl")?.SettingValue;
+            }
+            <!-- Company Logo and Info -->
+            <div class="col-lg-3 col-md-6" style="min-height: 200px; padding: 0 40px 0 15px;">
+                @if (!string.IsNullOrEmpty(branding?.FooterLogo))
+                {
+                    <div class="mb-3">
+                        <img src="@branding.FooterLogo" alt="Footer Logo" style="max-height: 60px; max-width: 200px; object-fit: contain;">
+                    </div>
+                }
+                else
+                {
+                    <h4 class="text-white mb-3">@footerCompanyName</h4>
+                }
+                @if (!string.IsNullOrEmpty(branding?.CompanyInfo))
+                {
+                    <div class="mb-3">
+                        @Html.Raw(branding.CompanyInfo.Replace("\n", "<br/>"))
+                    </div>
+                }
+                else
+                {
+                    <p>Building dreams, creating homes. Your trusted partner in real estate.</p>
+                }
+                <!-- Social Media Icons -->
+                <div class="d-flex pt-2">
+                    @if (!string.IsNullOrEmpty(branding?.TwitterUrl))
+                    {
+                        <a class="btn btn-social me-2" href="@branding.TwitterUrl" target="_blank" style="background-color: #1DA1F2; border-color: #1DA1F2; color: white;"><i class="fab fa-twitter"></i></a>
+                    }
+                    @if (!string.IsNullOrEmpty(branding?.FacebookUrl))
+                    {
+                        <a class="btn btn-social me-2" href="@branding.FacebookUrl" target="_blank" style="background-color: #1877F2; border-color: #1877F2; color: white;"><i class="fab fa-facebook-f"></i></a>
+                    }
+                    @if (!string.IsNullOrEmpty(branding?.InstagramUrl))
+                    {
+                        <a class="btn btn-social me-2" href="@branding.InstagramUrl" target="_blank" style="background: linear-gradient(45deg, #F56040, #E1306C, #C13584, #833AB4); border: none; color: white;"><i class="fab fa-instagram"></i></a>
+                    }
+                    @if (!string.IsNullOrEmpty(branding?.LinkedInUrl))
+                    {
+                        <a class="btn btn-social me-2" href="@branding.LinkedInUrl" target="_blank" style="background-color: #0A66C2; border-color: #0A66C2; color: white;"><i class="fab fa-linkedin-in"></i></a>
+                    }
+                    @if (!string.IsNullOrEmpty(branding?.WhatsAppNumber))
+                    {
+                        <a class="btn btn-social me-2" href="https://wa.me/@(branding.WhatsAppNumber.Replace("+", "").Replace("-", "").Replace(" ", ""))" target="_blank" style="background-color: #25D366; border-color: #25D366; color: white;"><i class="fab fa-whatsapp"></i></a>
+                    }
+                </div>
+            </div>
+            <!-- Quick Links -->
+            <div class="col-lg-3 col-md-6 quick-links-column" style="min-height: 200px;">
+                <h4 class="text-white mb-3">Quick Links</h4>
+                <a class="btn btn-link" href="#about">About Us</a>
+                <a class="btn btn-link" href="#contact">Services</a>
+                <a class="btn btn-link" href="#projects">Our Projects</a>
+                @if (!string.IsNullOrEmpty(branding?.PrivacyPolicy))
+                {
+                    <a class="btn btn-link" href="#" data-bs-toggle="modal" data-bs-target="#privacyModal">Privacy Policy</a>
+                }
+                @if (!string.IsNullOrEmpty(branding?.TermsAndConditions))
+                {
+                    <a class="btn btn-link" href="#" data-bs-toggle="modal" data-bs-target="#termsModal">Terms & Condition</a>
+                }
+            </div>
+            <!-- Contact Info -->
+            @if (!string.IsNullOrEmpty(footerAddress) || !string.IsNullOrEmpty(footerPhone) || !string.IsNullOrEmpty(footerEmail))
+            {
+                <div class="col-lg-3 col-md-6" style="min-height: 200px; padding: 0 15px;">
+                    @if (!string.IsNullOrEmpty(footerAddress))
+                    {
+                        @if (!string.IsNullOrEmpty(footerMapUrl))
+                        {
+                            <p class="mb-2"><i class="fa fa-map-marker-alt me-3"></i><a href="@footerMapUrl" target="_blank" style="color: inherit; text-decoration: none;">@footerAddress</a></p>
+                        }
+                        else
+                        {
+                            <p class="mb-2"><i class="fa fa-map-marker-alt me-3"></i>@footerAddress</p>
+                        }
+                    }
+                    @if (!string.IsNullOrEmpty(footerPhone))
+                    {
+                        <p class="mb-2"><i class="fa fa-phone-alt me-3"></i>@footerPhone</p>
+                    }
+                    @if (!string.IsNullOrEmpty(footerEmail))
+                    {
+                        <p class="mb-2"><i class="fa fa-envelope me-3"></i><a href="https://mail.google.com/mail/?view=cm&to=@footerEmail" target="_blank" style="color: inherit; text-decoration: none;">@footerEmail</a></p>
+                    }
+                </div>
+            }
+            <!-- Newsletter -->
+            <div class="col-lg-3 col-md-6" style="min-height: 200px; padding: 0 15px;">
+                <h4 class="text-white mb-3">Newsletter</h4>
+                <p>Stay updated with our latest projects and offers.</p>
+                <div class="position-relative mx-auto" style="max-width: 400px;">
+                    <input class="form-control border-0 w-100 py-3 ps-4 pe-5" type="text" placeholder="Your email">
+                    <button type="button" class="btn btn-primary py-2 position-absolute top-0 end-0 mt-2 me-2">SignUp</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="container-fluid">
+        <div class="copyright">
+            <div class="row">
+                <div class="col-md-6 text-center text-md-start mb-3 mb-md-0">
+                    &copy; <a class="border-bottom" href="/Home/Landing">@footerCompanyName</a>, All Right Reserved.
+                </div>
+                <div class="col-md-6 text-center text-md-end">
+                    <div class="footer-menu">
+                        <a href="">Home</a>
+                        <a href="">Cookies</a>
+                        <a href="">Help</a>
+                        <a href="">FQAs</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Footer End -->
+<!-- Back to Top -->
+<a href="#" class="btn btn-lg btn-primary btn-lg-square back-to-top"><i class="fa fa-arrow-up"></i></a>
+
+<!-- Interest Modal -->
+<div class="modal fade" id="interestModal" tabindex="-1" aria-labelledby="interestModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title text-white" id="interestModalLabel">Express Interest</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="interestForm">
+                <div class="modal-body">
+                    <input type="hidden" id="modalPropertyId" name="PropertyId">
+                    <input type="hidden" id="modalProjectName" name="ProjectName">
+                    <div class="row g-3">
+                        <div class="col-12">
+                            <div class="form-floating">
+                                <input type="text" class="form-control" id="modalName" name="Name" placeholder="Your Full Name" required>
+                                <label for="modalName">Full Name *</label>
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <div class="form-floating">
+                                <input type="tel" class="form-control" id="modalContact" name="Contact" placeholder="Phone Number" pattern="[0-9]{10}" maxlength="10" required>
+                                <label for="modalContact">Phone Number (10 digits) *</label>
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <div class="form-floating">
+                                <input type="text" class="form-control" id="modalLocation" name="PreferredLocation" placeholder="Preferred Location" required>
+                                <label for="modalLocation">Preferred Location *</label>
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <div class="form-floating">
+                                <select class="form-select" id="modalBHK" name="BHK" required>
+                                    <option value="" selected disabled>Select BHK Type</option>
+                                    <option value="1 BHK">1 BHK</option>
+                                    <option value="2 BHK">2 BHK</option>
+                                    <option value="3 BHK">3 BHK</option>
+                                    <option value="4 BHK">4 BHK</option>
+                                    <option value="5+ BHK">5+ BHK</option>
+                                </select>
+                                <label for="modalBHK">BHK Type *</label>
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <div class="form-floating">
+                                <input type="text" class="form-control" id="modalBudget" name="Budget" placeholder="Your Budget" required>
+                                <label for="modalBudget">Budget (in Lakhs) *</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-primary">Submit Interest</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Terms & Conditions Modal -->
+@if (!string.IsNullOrEmpty(branding?.TermsAndConditions))
+{
+    <div class="modal fade" id="termsModal" tabindex="-1" aria-labelledby="termsModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="termsModalLabel">Terms & Conditions</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    @Html.Raw(branding.TermsAndConditions.Replace("\n", "<br/>"))
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+<!-- Privacy Policy Modal -->
+@if (!string.IsNullOrEmpty(branding?.PrivacyPolicy))
+{
+    <div class="modal fade" id="privacyModal" tabindex="-1" aria-labelledby="privacyModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="privacyModalLabel">Privacy Policy</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    @Html.Raw(branding.PrivacyPolicy.Replace("\n", "<br/>"))
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@section Scripts {
+    <style>
+        /* Quote Slider - Reduced Height */
+        .scrolling-quotes-container {
+            position: relative;
+            height: 60px;
+            overflow: hidden;
+        }
+
+        .quote-slide {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-size: cover;
+            background-position: center;
+            opacity: 0;
+            transition: opacity 0.8s ease-in-out;
+        }
+
+            .quote-slide.active {
+                opacity: 1;
+            }
+
+        .quote-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(6, 187, 204, 0.85);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .quote-text {
+            color: white;
+            font-size: 18px;
+            font-weight: 600;
+            text-align: center;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            padding: 0 20px;
+        }
+
+        /* Testimonial Cards */
+        .testimonial-slider {
+            overflow: hidden;
+            padding: 20px 0;
+            width: 100%;
+            position: relative;
+        }
+
+        .testimonial-track {
+            display: flex;
+            gap: 20px;
+            animation: scroll-infinite 30s linear infinite;
+            will-change: transform;
+        }
+
+        .testimonial-card {
+            min-width: 280px;
+            max-width: 280px;
+            flex-shrink: 0;
+        }
+
+        @@keyframes scroll-infinite {
+            0% {
+                transform: translateX(0);
+            }
+            100% {
+                transform: translateX(calc(-300px * 5));
+            }
+        }
+
+        /* Counter Animation */
+        .counter {
+            display: inline-block;
+            transition: all 0.3s ease;
+        }
+
+        /* Bootstrap Carousel Styling */
+        #headerCarousel {
+            position: relative;
+            height: 300px;
+        }
+
+        #headerCarousel .carousel-inner {
+            height: 300px;
+        }
+
+        #headerCarousel .carousel-item {
+            height: 300px;
+        }
+
+        #headerCarousel .carousel-item img {
+            height: 300px;
+            width: 100%;
+            object-fit: cover;
+        }
+
+        #headerCarousel .carousel-caption {
+            position: absolute;
+            top: 0 !important;
+            left: 0 !important;
+            right: 0 !important;
+            bottom: 0 !important;
+            padding: 0;
+            text-align: left;
+        }
+
+        /* Page Background & Styling - Professional Standards with subtle gradient */
+        body {
+            /* background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 50%, #bbf7d0 100%); */
+            min-height: 100vh;
+            font-size: 16px;
+            line-height: 1.6;
+            color: #333333;
+            overflow-x: hidden !important;
+        }
+
+        html {
+            overflow-x: hidden !important;
+        }
+
+        /* Prevent horizontal scroll on mobile */
+        * {
+            max-width: 100%;
+        }
+
+        .container-fluid,
+        .row {
+            overflow-x: hidden;
+        }
+
+        /* Professional Section Spacing - Reduced */
+        .container-xxl {
+            padding: 40px 0;
+        }
+
+        .py-5 {
+            padding: 40px 0 !important;
+        }
+
+        .py-4 {
+            padding: 32px 0 !important;
+        }
+
+        /* Professional Typography - Reduced */
+        h1 {
+            font-size: 2.25rem;
+            line-height: 1.2;
+            margin-bottom: 1.25rem;
+            font-weight: 700;
+        }
+
+        h2 {
+            font-size: 1.875rem;
+            line-height: 1.3;
+            margin-bottom: 1rem;
+            font-weight: 600;
+        }
+
+        h3 {
+            font-size: 1.5rem;
+            line-height: 1.3;
+            margin-bottom: 0.875rem;
+            font-weight: 600;
+        }
+
+        h4 {
+            font-size: 1.375rem;
+            line-height: 1.4;
+            margin-bottom: 0.875rem;
+            font-weight: 600;
+        }
+
+        h5 {
+            font-size: 1.125rem;
+            line-height: 1.4;
+            margin-bottom: 0.75rem;
+            font-weight: 600;
+        }
+
+        h6 {
+            font-size: 0.95rem;
+            line-height: 1.4;
+            margin-bottom: 0.625rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        p {
+            margin-bottom: 0.875rem;
+            line-height: 1.6;
+        }
+
+        /* Professional Container Spacing */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding-left: 15px;
+            padding-right: 15px;
+        }
+
+        /* Full Width Service Section - Override container constraints */
+        #service-section {
+            width: 100vw !important;
+            max-width: 100vw !important;
+            margin: 0 !important;
+            padding: 32px 0 !important;
+        }
+
+        #service-section .container-fluid {
+            max-width: 100% !important;
+            padding-left: 20px !important;
+            padding-right: 20px !important;
+        }
+
+        #service-section .row {
+            margin-left: 0 !important;
+            margin-right: 0 !important;
+        }
+
+        /* Full Width Testimonials Section - Override container constraints */
+        #testimonials-section {
+            width: 100vw !important;
+            max-width: 100vw !important;
+            margin: 0 !important;
+            padding: 32px 0 !important;
+        }
+
+        #testimonials-section .container-fluid {
+            max-width: 100% !important;
+            padding-left: 20px !important;
+            padding-right: 20px !important;
+        }
+
+        #testimonials-section .row {
+            margin-left: 0 !important;
+            margin-right: 0 !important;
+        }
+
+        /* Full Width Statistics Section - Override container constraints */
+        #statistics-section {
+            width: 100vw !important;
+            max-width: 100vw !important;
+            margin: 0 !important;
+            padding: 32px 0 !important;
+        }
+
+        #statistics-section .container-fluid {
+            max-width: 100% !important;
+            padding-left: 20px !important;
+            padding-right: 20px !important;
+        }
+
+        #statistics-section .row {
+            margin-left: 0 !important;
+            margin-right: 0 !important;
+        }
+
+        /* Full Width About Section - Override container constraints */
+        #about {
+            width: 100vw !important;
+            max-width: 100vw !important;
+            margin: 0 !important;
+            padding: 32px 0 !important;
+        }
+
+        #about .container-fluid {
+            max-width: 100% !important;
+            padding-left: 20px !important;
+            padding-right: 20px !important;
+        }
+
+        #about .row {
+            margin-left: 0 !important;
+            margin-right: 0 !important;
+        }
+
+        /* Full Width Projects Section - Override container constraints */
+        #projects {
+            width: 100vw !important;
+            max-width: 100vw !important;
+            margin: 0 !important;
+            padding: 32px 0 !important;
+        }
+
+        #projects .container-fluid {
+            max-width: 100% !important;
+            padding-left: 20px !important;
+            padding-right: 20px !important;
+        }
+
+        #projects .row {
+            margin-left: 0 !important;
+            margin-right: 0 !important;
+        }
+
+        /* Full Width Why Choose Us Section - Override container constraints */
+        #contact {
+            width: 100vw !important;
+            max-width: 100vw !important;
+            margin: 0 !important;
+            padding: 32px 0 !important;
+        }
+
+        #why-choose-us-section .container-fluid {
+            max-width: 100% !important;
+            padding-left: 20px !important;
+            padding-right: 20px !important;
+        }
+
+        #contact .row {
+            margin-left: 0 !important;
+            margin-right: 0 !important;
+        }
+
+        /* Full Width Footer Section - Override container constraints */
+        #footer {
+            width: 100vw !important;
+            max-width: 100vw !important;
+            margin: 0 !important;
+            padding: 32px 0 !important;
+        }
+
+        #footer .container-fluid {
+            max-width: 100% !important;
+            padding-left: 20px !important;
+            padding-right: 20px !important;
+        }
+
+        #footer .row {
+            margin-left: 0 !important;
+            margin-right: 0 !important;
+        }
+
+        /* Professional Card Spacing */
+        .card {
+            border-radius: 8px;
+            margin-bottom: 24px;
+        }
+
+        .card-body {
+            padding: 24px;
+        }
+
+        /* Professional Button Spacing */
+        .btn {
+            padding: 12px 24px;
+            font-size: 16px;
+            line-height: 1.5;
+            border-radius: 6px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .btn-lg {
+            padding: 16px 32px;
+            font-size: 18px;
+        }
+
+        .btn-sm {
+            padding: 8px 16px;
+            font-size: 14px;
+        }
+
+        /* Professional Form Spacing */
+        .form-control {
+            padding: 12px 16px;
+            font-size: 16px;
+            line-height: 1.5;
+            border-radius: 6px;
+        }
+
+        .form-floating > label {
+            padding: 1rem 0.75rem;
+        }
+
+        /* Professional Grid Spacing - Reduced */
+        .row {
+            margin-left: -12px;
+            margin-right: -12px;
+        }
+
+        .row > * {
+            padding-left: 12px;
+            padding-right: 12px;
+        }
+
+        .g-3 {
+            --bs-gutter-y: 16px;
+            --bs-gutter-x: 16px;
+        }
+
+        .g-4 {
+            --bs-gutter-y: 20px;
+            --bs-gutter-x: 20px;
+        }
+
+        .g-5 {
+            --bs-gutter-y: 32px;
+            --bs-gutter-x: 32px;
+        }
+
+        /* Navbar Enhancement */
+        .navbar {
+            background: white !important;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            padding: 12px 0 !important;
+            position: fixed !important;
+            top: 0 !important;
+            left: 0 !important;
+            right: 0 !important;
+            z-index: 9999 !important;
+            width: 100% !important;
+            visibility: visible !important;
+            opacity: 1 !important;
+        }
+
+        /* Add padding to body to prevent content from going under fixed navbar */
+        body {
+            padding-top: 80px !important;
+        }
+
+        .navbar .container-fluid {
+            display: flex !important;
+            align-items: center !important;
+            justify-content: space-between !important;
+        }
+
+        .navbar-brand {
+            padding: 0 !important;
+            margin: 0 !important;
+            flex-shrink: 0 !important;
+        }
+
+        .navbar-brand img {
+            max-height: 50px !important;
+        }
+
+        .navbar-brand h2 {
+            background: linear-gradient(45deg, #06BBCC, #0056b3);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin: 0 !important;
+            font-size: 1.5rem !important;
+        }
+
+        .navbar-collapse {
+            flex-grow: 0 !important;
+        }
+
+        .navbar-nav {
+            padding: 0 !important;
+            margin: 0 !important;
+            flex-direction: row !important;
+            gap: 16px !important;
+            display: flex !important;
+        }
+
+        .navbar-nav .nav-link {
+            padding: 10px 16px !important;
+            margin: 0 !important;
+            white-space: nowrap !important;
+            display: inline-block !important;
+        }
+
+        .navbar .btn-primary {
+            padding: 10px 24px !important;
+            white-space: nowrap !important;
+            margin-left: 16px !important;
+        }
+
+        @@media (max-width: 991px) {
+            .navbar .container-fluid {
+                flex-wrap: wrap !important;
+            }
+            
+            .navbar-collapse {
+                flex-basis: 100% !important;
+                flex-grow: 1 !important;
+            }
+            
+            .navbar-nav {
+                flex-direction: column !important;
+                align-items: flex-start !important;
+                padding: 16px 0 !important;
+                gap: 0 !important;
+            }
+
+            .navbar-nav .nav-link {
+                padding: 12px 0 !important;
+                width: 100% !important;
+            }
+
+            .navbar .btn-primary {
+                margin-left: 0 !important;
+                margin-top: 12px !important;
+                width: 100% !important;
+            }
+        }
+
+        /* Section Backgrounds */
+        .container-xxl {
+            position: relative;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        /* Card Enhancements - Professional Spacing - Reduced Height */
+        .service-item, .fact-item, .course-item {
+            background: #ffffff !important;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+            padding: 16px;
+            height: 100%;
+        }
+
+        .service-item .p-3 {
+            padding: 24px !important;
+        }
+
+        .service-item .p-4,
+        .fact-item .p-5 {
+            padding: 24px !important;
+        }
+
+        .service-item i,
+        .fact-item i {
+            margin-bottom: 24px;
+        }
+
+        .service-item h5,
+        .fact-item h5 {
+            margin-bottom: 10px;
+            font-size: 1.1rem;
+        }
+
+        .service-item p,
+        .fact-item p {
+            line-height: 1.5;
+            color: #6b7280;
+            font-size: 0.9rem;
+            margin-bottom: 0;
+        }
+
+        .service-item .fa-3x {
+            font-size: 2.5rem;
+        }
+
+            .service-item:hover, .fact-item:hover, .course-item:hover {
+                background: linear-gradient(135deg, #06BBCC 0%, #0056b3 100%) !important;
+                transform: translateY(-8px);
+                box-shadow: 0 12px 32px rgba(6, 187, 204, 0.25);
+            }
+
+                .service-item:hover h3,
+                .service-item:hover h4,
+                .service-item:hover h5,
+                .service-item:hover p,
+                .service-item:hover .text-primary,
+                .service-item:hover .text-white,
+                .service-item:hover * {
+                    color: white !important;
+                }
+
+                .service-item:hover i {
+                    color: white !important;
+                }
+
+                /* Project Cards Hover - Everything turns white */
+                .course-item:hover h3,
+                .course-item:hover h4,
+                .course-item:hover h5,
+                .course-item:hover p,
+                .course-item:hover small,
+                .course-item:hover .text-primary,
+                .course-item:hover i,
+                .course-item:hover * {
+                    color: white !important;
+                }
+
+                .course-item:hover .fa-star {
+                    color: white !important;
+                }
+
+                /* Statistics Cards Hover */
+                .fact-item:hover h1,
+                .fact-item:hover h2,
+                .fact-item:hover h3,
+                .fact-item:hover h4,
+                .fact-item:hover h5,
+                .fact-item:hover p,
+                .fact-item:hover small,
+                .fact-item:hover .text-muted,
+                .fact-item:hover * {
+                    color: white !important;
+                }
+
+        /* Professional Section Titles */
+        .section-title {
+            font-size: 14px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            padding: 8px 16px;
+        }
+
+        .text-center h1 {
+            margin-top: 16px;
+        }
+
+        /* Testimonial Cards - Professional Spacing */
+        .testimonial-card .card {
+            background: #ffffff !important;
+            border: 1px solid #e5e7eb !important;
+            border-radius: 8px !important;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+        }
+
+        .testimonial-card .card-body {
+            padding: 32px !important;
+        }
+
+        .testimonial-card img {
+            margin-bottom: 16px;
+        }
+
+        .testimonial-card p {
+            margin-bottom: 20px;
+            line-height: 1.7;
+            color: #6b7280;
+        }
+
+        .testimonial-card h6 {
+            margin-bottom: 8px;
+        }
+
+        /* Footer Enhancement - Professional */
+        .footer {
+            background: #1f2937 !important;
+            padding-top: 60px !important;
+        }
+
+        .footer h4 {
+            margin-bottom: 24px;
+        }
+
+        .footer .btn-link {
+            margin-bottom: 8px;
+            padding: 6px 0;
+        }
+
+        .footer p {
+            margin-bottom: 12px;
+        }
+
+        /* Social Media Buttons - Centered Icons */
+        .btn-social {
+            width: 40px;
+            height: 40px;
+            padding: 0 !important;
+            display: inline-flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            border-radius: 50% !important;
+            font-size: 16px !important;
+            transition: all 0.3s ease;
+        }
+
+        .btn-social:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        }
+
+        .btn-social i {
+            margin: 0 !important;
+            line-height: 1 !important;
+        }
+
+        /* Back to Top Button - Centered Icon */
+        .back-to-top {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            z-index: 999;
+            width: 50px !important;
+            height: 50px !important;
+            padding: 0 !important;
+            display: inline-flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            border-radius: 8px !important;
+            transition: all 0.3s ease;
+        }
+
+        .back-to-top i {
+            margin: 0 !important;
+            line-height: 1 !important;
+            font-size: 20px !important;
+        }
+
+        .back-to-top:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(6, 187, 204, 0.4);
+        }
+
+        /* Quick Links - Responsive Alignment */
+        .quick-links-column {
+            padding: 0 15px;
+        }
+
+        @@media (min-width: 992px) {
+            .quick-links-column {
+                padding: 0 15px 0 85px;
+            }
+        }
+
+        @@media (max-width: 991px) {
+            .quick-links-column {
+                text-align: left !important;
+            }
+            
+            .quick-links-column .btn-link {
+                text-align: left !important;
+                justify-content: flex-start !important;
+            }
+        }
+
+        /* Professional Sections */
+        .py-5 {
+            padding: 60px 0 !important;
+        }
+
+        .bg-light {
+            background-color: #f9fafb !important;
+        }
+
+        /* Hero Section - Professional */
+        #headerCarousel .carousel-caption .container {
+            padding: 0 15px;
+        }
+
+        #headerCarousel .carousel-caption h1 {
+            font-size: 3rem;
+            line-height: 1.2;
+            margin-bottom: 24px;
+        }
+
+        #headerCarousel .carousel-caption h5 {
+            margin-bottom: 16px;
+        }
+
+        #headerCarousel .carousel-caption p {
+            font-size: 1.125rem;
+            line-height: 1.7;
+            margin-bottom: 32px;
+        }
+
+        #headerCarousel .carousel-caption .btn {
+            margin-top: 8px;
+        }
+
+        /* Mobile carousel adjustments */
+        @@media (max-width: 767px) {
+            #headerCarousel {
+                height: 250px;
+                position: relative;
+                z-index: 1;
+                margin-bottom: 20px;
+            }
+
+            #headerCarousel .carousel-inner,
+            #headerCarousel .carousel-item,
+            #headerCarousel .carousel-item img {
+                height: 250px;
+            }
+
+            #headerCarousel .carousel-caption h1 {
+                font-size: 1.5rem !important;
+            }
+
+            #headerCarousel .carousel-caption h5 {
+                font-size: 0.9rem !important;
+            }
+
+            #headerCarousel .carousel-caption p {
+                font-size: 0.85rem !important;
+            }
+            
+            #service-section {
+                position: relative;
+                z-index: 0;
+                margin-top: 20px;
+            }
+        }
+
+        /* Contact Section Professional Spacing */
+        #contact .d-flex {
+            margin-bottom: 24px;
+        }
+
+        #contact h5 {
+            margin-bottom: 8px;
+        }
+
+        /* Section Alternating Colors - Subtle Professional */
+        .container-xxl:nth-child(even) {
+            background: #ffffff;
+        }
+
+        .container-xxl:nth-child(odd) {
+            background: #f9fafb;
+        }
+
+        /* Statistics Section - Reduced */
+        .fact-item {
+            padding: 32px 24px !important;
+        }
+
+        .fact-item i {
+            margin-bottom: 16px;
+            display: block !important;
+            width: 100% !important;
+            font-size: 6rem !important;
+            line-height: 1.2 !important;
+        }
+
+        .fact-item h1 {
+            margin-bottom: 12px;
+        }
+
+        .fact-item h5 {
+            margin-bottom: 8px;
+        }
+
+        /* About Section Image */
+        .position-relative img {
+            border-radius: 8px;
+        }
+
+        /* Mobile Responsive Fixes */
+        @@media (max-width: 767px) {
+            body, html {
+                overflow-x: hidden !important;
+                width: 100% !important;
+            }
+
+            .container-fluid {
+                padding-left: 15px !important;
+                padding-right: 15px !important;
+            }
+
+            .row {
+                margin-left: 0 !important;
+                margin-right: 0 !important;
+            }
+
+            .col-lg-6, .col-md-6, .col-sm-6 {
+                padding-left: 12px !important;
+                padding-right: 12px !important;
+            }
+
+            /* Navbar mobile fix */
+            .navbar-brand {
+                padding-left: 15px !important;
+                padding-right: 15px !important;
+            }
+
+            /* Hero section mobile */
+            .owl-carousel-item h1 {
+                font-size: 1.75rem !important;
+            }
+
+            .owl-carousel-item h5 {
+                font-size: 1rem !important;
+            }
+
+            .owl-carousel-item p {
+                font-size: 0.95rem !important;
+            }
+
+            /* Footer mobile adjustments */
+            .footer .col-lg-3 {
+                padding-left: 15px !important;
+                padding-right: 15px !important;
+                margin-bottom: 20px !important;
+                min-height: auto !important;
+            }
+
+            /* Reduce footer spacing on mobile */
+            #footer {
+                padding: 20px 0 !important;
+                margin-top: 20px !important;
+            }
+
+            #footer .container-fluid.py-4 {
+                padding-top: 12px !important;
+                padding-bottom: 12px !important;
+            }
+
+            #footer .row.g-5 {
+                --bs-gutter-y: 16px !important;
+            }
+
+            #footer h4 {
+                margin-bottom: 12px !important;
+                font-size: 1.1rem !important;
+            }
+
+            #footer p {
+                margin-bottom: 8px !important;
+                font-size: 0.9rem !important;
+            }
+
+            #footer .btn-link {
+                padding: 4px 0 !important;
+                font-size: 0.9rem !important;
+            }
+
+            /* Newsletter section mobile - reduce spacing */
+            #footer .col-lg-3:last-child {
+                padding-top: 0 !important;
+                margin-bottom: 0 !important;
+                min-height: auto !important;
+            }
+
+            #footer .col-lg-3:last-child h4 {
+                margin-bottom: 6px !important;
+            }
+
+            #footer .col-lg-3:last-child p {
+                margin-bottom: 8px !important;
+                font-size: 0.85rem !important;
+            }
+
+            #footer .position-relative {
+                margin-bottom: 0 !important;
+            }
+
+            #footer .form-control {
+                padding: 8px 10px !important;
+                font-size: 0.85rem !important;
+            }
+
+            #footer .btn-primary {
+                padding: 6px 12px !important;
+                font-size: 0.8rem !important;
+                margin-top: 1px !important;
+                margin-right: 1px !important;
+            }
+
+            /* Testimonial slider mobile */
+            .testimonial-card {
+                min-width: 260px !important;
+                max-width: 260px !important;
+            }
+
+            /* Statistics icons mobile */
+            .fact-item i {
+                font-size: 4rem !important;
+            }
+        }
+    </style>
+
+    <!-- SweetAlert2 CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    
+    <script>
+        // Counter Animation
+        function animateCounter(element) {
+            const target = parseInt(element.getAttribute('data-target'));
+            const duration = 2000;
+            const step = target / (duration / 16);
+            let current = 0;
+
+            const timer = setInterval(() => {
+                current += step;
+                if (current >= target) {
+                    current = target;
+                    clearInterval(timer);
+                }
+                element.textContent = Math.floor(current);
+            }, 16);
+        }
+
+        // Intersection Observer for counters
+        const observerOptions = {
+            threshold: 0.5,
+            rootMargin: '0px 0px -100px 0px'
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const counters = entry.target.querySelectorAll('.counter');
+                    counters.forEach(counter => {
+                        if (!counter.classList.contains('animated')) {
+                            counter.classList.add('animated');
+                            animateCounter(counter);
+                        }
+                    });
+                }
+            });
+        }, observerOptions);
+
+        document.addEventListener('DOMContentLoaded', function () {
+            // Progressive Logo Loading Effect
+            const overlay = document.getElementById('spinner');
+            const logoImage = document.getElementById('logoImage');
+            const logoText = document.getElementById('logoText');
+            const loadingBar = document.getElementById('loadingBar');
+            
+            if (!overlay) return;
+            
+            let progress = 0;
+            const duration = 5000; // 5 seconds
+            const interval = 50; // Update every 50ms
+            const increment = (100 / (duration / interval));
+            
+            const progressInterval = setInterval(() => {
+                progress += increment;
+                
+                if (progress >= 100) {
+                    progress = 100;
+                    clearInterval(progressInterval);
+                    
+                    // Hide overlay after completion
+                    setTimeout(() => {
+                        overlay.style.opacity = '0';
+                        setTimeout(() => {
+                            overlay.style.display = 'none';
+                        }, 500);
+                    }, 300);
+                }
+                
+                // Update progress bar
+                if (loadingBar) {
+                    loadingBar.style.width = progress + '%';
+                }
+                
+                // Update logo opacity (low to high visibility)
+                const opacity = 0.2 + (progress / 100) * 0.8; // From 0.2 to 1.0
+                if (logoImage) {
+                    logoImage.style.opacity = opacity;
+                }
+                if (logoText) {
+                    logoText.style.opacity = opacity;
+                }
+            }, interval);
+
+            // Quote Slider
+            const slides = document.querySelectorAll('.quote-slide');
+            let currentSlide = 0;
+
+            function showNextSlide() {
+                slides[currentSlide].classList.remove('active');
+                currentSlide = (currentSlide + 1) % slides.length;
+                slides[currentSlide].classList.add('active');
+            }
+
+            // Faster transition - 2 seconds instead of 3
+            setInterval(showNextSlide, 2000);
+
+            // Infinite Testimonial Carousel - Clone cards for seamless loop
+            const testimonialTrack = document.querySelector('.testimonial-track');
+            if (testimonialTrack) {
+                const cards = Array.from(testimonialTrack.children);
+                
+                // Clone all cards once for smooth infinite scroll
+                cards.forEach(card => {
+                    const clone = card.cloneNode(true);
+                    testimonialTrack.appendChild(clone);
+                });
+            }
+
+            // Observe statistics section for counter animation
+            const statsSection = document.querySelector('#statistics-section');
+            if (statsSection) {
+                observer.observe(statsSection);
+                
+                // If statistics section is already visible, trigger animation immediately
+                const rect = statsSection.getBoundingClientRect();
+                const isVisible = (rect.top >= 0 && rect.bottom <= window.innerHeight);
+                if (isVisible) {
+                    const counters = statsSection.querySelectorAll('.counter');
+                    counters.forEach(counter => {
+                        if (!counter.classList.contains('animated')) {
+                            counter.classList.add('animated');
+                            animateCounter(counter);
+                        }
+                    });
+                }
+            }
+
+            // Smooth scrolling for navigation links
+            document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+                anchor.addEventListener('click', function (e) {
+                    const href = this.getAttribute('href');
+                    console.log('Link clicked:', href);
+                    console.log('Has data-bs-toggle:', this.hasAttribute('data-bs-toggle'));
+                    
+                    // Skip if href is just '#' or if it has data-bs-toggle (modal/dropdown)
+                    if (href === '#' || this.hasAttribute('data-bs-toggle')) {
+                        console.log('Skipping scroll for:', href);
+                        return;
+                    }
+                    
+                    e.preventDefault();
+                    console.log('Looking for target:', href);
+                    const target = document.querySelector(href);
+                    console.log('Target found:', target);
+                    
+                    if (target) {
+                        // Close mobile navbar if open
+                        const navbarCollapse = document.getElementById('navbarCollapse');
+                        if (navbarCollapse && navbarCollapse.classList.contains('show')) {
+                            const bsCollapse = new bootstrap.Collapse(navbarCollapse, {
+                                toggle: false
+                            });
+                            bsCollapse.hide();
+                        }
+                        
+                        // Get navbar height for offset
+                        const navbar = document.querySelector('.navbar');
+                        const navbarHeight = navbar ? navbar.offsetHeight : 0;
+                        console.log('Navbar height:', navbarHeight);
+                        
+                        // Calculate position with offset
+                        const targetPosition = target.getBoundingClientRect().top + window.pageYOffset - navbarHeight;
+                        console.log('Scrolling to position:', targetPosition);
+                        
+                        // Smooth scroll to position
+                        window.scrollTo({
+                            top: targetPosition,
+                            behavior: 'smooth'
+                        });
+                    } else {
+                        console.error('Target not found for:', href);
+                    }
+                });
+            });
+
+            // Keep counters at original values - no fluctuation
+        });
+
+        // Interest Form Functions
+        function showInterestForm(propertyId, projectName) {
+            document.getElementById('modalPropertyId').value = propertyId;
+            document.getElementById('modalProjectName').value = projectName;
+            document.getElementById('interestModalLabel').textContent = 'Express Interest in ' + projectName;
+            var modal = new bootstrap.Modal(document.getElementById('interestModal'));
+            modal.show();
+        }
+
+        // Add event listener only if the form exists
+        const interestForm = document.getElementById('interestForm');
+        if (interestForm) {
+            interestForm.addEventListener('submit', function (e) {
+                e.preventDefault();
+
+                const formData = {
+                    Name: document.getElementById('modalName').value,
+                    Contact: document.getElementById('modalContact').value,
+                    PreferredLocation: document.getElementById('modalLocation').value,
+                    BHK: document.getElementById('modalBHK').value,
+                    Budget: document.getElementById('modalBudget').value,
+                    ProjectName: document.getElementById('modalProjectName').value,
+                    PropertyId: parseInt(document.getElementById('modalPropertyId').value)
+                };
+
+                fetch('/PublicLeads/CaptureInterest', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(formData)
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            alert(data.message || 'Thank you for your interest! Our team will contact you soon.');
+                            bootstrap.Modal.getInstance(document.getElementById('interestModal')).hide();
+                            interestForm.reset();
+                        } else {
+                            alert(data.message || 'Error submitting form. Please try again.');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        alert('Error submitting form. Please try again.');
+                    });
+            });
+        }
+
+        // Contact Form Handler
+        const contactForm = document.getElementById('contactForm');
+        if (contactForm) {
+            contactForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            console.log('Form submitted');
+            
+            const formData = {
+                name: document.getElementById('name').value,
+                email: document.getElementById('email').value,
+                subject: document.getElementById('subject').value,
+                message: document.getElementById('message').value
+            };
+            
+            console.log('Form data:', formData);
+            
+            fetch('/Home/SendContactEmail', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(formData)
+            })
+            .then(response => {
+                console.log('Response status:', response.status);
+                return response.json();
+            })
+            .then(data => {
+                console.log('Response data:', data);
+                if (data.success) {
+                    if (typeof Swal !== 'undefined') {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Message Sent!',
+                            text: 'Thank you! Your message has been sent successfully.',
+                            confirmButtonColor: '#06BBCC'
+                        });
+                    } else {
+                        alert('Thank you! Your message has been sent successfully.');
+                    }
+                    contactForm.reset();
+                } else {
+                    if (typeof Swal !== 'undefined') {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: data.message || 'Please try again.',
+                            confirmButtonColor: '#06BBCC'
+                        });
+                    } else {
+                        alert('Error: ' + (data.message || 'Please try again.'));
+                    }
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                if (typeof Swal !== 'undefined') {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: 'Error sending message. Please try again.',
+                        confirmButtonColor: '#06BBCC'
+                    });
+                } else {
+                    alert('Error sending message. Please try again.');
+                }
+            });
+        });
+        }
+    </script>
+}

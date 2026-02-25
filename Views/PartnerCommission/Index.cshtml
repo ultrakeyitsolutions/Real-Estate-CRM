@@ -1,0 +1,756 @@
+@model IEnumerable<dynamic>
+@{
+    ViewData["Title"] = "Partner Payouts";
+    
+    // Helper function to convert abbreviated month to full month name
+    Func<string, string> getFullMonthName = (abbr) => {
+        var monthMap = new Dictionary<string, string> {
+            {"Jan", "January"}, {"Feb", "February"}, {"Mar", "March"}, {"Apr", "April"},
+            {"May", "May"}, {"Jun", "June"}, {"Jul", "July"}, {"Aug", "August"},
+            {"Sep", "September"}, {"Oct", "October"}, {"Nov", "November"}, {"Dec", "December"}
+        };
+        return monthMap.ContainsKey(abbr) ? monthMap[abbr] : abbr;
+    };
+}
+
+<style>
+    .payout-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 2rem;
+        border-radius: 12px;
+        margin-bottom: 2rem;
+    }
+
+    .stats-card {
+        background: rgba(255, 255, 255, 0.15);
+        backdrop-filter: blur(10px);
+        border-radius: 10px;
+        padding: 1.5rem;
+        text-align: center;
+    }
+
+    .stats-number {
+        font-size: 2rem;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+    }
+
+    .filter-card {
+        background: white;
+        border-radius: 12px;
+        padding: 1.5rem;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        margin-bottom: 2rem;
+    }
+
+    .dark-mode .filter-card {
+        background: #222639 !important;
+        color: #e4e6eb !important;
+        box-shadow: 0 2px 8px rgba(255, 255, 255, 0.05) !important;
+    }
+
+    .payout-card {
+        background: white;
+        border-radius: 12px;
+        padding: 1.5rem;
+        margin-bottom: 1rem;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: visible !important;
+        z-index: 1;
+    }
+
+    .payout-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+        z-index: 99999 !important;
+    }
+
+    .dark-mode .payout-card {
+        background: #222639 !important;
+        color: #e4e6eb !important;
+        box-shadow: 0 2px 8px rgba(255, 255, 255, 0.05) !important;
+    }
+
+    .dark-mode .payout-card:hover {
+        box-shadow: 0 4px 16px rgba(255, 255, 255, 0.1) !important;
+    }
+    
+    .payout-card .dropdown {
+        position: static !important;
+    }
+
+    .payout-card .dropdown-menu {
+        z-index: 999999 !important;
+        position: absolute !important;
+    }
+    
+    .payout-card:has(.dropdown.show) {
+        z-index: 99999 !important;
+    }
+    
+    .payout-card.dropdown-active {
+        z-index: 99999 !important;
+    }
+    
+    .dropdown-menu.show {
+        z-index: 999999 !important;
+    }
+    
+    .dropdown-menu {
+        z-index: 999999 !important;
+    }
+    
+    .payout-card .dropdown.show .dropdown-menu {
+        z-index: 999999 !important;
+        position: absolute !important;
+        display: block !important;
+    }
+
+    .status-badge {
+        padding: 0.5rem 1rem;
+        border-radius: 20px;
+        font-weight: 600;
+        font-size: 0.875rem;
+    }
+
+    .status-pending { background-color: #fff3cd; color: #997404; }
+    .status-approved { background-color: #d1e7dd; color: #0a3622; }
+    .status-paid { background-color: #cfe2ff; color: #084298; }
+
+    .process-btn {
+        background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+        border: none;
+        color: white;
+        padding: 0.75rem 2rem;
+        border-radius: 8px;
+        font-weight: 600;
+        box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
+        transition: all 0.3s ease;
+    }
+
+    .process-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(40, 167, 69, 0.4);
+        color: white;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 4rem 2rem;
+    }
+
+    .empty-state i {
+        font-size: 5rem;
+        color: #e9ecef;
+        margin-bottom: 1.5rem;
+    }
+
+    .dark-mode .empty-state {
+        color: #e4e6eb !important;
+    }
+
+    .dark-mode .empty-state i {
+        color: #2c3049 !important;
+    }
+
+    .calculation-modal .table th {
+        background-color: #f8f9fa;
+        font-weight: 600;
+    }
+
+    .dark-mode .calculation-modal .modal-content {
+        background: #222639 !important;
+        color: #e4e6eb !important;
+    }
+
+    .dark-mode .calculation-modal .table {
+        color: #e4e6eb !important;
+    }
+
+    .dark-mode .calculation-modal .table th {
+        background-color: #2c3049 !important;
+        color: #e4e6eb !important;
+    }
+
+    .dark-mode .calculation-modal .table td {
+        border-color: #2c3049 !important;
+        color: #e4e6eb !important;
+    }
+
+    .dark-mode .calculation-modal .table-success th {
+        background-color: #28a745 !important;
+        color: white !important;
+    }
+
+    .dark-mode .text-muted {
+        color: #a6adc8 !important;
+    }
+
+    .dark-mode .breadcrumb-item a {
+        color: #667eea !important;
+    }
+
+    .dark-mode .breadcrumb-item.active {
+        color: #e4e6eb !important;
+    }
+
+    .dark-mode .form-label {
+        color: #e4e6eb !important;
+    }
+
+    .dark-mode .form-select {
+        background-color: #2c3049 !important;
+        border-color: #2c3049 !important;
+        color: #e4e6eb !important;
+    }
+
+    .dark-mode .form-control {
+        background-color: #2c3049 !important;
+        border-color: #2c3049 !important;
+        color: #e4e6eb !important;
+    }
+
+    .dark-mode .form-control::placeholder {
+        color: #a6adc8 !important;
+    }
+
+    .dark-mode .dropdown-menu {
+        background-color: #222639 !important;
+        border-color: #2c3049 !important;
+    }
+
+    .dark-mode .dropdown-item {
+        color: #e4e6eb !important;
+    }
+
+    .dark-mode .dropdown-item:hover {
+        background-color: #2c3049 !important;
+        color: #e4e6eb !important;
+    }
+
+    .dark-mode .dropdown-divider {
+        border-color: #2c3049 !important;
+    }
+
+    .calculation-summary {
+        background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+        color: white;
+        padding: 1.5rem;
+        border-radius: 8px;
+        margin-bottom: 1rem;
+    }
+</style>
+
+<div class="content">
+    <!-- Breadcrumb -->
+    <nav class="mb-3" aria-label="breadcrumb">
+        <ol class="breadcrumb mb-0">
+            <li class="breadcrumb-item"><a href="/Home/Index">Home</a></li>
+            <li class="breadcrumb-item active">Partner Payouts</li>
+        </ol>
+    </nav>
+
+    <!-- Header with Stats -->
+    <div class="payout-header">
+        <div class="row align-items-center mb-4">
+            <div class="col-md-6">
+                <h2 class="mb-0"><i class="fa-solid fa-handshake me-2"></i>Partner Payouts</h2>
+                <p class="mb-0 mt-2 opacity-75">Manage partner commissions and payouts</p>
+            </div>
+            <div class="col-md-6 text-md-end">
+                <button class="btn btn-outline-light me-2" onclick="resetPayoutStatuses()" title="Reset all non-paid payouts to Pending status">
+                    <i class="fa-solid fa-refresh me-2"></i>Reset Statuses
+                </button>
+                <button class="btn process-btn" onclick="processPayments()">
+                    <i class="fa-solid fa-cogs me-2"></i>Process Payments
+                </button>
+            </div>
+        </div>
+
+        <div class="row g-3">
+            <div class="col-md-3">
+                <div class="stats-card">
+                    <div class="stats-number">@ViewBag.TotalPartners</div>
+                    <div>Total Partners</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stats-card">
+                    <div class="stats-number">@ViewBag.TotalSales</div>
+                    <div>Total Sales</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stats-card">
+                    <div class="stats-number">₹@ViewBag.TotalCommission.ToString("N0")</div>
+                    <div>Total Commission</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stats-card">
+                    <div class="stats-number">₹@ViewBag.TotalPayouts.ToString("N0")</div>
+                    <div>Total Payouts</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filter Section -->
+    <div class="filter-card">
+        <div class="row g-3 align-items-end">
+            <div class="col-md-3">
+                <label for="month" class="form-label">Month</label>
+                <select class="form-select" id="month" onchange="filterByMonthYear()">
+                    <option value="">All Months</option>
+                    <option value="Jan" selected="@(ViewBag.SelectedMonth == "Jan")">January</option>
+                    <option value="Feb" selected="@(ViewBag.SelectedMonth == "Feb")">February</option>
+                    <option value="Mar" selected="@(ViewBag.SelectedMonth == "Mar")">March</option>
+                    <option value="Apr" selected="@(ViewBag.SelectedMonth == "Apr")">April</option>
+                    <option value="May" selected="@(ViewBag.SelectedMonth == "May")">May</option>
+                    <option value="Jun" selected="@(ViewBag.SelectedMonth == "Jun")">June</option>
+                    <option value="Jul" selected="@(ViewBag.SelectedMonth == "Jul")">July</option>
+                    <option value="Aug" selected="@(ViewBag.SelectedMonth == "Aug")">August</option>
+                    <option value="Sep" selected="@(ViewBag.SelectedMonth == "Sep")">September</option>
+                    <option value="Oct" selected="@(ViewBag.SelectedMonth == "Oct")">October</option>
+                    <option value="Nov" selected="@(ViewBag.SelectedMonth == "Nov")">November</option>
+                    <option value="Dec" selected="@(ViewBag.SelectedMonth == "Dec")">December</option>
+                </select>
+            </div>
+
+            <div class="col-md-2">
+                <label for="year" class="form-label">Year</label>
+                <select class="form-select" id="year" onchange="filterByMonthYear()">
+                    <option value="">All Years</option>
+                    @for (int i = DateTime.Now.Year + 1; i >= DateTime.Now.Year - 5; i--)
+                    {
+                        <option value="@i" selected="@(ViewBag.SelectedYear != null && ViewBag.SelectedYear == i)">@i</option>
+                    }
+                </select>
+            </div>
+
+            <div class="col-md-4">
+                <label for="search" class="form-label">Search Partner</label>
+                <input type="text" class="form-control" id="search" 
+                       placeholder="Search by company name..." oninput="filterBySearch()">
+            </div>
+
+            <div class="col-md-3">
+                <label for="statusFilter" class="form-label">Status</label>
+                <select class="form-select" id="statusFilter" onchange="filterByStatus()">
+                    <option value="" selected="@(string.IsNullOrEmpty(ViewBag.SelectedStatus))">All Status</option>
+                    <option value="Pending" selected="@(ViewBag.SelectedStatus == "Pending")">Pending</option>
+                    <option value="Approved" selected="@(ViewBag.SelectedStatus == "Approved")">Approved</option>
+                    <option value="Paid" selected="@(ViewBag.SelectedStatus == "Paid")">Paid</option>
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <!-- Payouts List -->
+    @if (Model.Any())
+    {
+        foreach (var payout in Model)
+        {
+            <div class="card payout-card">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col-md-3">
+                            <h5 class="mb-2">
+                                <i class="fa-solid fa-building text-primary me-2"></i>
+                                @payout.Partner?.CompanyName
+                            </h5>
+                            <p class="mb-0 text-muted">
+                                <i class="fa-solid fa-calendar me-1"></i>
+                                @payout.Month @payout.Year
+                            </p>
+                        </div>
+
+                        <div class="col-md-2 text-center">
+                            <small class="text-muted d-block">Commission Rate</small>
+                            <h5 class="text-info mb-0">@payout.FixedCommissionPerSale%</h5>
+                        </div>
+
+                        <div class="col-md-2 text-center">
+                            <small class="text-muted d-block">Total Sales</small>
+                            <p class="mb-0">
+                                <strong>@payout.TotalSales Sales</strong>
+                            </p>
+                        </div>
+
+                        <div class="col-md-2 text-center">
+                            <small class="text-muted d-block">Booking Amount</small>
+                            <p class="mb-0 text-success">
+                                ₹@payout.TotalBookingAmount.ToString("N0")
+                            </p>
+                        </div>
+
+                        <div class="col-md-2 text-center">
+                            <small class="text-muted d-block">Commission</small>
+                            <h4 class="text-success mb-0">₹@payout.TotalCommission.ToString("N0")</h4>
+                            <span class="status-badge status-@payout.Status.ToLower()">
+                                @payout.Status
+                            </span>
+                        </div>
+
+                        <div class="col-md-1 text-end">
+                            <div class="dropdown">
+                                <button class="btn btn-sm btn-outline-primary dropdown-toggle" 
+                                        type="button" data-bs-toggle="dropdown">
+                                    <i class="fa-solid fa-ellipsis-v"></i>
+                                </button>
+                                <ul class="dropdown-menu">
+                                    <li>
+                                        <a class="dropdown-item" href="#" onclick="viewCalculation(@payout.PayoutId)">
+                                            <i class="fa-solid fa-calculator me-2"></i>View Calculation
+                                        </a>
+                                    </li>
+                                    @if (payout.Status == "Pending")
+                                    {
+                                        <li><hr class="dropdown-divider"></li>
+                                        <li>
+                                            <a class="dropdown-item text-success" href="#" onclick="approvePayout(@payout.PayoutId)">
+                                                <i class="fa-solid fa-check me-2"></i>Approve Payment
+                                            </a>
+                                        </li>
+                                    }
+                                    @if (payout.Status == "Approved")
+                                    {
+                                        <li><hr class="dropdown-divider"></li>
+                                        <li>
+                                            <a class="dropdown-item text-primary" href="#" onclick="markAsPaid(@payout.PayoutId)">
+                                                <i class="fa-solid fa-money-bill me-2"></i>Mark as Paid
+                                            </a>
+                                        </li>
+                                    }
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    }
+    else
+    {
+        <div class="empty-state">
+            <i class="fa-solid fa-handshake"></i>
+            <h3>No Payouts Found</h3>
+            <p class="text-muted">Process payments to calculate partner commissions from confirmed bookings</p>
+            <button class="btn process-btn mt-3" onclick="processPayments()">
+                <i class="fa-solid fa-cogs me-2"></i>Process Payments
+            </button>
+        </div>
+    }
+</div>
+
+<!-- Calculation Details Modal -->
+<div class="modal fade" id="calculationModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content calculation-modal">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fa-solid fa-calculator me-2"></i>Commission Calculation Details
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div id="calculationContent">
+                    <div class="text-center py-4">
+                        <i class="fa-solid fa-spinner fa-spin fa-2x text-primary"></i>
+                        <p class="mt-2">Loading calculation details...</p>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <div id="calculationActions"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    setTimeout(function() {
+        if (typeof $ === 'undefined') {
+            console.log('jQuery not loaded yet');
+            return;
+        }
+        
+        // Handle dropdown z-index
+        $('.payout-card .dropdown').on('show.bs.dropdown', function () {
+            $('.payout-card').removeClass('dropdown-active').css('z-index', '1');
+            $(this).closest('.payout-card').addClass('dropdown-active').css('z-index', '99999');
+        });
+
+        $('.payout-card .dropdown').on('hide.bs.dropdown', function () {
+            $(this).closest('.payout-card').removeClass('dropdown-active').css('z-index', '1');
+        });
+    }, 1000);
+    
+    function resetPayoutStatuses() {
+        if (!confirm('This will reset all non-paid payouts to Pending status. This is useful for fixing existing data. Continue?')) return;
+        
+        const button = event.target;
+        button.disabled = true;
+        button.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-2"></i>Resetting...';
+        
+        fetch('/PartnerCommission/ResetPayoutStatuses', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert(data.message);
+                location.reload();
+            } else {
+                alert(data.message);
+            }
+        })
+        .finally(() => {
+            button.disabled = false;
+            button.innerHTML = '<i class="fa-solid fa-refresh me-2"></i>Reset Statuses';
+        });
+    }
+
+    function processPayments() {
+        if (!confirm('This will calculate commissions for all confirmed partner bookings. Continue?')) return;
+        
+        const button = event.target;
+        button.disabled = true;
+        button.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-2"></i>Processing...';
+        
+        fetch('/PartnerCommission/ProcessPayments', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                if (data.processedCount > 0) {
+                    alert(data.message + '\n\nAll payouts are now in PENDING status. Please review calculations and approve for payment.');
+                } else {
+                    alert(data.message);
+                }
+                location.reload();
+            } else {
+                alert(data.message);
+            }
+        })
+        .finally(() => {
+            button.disabled = false;
+            button.innerHTML = '<i class="fa-solid fa-cogs me-2"></i>Process Payments';
+        });
+    }
+
+    function filterByMonthYear() {
+        const selectedMonth = document.getElementById('month').value;
+        const selectedYear = document.getElementById('year').value;
+        const selectedStatus = document.getElementById('statusFilter').value;
+        const searchText = document.getElementById('search').value;
+        
+        // Build URL with filters
+        const params = new URLSearchParams();
+        if (selectedMonth) params.append('month', selectedMonth);
+        if (selectedYear) params.append('year', selectedYear);
+        if (selectedStatus) params.append('status', selectedStatus);
+        
+        // Redirect to filtered results
+        window.location.href = '/PartnerCommission/Index?' + params.toString();
+    }
+    
+    function filterByStatus() {
+        filterByMonthYear(); // Use same filtering logic
+    }
+    
+    function applyFilters() {
+        const selectedStatus = document.getElementById('statusFilter').value.toLowerCase();
+        const searchText = document.getElementById('search').value.toLowerCase();
+        const selectedMonth = document.getElementById('month').value;
+        const selectedYear = document.getElementById('year').value;
+        const payoutCards = document.querySelectorAll('.payout-card');
+        
+        payoutCards.forEach(card => {
+            const statusBadge = card.querySelector('.status-badge');
+            const cardStatus = statusBadge ? statusBadge.textContent.trim().toLowerCase() : '';
+            const partnerName = card.querySelector('h5').textContent.toLowerCase();
+            
+            // Get month and year from the card
+            const monthYearText = card.querySelector('.fa-calendar').parentElement.textContent.trim();
+            const [cardMonth, cardYear] = monthYearText.split(' ');
+            
+            const statusMatch = selectedStatus === '' || cardStatus === selectedStatus;
+            const searchMatch = searchText === '' || partnerName.includes(searchText);
+            const monthMatch = selectedMonth === '' || cardMonth === selectedMonth;
+            const yearMatch = selectedYear === '' || cardYear === selectedYear;
+            
+            if (statusMatch && searchMatch && monthMatch && yearMatch) {
+                card.style.display = 'block';
+            } else {
+                card.style.display = 'none';
+            }
+        });
+    }
+
+    function viewCalculation(payoutId) {
+        console.log('ViewCalculation called with payoutId:', payoutId);
+        const modal = new bootstrap.Modal(document.getElementById('calculationModal'));
+        modal.show();
+        
+        const url = `/PartnerCommission/GetCalculationDetails?payoutId=${payoutId}`;
+        console.log('Fetching URL:', url);
+        
+        fetch(url)
+        .then(response => {
+            console.log('Response status:', response.status);
+            return response.json();
+        })
+        .then(data => {
+            console.log('Response data:', data);
+            console.log('Debug info:', data.debugInfo);
+            if (data.success) {
+                displayCalculationDetails(data.payout, data.bookingDetails);
+            } else {
+                console.log('Error message:', data.message);
+                console.log('Error debug info:', data.debugInfo);
+                document.getElementById('calculationContent').innerHTML = 
+                    '<div class="alert alert-danger">Error loading calculation details: ' + data.message + '</div>';
+            }
+        })
+        .catch(error => {
+            console.log('Fetch error:', error);
+            document.getElementById('calculationContent').innerHTML = 
+                '<div class="alert alert-danger">Network error loading calculation details: ' + error.message + '</div>';
+        });
+    }
+    
+    function displayCalculationDetails(payout, bookingDetails) {
+        const totalCommission = (payout.totalCommission || payout.TotalCommission || 0);
+        const totalSales = (payout.totalSales || payout.TotalSales || 0);
+        const commissionRate = (payout.fixedCommissionPerSale || payout.FixedCommissionPerSale || 0);
+        const partnerName = (payout.partnerName || payout.PartnerName || 'Unknown Partner');
+        const month = (payout.month || payout.Month || 'Unknown');
+        const year = (payout.year || payout.Year || 'Unknown');
+        
+        let html = `
+            <div class="calculation-summary">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h5 class="mb-0">${partnerName}</h5>
+                        <p class="mb-0 opacity-75">${month} ${year}</p>
+                    </div>
+                    <div class="col-md-6 text-end">
+                        <h4 class="mb-0">₹${totalCommission.toLocaleString()}</h4>
+                        <p class="mb-0 opacity-75">${totalSales} Sales at ${commissionRate}%</p>
+                    </div>
+                </div>
+            </div>
+            
+            <h6 class="mb-3">Booking Details:</h6>
+            <div class="table-responsive">
+                <table class="table table-sm">
+                    <thead>
+                        <tr>
+                            <th>Booking #</th>
+                            <th>Date</th>
+                            <th class="text-end">Booking Amount</th>
+                            <th class="text-end">Commission</th>
+                        </tr>
+                    </thead>
+                    <tbody>`;
+        
+        if (bookingDetails && bookingDetails.length > 0) {
+            bookingDetails.forEach(booking => {
+                const bookingAmount = (booking.bookingAmount || booking.BookingAmount || 0);
+                const commissionAmount = (booking.commissionAmount || booking.CommissionAmount || 0);
+                html += `
+                    <tr>
+                        <td>${booking.bookingNumber || booking.BookingNumber || 'N/A'}</td>
+                        <td>${booking.bookingDate || booking.BookingDate || 'N/A'}</td>
+                        <td class="text-end">₹${bookingAmount.toLocaleString()}</td>
+                        <td class="text-end text-success">₹${commissionAmount.toLocaleString()}</td>
+                    </tr>`;
+            });
+        } else {
+            html += `<tr><td colspan="4" class="text-center">No booking details found</td></tr>`;
+        }
+        
+        html += `
+                    </tbody>
+                    <tfoot>
+                        <tr class="table-success">
+                            <th colspan="3">Total Commission</th>
+                            <th class="text-end">₹${totalCommission.toLocaleString()}</th>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>`;
+        
+        document.getElementById('calculationContent').innerHTML = html;
+        
+        // Update action buttons based on status
+        const payoutId = (payout.payoutId || payout.PayoutId);
+        const status = (payout.status || payout.Status);
+        let actionButtons = '';
+        if (status === 'Pending') {
+            actionButtons = `<button type="button" class="btn btn-success" onclick="approvePayout(${payoutId}); bootstrap.Modal.getInstance(document.getElementById('calculationModal')).hide();">
+                <i class="fa-solid fa-check me-2"></i>Approve Payment
+            </button>`;
+        } else if (status === 'Approved') {
+            actionButtons = `<button type="button" class="btn btn-primary" onclick="markAsPaid(${payoutId}); bootstrap.Modal.getInstance(document.getElementById('calculationModal')).hide();">
+                <i class="fa-solid fa-money-bill me-2"></i>Mark as Paid
+            </button>`;
+        }
+        
+        document.getElementById('calculationActions').innerHTML = actionButtons;
+    }
+
+    function approvePayout(payoutId) {
+        if (!confirm('Are you sure you want to approve this payout for payment?')) return;
+        
+        fetch('/PartnerCommission/ApprovePayout', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ payoutId: payoutId })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('Payout approved! You can now mark it as paid once payment is processed.');
+                location.reload();
+            } else {
+                alert(data.message);
+            }
+        });
+    }
+
+    function markAsPaid(payoutId) {
+        if (!confirm('Confirm that payment has been processed and mark this payout as paid?')) return;
+        
+        fetch('/PartnerCommission/MarkAsPaid', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ payoutId: payoutId })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('Payout marked as paid successfully!');
+                location.reload();
+            } else {
+                alert(data.message);
+            }
+        });
+    }
+</script>

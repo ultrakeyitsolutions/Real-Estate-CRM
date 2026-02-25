@@ -1,0 +1,143 @@
+@{
+    ViewData["Title"] = "Support";
+    var branding = ViewBag.Branding as CRM.Models.BrandingModel;
+    var settings = ViewBag.Settings as Dictionary<string, string>;
+    var companyName = settings?.GetValueOrDefault("CompanyName", "CRM Platform");
+    var supportEmail = settings?.GetValueOrDefault("CompanyEmail", "support@company.com");
+    var supportPhone = settings?.GetValueOrDefault("SupportPhone", "+91-9876543210");
+}
+
+<div class="container-fluid p-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-header bg-success text-white">
+                    <div class="d-flex align-items-center">
+                        @if (!string.IsNullOrEmpty(branding?.CompanyLogo))
+                        {
+                            <img src="@branding.CompanyLogo" alt="@companyName" style="height: 40px; margin-right: 15px;">
+                        }
+                        <h1 class="mb-0"><i class="fas fa-headset me-2"></i>Customer Support</h1>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-8">
+                            <h3 class="text-success mb-3">We're Here to Help</h3>
+                            <p class="lead">Our dedicated support team at @companyName is committed to ensuring you have the best experience with our CRM platform.</p>
+                            
+                            <div class="row mb-4">
+                                <div class="col-md-6">
+                                    <div class="card border-success">
+                                        <div class="card-body text-center">
+                                            <i class="fas fa-envelope fa-2x text-success mb-3"></i>
+                                            <h5>Email Support</h5>
+                                            <p class="text-muted">Get help via email</p>
+                                            <a href="mailto:@supportEmail" class="btn btn-success btn-sm">
+                                                @supportEmail
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="card border-success">
+                                        <div class="card-body text-center">
+                                            <i class="fas fa-phone fa-2x text-success mb-3"></i>
+                                            <h5>Phone Support</h5>
+                                            <p class="text-muted">@supportPhone</p>
+                                            <a href="tel:@supportPhone.Replace(" ", "").Replace("(", "").Replace(")", "").Replace("-", "")" class="btn btn-success btn-sm">
+                                                Call us directly
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <h4 class="mb-3">Support Hours</h4>
+                            <div class="table-responsive">
+                                <table class="table table-striped">
+                                    <tbody>
+                                        <tr>
+                                            <td><strong>Monday - Friday</strong></td>
+                                            <td>9:00 AM - 6:00 PM (EST)</td>
+                                        </tr>
+                                        <tr>
+                                            <td><strong>Saturday</strong></td>
+                                            <td>10:00 AM - 4:00 PM (EST)</td>
+                                        </tr>
+                                        <tr>
+                                            <td><strong>Sunday</strong></td>
+                                            <td>Closed</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <h4 class="mb-3">Common Issues & Solutions</h4>
+                            <div class="list-group">
+                                <div class="list-group-item">
+                                    <h6 class="mb-1">Login Issues</h6>
+                                    <p class="mb-1">If you're having trouble logging in, try clearing your browser cache or resetting your password.</p>
+                                </div>
+                                <div class="list-group-item">
+                                    <h6 class="mb-1">Data Not Loading</h6>
+                                    <p class="mb-1">Refresh the page or check your internet connection. Contact support if the issue persists.</p>
+                                </div>
+                                <div class="list-group-item">
+                                    <h6 class="mb-1">Permission Errors</h6>
+                                    <p class="mb-1">Contact your administrator to verify your user role and permissions.</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card bg-light">
+                                <div class="card-body text-center">
+                                    @if (!string.IsNullOrEmpty(branding?.AboutUsImage))
+                                    {
+                                        <img src="@branding.AboutUsImage" alt="@companyName" class="img-fluid mb-3" style="max-height: 150px;">
+                                    }
+                                    <h5 class="card-title">Additional Support</h5>
+                                    <p class="card-text">Connect with us through social media</p>
+                                    <div class="d-flex justify-content-center gap-2 mb-3 flex-wrap">
+                                        @if (!string.IsNullOrEmpty(branding?.InstagramUrl))
+                                        {
+                                            <a href="@branding.InstagramUrl" target="_blank" class="btn btn-outline-danger btn-sm">
+                                                <i class="fab fa-instagram"></i> Instagram
+                                            </a>
+                                        }
+                                        @if (!string.IsNullOrEmpty(branding?.FacebookUrl))
+                                        {
+                                            <a href="@branding.FacebookUrl" target="_blank" class="btn btn-outline-primary btn-sm">
+                                                <i class="fab fa-facebook"></i> Facebook
+                                            </a>
+                                        }
+                                    </div>
+                                    <div class="d-flex justify-content-center gap-2 flex-wrap">
+                                        @if (!string.IsNullOrEmpty(branding?.TwitterUrl))
+                                        {
+                                            <a href="@branding.TwitterUrl" target="_blank" class="btn btn-outline-info btn-sm">
+                                                <i class="fab fa-twitter"></i> Twitter
+                                            </a>
+                                        }
+                                        @if (!string.IsNullOrEmpty(branding?.LinkedInUrl))
+                                        {
+                                            <a href="@branding.LinkedInUrl" target="_blank" class="btn btn-outline-dark btn-sm">
+                                                <i class="fab fa-linkedin"></i> LinkedIn
+                                            </a>
+                                        }
+                                        @if (!string.IsNullOrEmpty(branding?.WhatsAppNumber))
+                                        {
+                                            <a href="https://wa.me/@branding.WhatsAppNumber.Replace("+", "").Replace(" ", "")" target="_blank" class="btn btn-outline-success btn-sm">
+                                                <i class="fab fa-whatsapp"></i> WhatsApp
+                                            </a>
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,470 @@
+@model List<CRM.Models.QuotationModel>
+@inject CRM.Services.ViewPermissionService _viewPermissionService
+@{
+    ViewData["Title"] = "Quotations";
+    var leads = ViewBag.Leads as List<CRM.Models.LeadModel> ?? new List<CRM.Models.LeadModel>();
+    var properties = ViewBag.Properties as List<CRM.Models.PropertyModel> ?? new List<CRM.Models.PropertyModel>();
+    var flats = ViewBag.Flats as List<CRM.Models.PropertyFlatModel> ?? new List<CRM.Models.PropertyFlatModel>();
+    
+    // Use ViewPermissionService for partner-aware permissions
+    bool canCreate = _viewPermissionService.HasPermission("Quotations", "Index", "Create");
+    bool canEdit = _viewPermissionService.HasPermission("Quotations", "Index", "Edit");
+    bool canDelete = _viewPermissionService.HasPermission("Quotations", "Index", "Delete");
+}
+<!-- SweetAlert2 CDN -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<style>
+    .quotations-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 2rem;
+        border-radius: 12px;
+        margin-bottom: 2rem;
+        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+    }
+
+    .stats-card {
+        background: rgba(255, 255, 255, 0.15);
+        backdrop-filter: blur(10px);
+        border-radius: 10px;
+        padding: 1.25rem;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .stats-number {
+        font-size: 2rem;
+        font-weight: 700;
+    }
+
+    .quotation-card {
+        border-radius: 12px;
+        transition: all 0.3s ease;
+        border: 1px solid #e9ecef;
+        margin-bottom: 1rem;
+    }
+
+    .quotation-card:hover {
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        transform: translateY(-2px);
+    }
+
+    .dropdown-menu {
+        z-index: 1050 !important;
+    }
+
+    .quotation-card {
+        position: relative;
+        z-index: 1;
+    }
+
+    .quotation-card .dropdown.show {
+        z-index: 1051;
+    }
+
+    .quotation-card:hover {
+        z-index: 2;
+    }
+
+    .status-badge {
+        padding: 0.4rem 0.9rem;
+        border-radius: 20px;
+        font-weight: 600;
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .status-draft { background-color: #e9ecef; color: #495057; }
+    .status-sent { background-color: #cfe2ff; color: #084298; }
+    .status-accepted { background-color: #d1e7dd; color: #0f5132; }
+    .status-rejected { background-color: #f8d7da; color: #842029; }
+    .status-expired { background-color: #fff3cd; color: #664d03; }
+
+    .create-btn {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border: none;
+        padding: 0.75rem 2rem;
+        border-radius: 8px;
+        font-weight: 600;
+        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+        transition: all 0.3s ease;
+    }
+
+    .create-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+    }
+
+    .filter-card {
+        background: white;
+        border-radius: 10px;
+        padding: 1.5rem;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        margin-bottom: 2rem;
+    }
+
+    @@media (max-width: 768px) {
+        .quotations-header {
+            padding: 1rem;
+        }
+
+        .stats-number {
+            font-size: 1.5rem;
+        }
+
+        .quotation-card {
+            margin-bottom: 0.75rem;
+        }
+    }
+</style>
+
+<div class="content">
+    <!-- Breadcrumb -->
+    <nav class="mb-3" aria-label="breadcrumb">
+        <ol class="breadcrumb mb-0">
+            <li class="breadcrumb-item"><a href="/Home/Index">Home</a></li>
+            <li class="breadcrumb-item active">Quotations</li>
+        </ol>
+    </nav>
+
+    <!-- Header with Stats -->
+    <div class="quotations-header">
+        <div class="row align-items-center">
+            <div class="col-md-6 mb-3 mb-md-0">
+                <h2 class="mb-2"><i class="fa-solid fa-file-invoice me-2"></i>Quotations</h2>
+                <p class="mb-0 opacity-75">Manage price quotations for interested leads</p>
+            </div>
+            <div class="col-md-6">
+                <div class="row g-3">
+                    <div class="col-6">
+                        <div class="stats-card text-center">
+                            <div class="stats-number">@Model.Count</div>
+                            <small>Total Quotations</small>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="stats-card text-center">
+                            <div class="stats-number">@Model.Count(q => q.Status == "Accepted")</div>
+                            <small>Accepted</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filters and Actions -->
+    <div class="filter-card">
+        <div class="row align-items-center g-3">
+            <div class="col-md-4">
+                <div class="input-group">
+                    
+                    <input type="text" class="form-control border-start-0 bg-light ps-0" id="searchInput" 
+                           placeholder="Search by customer, amount, status..." value="@ViewBag.SearchTerm">
+                </div>
+            </div>
+            <div class="col-md-3">
+                <select class="form-select" id="statusFilter">
+                    <option value="">All Status</option>
+                    <option value="Draft">Draft</option>
+                    <option value="Sent">Sent</option>
+                    <option value="Accepted">Accepted</option>
+                    <option value="Rejected">Rejected</option>
+                    <option value="Expired">Expired</option>
+                </select>
+            </div>
+            
+@if (canCreate)
+{
+    <div class="col-md-3 text-end">
+        <a href="/Quotations/Create" class="btn btn-primary create-btn w-100">
+            <i class="fa-solid fa-plus me-2"></i>New Quotation
+        </a>
+    </div>
+}
+        </div>
+    </div>
+
+    <!-- Quotations List -->
+    @if (Model.Any())
+    {
+        <div class="row" id="quotationsList">
+            @foreach (var quotation in Model)
+            {
+                var lead = leads.FirstOrDefault(l => l.LeadId == quotation.LeadId);
+                var property = properties.FirstOrDefault(p => p.PropertyId == quotation.PropertyId);
+                var flat = quotation.FlatId.HasValue ? flats.FirstOrDefault(f => f.FlatId == quotation.FlatId) : null;
+
+                <div class="col-12 paginated-item">
+                    <div class="card quotation-card" data-quotation-id="@quotation.QuotationId">
+                        <div class="card-body">
+                            <div class="row align-items-center">
+                                <!-- Quotation Info -->
+                                <div class="col-md-5">
+                                    <h5 class="mb-2">
+                                        <i class="fa-solid fa-file-invoice text-primary me-2"></i>
+                                        @quotation.QuotationNumber
+                                    </h5>
+                                    <span class="quotation-notes" style="display:none;">@quotation.Notes</span>
+                                    <p class="text-muted mb-1">
+                                        <i class="fa-solid fa-user me-2"></i>
+                                        <strong>@(lead?.Name ?? "Unknown Lead")</strong>
+                                    </p>
+                                    <p class="text-muted mb-1">
+                                        <i class="fa-solid fa-building me-2"></i>
+                                        @(property?.PropertyName ?? "Unknown Property")
+                                        @if (flat != null)
+                                        {
+                                            <span> - @flat.FlatName (@flat.BHK)</span>
+                                        }
+                                    </p>
+                                    <small class="text-muted">
+                                        <i class="fa-solid fa-calendar me-1"></i>
+                                        @quotation.QuotationDate.ToString("MMM dd, yyyy")
+                                        @if (quotation.ValidUntil.HasValue)
+                                        {
+                                            <span class="ms-2">| Valid until: @quotation.ValidUntil.Value.ToString("MMM dd, yyyy")</span>
+                                        }
+                                    </small>
+                                </div>
+
+                                <!-- Amount -->
+                                <div class="col-md-3 text-center my-3 my-md-0">
+                                    <div>
+                                        <small class="text-muted d-block">Grand Total</small>
+                                        <h4 class="text-primary mb-0">₹@quotation.GrandTotal.ToString("N0")</h4>
+                                        @if (quotation.DiscountAmount > 0)
+                                        {
+                                            <small class="text-success">
+                                                <i class="fa-solid fa-tag"></i> ₹@quotation.DiscountAmount.ToString("N0") off
+                                            </small>
+                                        }
+                                    </div>
+                                </div>
+
+                                <!-- Status -->
+                                <div class="col-md-2 text-center my-3 my-md-0">
+                                    <span class="status-badge status-@quotation.Status.ToLower()">
+                                        @quotation.Status
+                                    </span>
+                                </div>
+
+                                <!-- Actions -->
+                                <div class="col-md-2  gap-2 text-end">
+                                    <div class="btn-group gap-2 justify-content-end">
+                                        <a href="/Quotations/Details/@quotation.QuotationId" 
+                                           class="btn btn-sm btn-outline-primary" title="View Details">
+                                            <i class="fa-solid fa-eye"></i>
+                                        </a>
+                                        <button type="button" class="btn btn-sm btn-outline-secondary" 
+                                                data-bs-toggle="dropdown" aria-expanded="false">
+                                            <i class="fa-solid fa-ellipsis-v"></i>
+                                        </button>
+                                        <ul class="dropdown-menu dropdown-menu-end">
+                                            <li><a class="dropdown-item" href="/Quotations/Details/@quotation.QuotationId">
+                                                <i class="fa-solid fa-download me-2"></i>Download PDF</a></li>
+                                            @if (canEdit)
+                                            {
+                                                <li><hr class="dropdown-divider"></li>
+                                                <li><a class="dropdown-item status-action" href="#" data-quotation-id="@quotation.QuotationId" data-status="Sent">
+                                                    <i class="fa-solid fa-paper-plane me-2"></i>Mark as Sent</a></li>
+                                                <li><a class="dropdown-item status-action" href="#" data-quotation-id="@quotation.QuotationId" data-status="Accepted">
+                                                    <i class="fa-solid fa-check me-2"></i>Mark as Accepted</a></li>
+                                                <li><a class="dropdown-item status-action" href="#" data-quotation-id="@quotation.QuotationId" data-status="Rejected">
+                                                    <i class="fa-solid fa-times me-2"></i>Mark as Rejected</a></li>
+                                            }
+                                            @if (canDelete)
+                                            {
+                                                <li><hr class="dropdown-divider"></li>
+                                                <li><a class="dropdown-item text-danger delete-action" href="#" data-quotation-id="@quotation.QuotationId">
+                                                    <i class="fa-solid fa-trash me-2"></i>Delete</a></li>
+                                            }
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+        
+        <!-- Pagination -->
+        <div id="pagination-container" class="mt-4"></div>
+    }
+    else
+    {
+        <div class="text-center py-5">
+            <div style="font-size: 4rem; color: #dee2e6;">
+                <i class="fa-solid fa-file-invoice"></i>
+            </div>
+            <h4 class="text-muted mt-3">No Quotations Found</h4>
+            <p class="text-muted">Create your first quotation to get started</p>
+@if (canCreate)
+{
+    <a href="/Quotations/Create" class="btn btn-primary create-btn mt-3">
+        <i class="fa-solid fa-plus me-2"></i>Create Quotation
+    </a>
+}
+        </div>
+    }
+</div>
+
+<script>
+    function applyFilters() {
+        const search = $('#searchInput').val().toLowerCase();
+        const status = $('#statusFilter').val();
+        $('#quotationsList .quotation-card').each(function() {
+            var card = $(this);
+            var cardText = card.text().toLowerCase();
+            var badge = card.find('.status-badge').text().trim();
+            var matchesSearch = !search || cardText.includes(search);
+            var matchesStatus = !status || badge.toLowerCase() === status.toLowerCase();
+            if (matchesSearch && matchesStatus) {
+                card.closest('.col-12').show();
+            } else {
+                card.closest('.col-12').hide();
+            }
+        });
+    }
+
+    // Initialize when page is fully loaded
+    window.addEventListener('load', function() {
+        // Set initial status filter value
+        document.getElementById('statusFilter').value = '@ViewBag.StatusFilter';
+        
+        // Real-time search
+        document.getElementById('searchInput').addEventListener('input', applyFilters);
+        
+        // Status filter change
+        document.getElementById('statusFilter').addEventListener('change', applyFilters);
+        
+        // Enter key search
+        document.getElementById('searchInput').addEventListener('keypress', function(e) {
+            if (e.which === 13 || e.keyCode === 13) {
+                applyFilters();
+            }
+        });
+        
+        // Apply filters on page load
+        setTimeout(applyFilters, 100);
+        
+        // Event delegation for status actions
+        $(document).on('click', '.status-action', function(e) {
+            e.preventDefault();
+            var quotationId = $(this).data('quotation-id');
+            var status = $(this).data('status');
+            updateStatus(quotationId, status);
+        });
+        
+        $(document).on('click', '.delete-action', function(e) {
+            e.preventDefault();
+            var quotationId = $(this).data('quotation-id');
+            deleteQuotation(quotationId);
+        });
+    });
+
+    // function updateStatus(quotationId, status) {
+    //     // Create form and submit to redirect to Index
+    //     var form = $('<form method="post" action="/Quotations/UpdateStatus"></form>');
+    //     form.append('<input type="hidden" name="quotationId" value="' + quotationId + '">');
+    //     form.append('<input type="hidden" name="status" value="' + status + '">');
+    //     $('body').append(form);
+    //     form.submit();
+    // }
+    // function updateStatus(quotationId, status) {
+    //     $.ajax({
+    //         url: '/Quotations/UpdateStatus',
+    //         type: 'POST',
+    //         data: { quotationId: quotationId, status: status },
+    //         success: function (response) {
+    //             if (response.success) {
+    //                 Swal.fire('Success', response.message, 'success');
+    //                 setTimeout(function () {
+    //                     window.location.reload();
+    //                 }, 1500);
+    //             } else {
+    //                 Swal.fire('Error', response.message, 'error');
+    //             }
+    //         },
+    //         error: function () {
+    //             Swal.fire('Error', 'Failed to update status', 'error');
+    //         }
+    //     });
+    // }
+    function updateStatus(quotationId, status) {
+        // $.ajax({
+        //     url: '/Quotations/UpdateStatus',
+        //     type: 'POST',
+        //     dataType: 'json',
+        //     data: { quotationId: quotationId, status: status },
+        //     success: function (response) {
+        //         if (response.success) {
+        //             alert("Thanks")
+        //             Swal.fire('Success', response.message, 'success').then(function () {
+        //                 window.location.href = '/Quotations/Index';
+        //             });
+        //         } else {
+        //             Swal.fire('Error', response.message, 'error');
+        //         }
+        //     },
+        //     error: function () {
+        //         Swal.fire('Error', 'Failed to update status', 'error');
+        //     }
+        // });
+
+        $.ajax({
+            url: '/Quotations/UpdateStatus',
+            type: 'POST',
+            dataType: 'json',
+            data: { quotationId: quotationId, status: status },
+            traditional: true,
+            success: function (response) {
+                if (response.success) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Success!',
+                        text: response.message,
+                        timer: 2000,
+                        showConfirmButton: false
+                    }).then(() => {
+                        window.location.href = '/Quotations/Index';
+                    });
+                } else {
+                    Swal.fire('Error', response.message, 'error');
+                }
+            },
+            error: function () {
+                Swal.fire('Error', 'Failed to create quotation', 'error');
+            }
+        });
+    }
+    function deleteQuotation(quotationId) {
+        Swal.fire({
+            title: 'Are you sure?',
+            text: "You won't be able to revert this!",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: 'Yes, delete it!'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                $.ajax({
+                    url: '/Quotations/Delete/' + quotationId,
+                    type: 'POST',
+                    success: function(response) {
+                        if (response.success) {
+                            Swal.fire('Deleted!', response.message, 'success').then(() => {
+                                location.reload();
+                            });
+                        } else {
+                            Swal.fire('Error', response.message, 'error');
+                        }
+                    }
+                });
+            }
+        });
+    }
+</script>

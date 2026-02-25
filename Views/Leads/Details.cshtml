@@ -1,0 +1,1648 @@
+@model CRM.Models.LeadModel
+@{
+    ViewData["Title"] = "Lead Details";
+    var executives = ViewBag.Executives as List<dynamic>;
+    string executiveName = "Unassigned";
+    
+    if (Model.ExecutiveId.HasValue && Model.ExecutiveId.Value > 0 && executives != null)
+    {
+        var executive = executives.FirstOrDefault(e => (int)e.UserId == Model.ExecutiveId.Value);
+        if (executive != null)
+        {
+            try
+            {
+                executiveName = (string)executive.FullName ?? (string)executive.Username ?? "Unassigned";
+            }
+            catch
+            {
+                executiveName = executive.Username?.ToString() ?? "Unassigned";
+            }
+        }
+    }
+}
+
+<style>
+    /* Mobile responsive styles */
+    @@media (max-width: 768px) {
+        /* Prevent horizontal scroll */
+        body {
+            overflow-x: hidden;
+        }
+
+        html, body {
+            max-width: 100vw;
+            overflow-x: hidden;
+        }
+
+        .sticky-leads-sidebar {
+            position: relative !important;
+            margin-bottom: 1rem;
+        }
+
+        .pb-9 {
+            padding-bottom: 2rem !important;
+        }
+        /* Prevent horizontal overflow and remove gaps - MOBILE ONLY */
+        main.content {
+            padding: 0.5rem !important;
+            overflow-x: hidden !important;
+            max-width: 100vw;
+        }
+
+            main.content > .container-fluid {
+                padding-left: 0.5rem !important;
+                padding-right: 0.5rem !important;
+                max-width: 100% !important;
+                margin: 0 !important;
+                overflow-x: hidden !important;
+            }
+
+        .row {
+            margin-left: 0 !important;
+            margin-right: 0 !important;
+            max-width: 100%;
+        }
+
+        .col-12, .col-md-5, .col-md-7, .col-lg-5, .col-lg-7,
+        .col-xl-4, .col-xl-8, [class*="col-"] {
+            padding-left: 0.5rem !important;
+            padding-right: 0.5rem !important;
+            max-width: 100%;
+        }
+        /* Card adjustments */
+        .card {
+            margin-bottom: 0.75rem !important;
+            overflow-x: hidden;
+        }
+
+        .card-body {
+            overflow-x: hidden;
+            word-wrap: break-word;
+        }
+            /* Make cards more compact */
+            .card-body h6 {
+                font-size: 0.875rem;
+            }
+
+            .card-body p {
+                font-size: 0.875rem;
+                margin-bottom: 0.75rem !important;
+            }
+        /* Make tables responsive */
+        .table-responsive {
+            margin-left: 0;
+            margin-right: 0;
+            width: 100%;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .table {
+            margin-bottom: 0;
+        }
+        /* Adjust button groups */
+        .d-flex.flex-wrap.gap-2 {
+            gap: 0.5rem !important;
+        }
+
+        .btn {
+            font-size: 0.875rem;
+            padding: 0.4rem 0.8rem;
+            white-space: nowrap;
+        }
+        /* Adjust tab styling for mobile */
+        .nav-tabs .nav-link {
+            padding: 0.5rem 0.75rem;
+            font-size: 0.875rem;
+        }
+        /* Fix breadcrumb */
+        .breadcrumb {
+            font-size: 0.875rem;
+            margin-bottom: 0.5rem !important;
+        }
+        /* Fix tab content padding */
+        .tab-content {
+            padding: 0.75rem 0.5rem !important;
+            overflow-x: hidden;
+        }
+        /* Grid columns in cards */
+        .g-3, .g-md-4, .g-xl-6 {
+            --bs-gutter-x: 0.5rem !important;
+            --bs-gutter-y: 0.5rem !important;
+        }
+        /* Prevent wide content from breaking layout */
+        p, h1, h2, h3, h4, h5, h6, span, div {
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+        }
+    }
+</style>
+
+<div class="content">
+    <!-- Breadcrumb - Outside of header card -->
+    <nav class="mb-3" aria-label="breadcrumb">
+        <ol class="breadcrumb mb-0" style="background: transparent; padding: 0; font-size: 0.875rem;">
+            <li class="breadcrumb-item"><a href="/Home/Index" style="color: #6b7280; text-decoration: none;">Home</a></li>
+            <li class="breadcrumb-item"><a href="/Leads/Index" style="color: #6b7280; text-decoration: none;">Leads</a></li>
+            <li class="breadcrumb-item active" style="color: #2d3748;">@Model.Name</li>
+        </ol>
+    </nav>
+    
+    <!-- Modern Header -->
+    <div class="modern-header-section mb-4">
+        <div class="modern-header-bg">
+            <div class="header-content-wrapper">
+                <!-- Header Title -->
+                <div class="modern-header-title">
+                    <div class="d-flex align-items-center">
+                        <div class="header-icon me-3">
+                            <i class="fa-solid fa-user-circle"></i>
+                        </div>
+                        <div>
+                            <h1 class="header-main-title mb-1">@Model.Name</h1>
+                            <p class="header-subtitle mb-0">Lead Details & Activity Management</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="pb-9">
+        <!-- Header Actions -->
+        <div class="row">
+            <div class="col-12">
+                <div class="row align-items-center justify-content-between g-3 mb-3">
+                    <div class="col-12 col-md-auto">
+                        <h2 class="mb-0">Lead Details</h2>
+                    </div>
+                    <div class="col-12 col-md-auto">
+                        <div class="d-flex flex-wrap gap-2">
+                            <button class="btn btn-success" onclick="openNoteModal()">
+                                <span class="fa-solid fa-note-sticky me-2"></span>Add Note
+                            </button>
+                            <button class="btn btn-info" onclick="openFollowUpModal(@Model.LeadId)" style="color: #2d3748;">
+                                <span class="fa-solid fa-calendar-plus me-2"></span>Add Follow-up
+                            </button>
+                            <a href="/Leads/Index" class="btn btn-phoenix-secondary">
+                                <span class="fa-solid fa-arrow-left me-2"></span>Back to Leads
+                            </a>
+                            <button class="btn px-3 btn-phoenix-secondary" type="button" data-bs-toggle="dropdown"
+                                    data-boundary="window" aria-haspopup="true" aria-expanded="false" data-bs-reference="parent">
+                                <span class="fa-solid fa-ellipsis"></span>
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end p-0" style="z-index: 9999;">
+                                <li>
+                                    <a class="dropdown-item" href="#!" onclick="editLead(@Model.LeadId)">
+                                        <span class="fa-solid fa-edit me-2"></span>Edit Lead
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item" href="#!" onclick="sendEmail('@Model.Email')">
+                                        <span class="fa-solid fa-envelope me-2"></span>Send Email
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item" href="#!" onclick="callLead('@Model.Contact')">
+                                        <span class="fa-solid fa-phone me-2"></span>Call Lead
+                                    </a>
+                                </li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li>
+                                    <a class="dropdown-item text-danger" href="#!" onclick="deleteLead(@Model.LeadId)">
+                                        <span class="fa-solid fa-trash me-2"></span>Delete Lead
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content Grid -->
+        <div class="row g-3 g-md-4 g-xl-6">
+            <!-- Left Sidebar - Lead Info Cards -->
+            <div class="col-12 col-md-5 col-lg-5 col-xl-4">
+                <div class="sticky-leads-sidebar">
+                    <!-- Lead Profile Card -->
+                    <div class="card mb-3 position-relative">
+                        <!-- WhatsApp Icon Button - Hidden for future implementation -->
+                        <button class="whatsapp-icon-btn" 
+                                onclick="openWhatsAppModal(@Model.LeadId, '@Model.Name', '@Model.Contact')"
+                                title="Send WhatsApp Message"
+                                style="display: none;">
+                            <i class="fab fa-whatsapp"></i>
+                        </button>
+                        
+                        <div class="card-body">
+                            <div class="d-flex align-items-center gap-3">
+                                <div class="avatar avatar-xl" style="flex-shrink: 0;">
+                                    <div class="avatar-name rounded-circle" style="width: 60px; height: 60px; display: flex; align-items: center; justify-content: center; background: #e0e7ff !important; color: #4f46e5 !important;">
+                                        <span class="fs-4 fw-bold">@Model.Name.Substring(0, 1).ToUpper()</span>
+                                    </div>
+                                </div>
+                                <div class="flex-1" style="min-width: 0;">
+                                    <h3 class="fw-bolder mb-2">@Model.Name</h3>
+                                    <div class="d-flex flex-wrap align-items-center gap-2">
+                                        <span class="badge badge-phoenix badge-phoenix-@(Model.Status == "Active" ? "success" : Model.Status == "Hot" ? "danger" : Model.Status == "Warm" ? "warning" : Model.Status == "Cold" ? "info" : "secondary")">
+                                            @Model.Status
+                                        </span>
+                                        <span class="badge badge-phoenix badge-phoenix-@(Model.Stage == "New" ? "primary" : Model.Stage == "Qualified" ? "success" : Model.Stage == "Negotiation" ? "warning" : Model.Stage == "Closed" ? "success" : "secondary")">
+                                            @Model.Stage
+                                        </span>
+                                        @if (!string.IsNullOrEmpty(Model.Rating))
+                                        {
+                                            <span class="badge bg-info text-white" style="font-size: 0.75rem; padding: 0.3rem 0.625rem;">@Model.Rating ⭐</span>
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Contact Information Card -->
+                    <div class="card mb-3">
+                        <div class="card-body">
+                            <div class="d-flex align-items-center mb-4">
+                                <h4 class="mb-0">Contact Information</h4>
+                            </div>
+
+                            <div class="mb-4">
+                                <div class="d-flex align-items-center mb-1">
+                                    <span class="me-2 fa-solid fa-envelope"></span>
+                                    <h5 class="text-body-highlight mb-0 fs-9">Email</h5>
+                                </div>
+                                <a href="mailto:@Model.Email" class="text-primary">@(Model.Email ?? "Not provided")</a>
+                            </div>
+
+                            <div class="mb-4">
+                                <div class="d-flex align-items-center mb-1">
+                                    <span class="me-2 fa-solid fa-phone"></span>
+                                    <h5 class="text-body-highlight mb-0 fs-9">Phone</h5>
+                                </div>
+                                <div class="d-flex align-items-center gap-2">
+                                    <a href="tel:@Model.Contact" class="text-primary">@Model.Contact</a>
+                                    <!-- WhatsApp button hidden for future implementation -->
+                                    <button class="btn btn-success btn-sm" 
+                                            onclick="openWhatsAppHistory(@Model.LeadId)"
+                                            title="View WhatsApp History"
+                                            style="display: none;">
+                                        <i class="fab fa-whatsapp"></i>
+                                    </button>
+                                </div>
+                            </div>
+
+                            @if (!string.IsNullOrEmpty(Model.GroupName))
+                            {
+                                <div class="mb-4">
+                                    <div class="d-flex align-items-center mb-1">
+                                        <span class="me-2 fa-solid fa-users"></span>
+                                        <h5 class="text-body-highlight mb-0 fs-9">Group Name</h5>
+                                    </div>
+                                    <p class="mb-0 text-body-secondary">@Model.GroupName</p>
+                                </div>
+                            }
+
+                            <div class="mb-4">
+                                <div class="d-flex align-items-center mb-1">
+                                    <span class="me-2 fa-solid fa-user-tie"></span>
+                                    <h5 class="text-body-highlight mb-0 fs-9">Assigned Executive</h5>
+                                </div>
+                                <p class="mb-0 text-body-secondary fw-semibold">@executiveName</p>
+                            </div>
+
+                            @if (!string.IsNullOrEmpty(Model.Source))
+                            {
+                                <div class="mb-4">
+                                    <div class="d-flex align-items-center mb-1">
+                                        <span class="me-2 fa-solid fa-bullseye"></span>
+                                        <h5 class="text-body-highlight mb-0 fs-9">Lead Source</h5>
+                                    </div>
+                                    <p class="mb-0 text-body-secondary">@Model.Source</p>
+                                </div>
+                            }
+
+                            <div class="mb-4">
+                                <div class="d-flex align-items-center mb-1">
+                                    <span class="me-2 fa-solid fa-clock"></span>
+                                    <h5 class="text-body-highlight mb-0 fs-9">Created On</h5>
+                                </div>
+                                <p class="mb-0 text-body-secondary">@Model.CreatedOn.ToString("MMMM dd, yyyy hh:mm tt")</p>
+                            </div>
+
+                            @if (Model.ModifiedOn.HasValue)
+                            {
+                                <div class="mb-0">
+                                    <div class="d-flex align-items-center mb-1">
+                                        <span class="me-2 fa-solid fa-pen"></span>
+                                        <h5 class="text-body-highlight mb-0 fs-9">Last Modified</h5>
+                                    </div>
+                                    <p class="mb-0 text-body-secondary">@Model.ModifiedOn.Value.ToString("MMMM dd, yyyy hh:mm tt")</p>
+                                </div>
+                            }
+                        </div>
+                    </div>
+
+                    <!-- Property Requirements Card -->
+                    <div class="card mb-3">
+                        <div class="card-body">
+                            <div class="d-flex align-items-center mb-4">
+                                <h4 class="mb-0">Property Requirements</h4>
+                            </div>
+
+                            @if (!string.IsNullOrEmpty(Model.PreferredLocation))
+                            {
+                                <div class="mb-4">
+                                    <div class="d-flex align-items-center mb-1">
+                                        <span class="me-2 fa-solid fa-location-dot"></span>
+                                        <h5 class="text-body-highlight mb-0 fs-9">Preferred Location</h5>
+                                    </div>
+                                    <p class="mb-0 text-body-secondary">@Model.PreferredLocation</p>
+                                </div>
+                            }
+
+                            @if (!string.IsNullOrEmpty(Model.Type))
+                            {
+                                <div class="mb-4">
+                                    <div class="d-flex align-items-center mb-1">
+                                        <span class="me-2 fa-solid fa-tag"></span>
+                                        <h5 class="text-body-highlight mb-0 fs-9">Type</h5>
+                                    </div>
+                                    <p class="mb-0 text-body-secondary">@Model.Type</p>
+                                </div>
+                            }
+
+                            @if (!string.IsNullOrEmpty(Model.PropertyType))
+                            {
+                                <div class="mb-4">
+                                    <div class="d-flex align-items-center mb-1">
+                                        <span class="me-2 fa-solid fa-building"></span>
+                                        <h5 class="text-body-highlight mb-0 fs-9">Property Type</h5>
+                                    </div>
+                                    <p class="mb-0 text-body-secondary">@Model.PropertyType</p>
+                                </div>
+                            }
+
+                            @if (!string.IsNullOrEmpty(Model.BHK))
+                            {
+                                <div class="mb-4">
+                                    <div class="d-flex align-items-center mb-1">
+                                        <span class="me-2 fa-solid fa-home"></span>
+                                        <h5 class="text-body-highlight mb-0 fs-9">BHK</h5>
+                                    </div>
+                                    <p class="mb-0 text-body-secondary">@Model.BHK</p>
+                                </div>
+                            }
+
+                            @if (!string.IsNullOrEmpty(Model.Sqft))
+                            {
+                                <div class="mb-4">
+                                    <div class="d-flex align-items-center mb-1">
+                                        <span class="me-2 fa-solid fa-ruler-combined"></span>
+                                        <h5 class="text-body-highlight mb-0 fs-9">Square Feet</h5>
+                                    </div>
+                                    <p class="mb-0 text-body-secondary">@Model.Sqft sq.ft</p>
+                                </div>
+                            }
+
+                            @if (!string.IsNullOrEmpty(Model.Facing))
+                            {
+                                <div class="mb-4">
+                                    <div class="d-flex align-items-center mb-1">
+                                        <span class="me-2 fa-solid fa-compass"></span>
+                                        <h5 class="text-body-highlight mb-0 fs-9">Facing</h5>
+                                    </div>
+                                    <p class="mb-0 text-body-secondary">@Model.Facing</p>
+                                </div>
+                            }
+
+                            @if (!string.IsNullOrEmpty(Model.LocationDistance))
+                            {
+                                <div class="mb-0">
+                                    <div class="d-flex align-items-center mb-1">
+                                        <span class="me-2 fa-solid fa-road"></span>
+                                        <h5 class="text-body-highlight mb-0 fs-9">Location Distance</h5>
+                                    </div>
+                                    <p class="mb-0 text-body-secondary">@Model.LocationDistance</p>
+                                </div>
+                            }
+                        </div>
+                    </div>
+
+                    <!-- Additional Details Card -->
+                    @if (!string.IsNullOrEmpty(Model.Requirement) || !string.IsNullOrEmpty(Model.Comments))
+                    {
+                        <div class="card mb-3">
+                            <div class="card-body">
+                                <div class="d-flex align-items-center mb-4">
+                                    <h4 class="mb-0">Additional Details</h4>
+                                </div>
+
+                                @if (!string.IsNullOrEmpty(Model.Requirement))
+                                {
+                                    <div class="mb-4">
+                                        <div class="d-flex align-items-center mb-1">
+                                            <span class="me-2 fa-solid fa-list-check"></span>
+                                            <h5 class="text-body-highlight mb-0 fs-9">Requirements</h5>
+                                        </div>
+                                        <p class="mb-0 text-body-secondary">@Model.Requirement</p>
+                                    </div>
+                                }
+
+                                @if (!string.IsNullOrEmpty(Model.Comments))
+                                {
+                                    <div class="mb-0">
+                                        <div class="d-flex align-items-center mb-1">
+                                            <span class="me-2 fa-solid fa-comment"></span>
+                                            <h5 class="text-body-highlight mb-0 fs-9">Comments</h5>
+                                        </div>
+                                        <p class="mb-0 text-body-secondary">@Model.Comments</p>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    }
+
+                    <!-- Follow-up Date Card -->
+                    @if (Model.FollowUpDate.HasValue)
+                    {
+                        var daysRemaining = (Model.FollowUpDate.Value.Date - DateTime.Today).Days;
+                        var statusClass = Model.Status switch
+                        {
+                            "Active" => "success",
+                            "Hot" => "danger",
+                            "Warm" => "warning",
+                            "Cold" => "info",
+                            _ => "primary"
+                        };
+
+                        <div class="card mb-3 followup-card">
+                            <div class="card-body">
+                                <div class="d-flex align-items-center mb-2">
+                                    <span class="me-2 fa-solid fa-calendar-check fs-5" style="color: #667eea;"></span>
+                                    <h5 class="mb-0" style="color: #667eea; font-weight: 600;">Next Follow-up</h5>
+                                </div>
+                                <p class="mb-1 fw-semibold fs-7">@Model.FollowUpDate.Value.ToString("MMMM dd, yyyy")</p>
+                                <p class="mb-2 text-body-tertiary fs-9">
+                                    @if (daysRemaining == 0)
+                                    {
+                                        <span class="text-danger fw-bold">Today</span>
+                                    }
+                                    else if (daysRemaining == 1)
+                                    {
+                                        <span class="text-warning fw-bold">Tomorrow</span>
+                                    }
+                                    else if (daysRemaining < 0)
+                                    {
+                                        <span class="text-danger fw-bold">@Math.Abs(daysRemaining) days overdue</span>
+                                    }
+                                    else
+                                    {
+                                        <span>@daysRemaining days remaining</span>
+                                    }
+                                </p>
+                                @if (!string.IsNullOrEmpty(Model.Stage))
+                                {
+                                    <div class="d-flex gap-2">
+                                        <span class="badge bg-primary fs-10">@Model.Stage</span>
+                                        @if (!string.IsNullOrEmpty(Model.Status))
+                                        {
+                                            <span class="badge bg-@statusClass fs-10">@Model.Status</span>
+                                        }
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <!-- Right Content Area - Activity Tabs -->
+            <div class="col-12 col-md-7 col-lg-7 col-xl-8">
+                <div class="lead-details-container">
+                    <!-- Tab Navigation -->
+                    <nav class="navbar pb-4 px-0 sticky-top bg-white nav-underline-scrollspy" id="navbar-lead-detail">
+                        <ul class="nav nav-underline fs-9 flex-nowrap scrollbar">
+                            <li class="nav-item">
+                                <a class="nav-link active me-2" href="#scrollspyHistory"
+                                   onclick="loadHistory(@Model.LeadId)">
+                                    <span class="fa-solid fa-clock-rotate-left me-1"></span>Activities
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link me-2" href="#scrollspyFollowups"
+                                   onclick="loadFollowups(@Model.LeadId)">
+                                    <span class="fa-solid fa-calendar-days me-1"></span>Follow-ups
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link me-2" href="#scrollspyNotes"
+                                   onclick="loadNotes(@Model.LeadId)">
+                                    <span class="fa-solid fa-note-sticky me-1"></span>Notes
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link me-2" href="#scrollspyUploads"
+                                   onclick="loadUploads(@Model.LeadId)">
+                                    <span class="fa-solid fa-file-arrow-up me-1"></span>Uploads
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="#scrollspySiteVisits"
+                                   onclick="loadSiteVisits(@Model.LeadId)">
+                                    <span class="fa-solid fa-building-circle-check me-1"></span>Site Visit Activities
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="#scrollspyDocuments" onclick="loadDocuments(@Model.LeadId)">
+                                    <span class="fa-solid fa-file-invoice me-1"></span>Documents & Transactions
+                                </a>
+                            </li>
+                        </ul>
+                    </nav>
+
+                    <!-- Dynamic Content Area -->
+                    <div id="detailSubContent" class="min-vh-50">
+                        <!-- Initial loading state -->
+                        <div class="text-center py-5">
+                            <div class="spinner-border text-primary" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                            <p class="mt-3 text-body-tertiary">Loading activities...</p>
+                        </div>
+                        <!-- Documents & Transactions Section -->
+                        <div id="documentsSection" class="documents-section" style="display:none;">
+                            <div class="card mb-4 document-card quotation-card">
+                                <div class="card-header document-header">
+                                    <div class="d-flex align-items-center justify-content-between">
+                                        <div class="d-flex align-items-center">
+                                            <div class="document-icon quotation-icon me-3">
+                                                <i class="fa-solid fa-file-invoice"></i>
+                                            </div>
+                                            <h4 class="mb-0 fw-bold">Quotations</h4>
+                                        </div>
+                                        <button class="btn btn-modern btn-primary" onclick="createQuotation(@Model.LeadId)">
+                                            <i class="fa-solid fa-plus me-2"></i>New Quotation
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="card-body">
+                                    <div id="quotationList" class="document-list"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="card mb-4 document-card booking-card">
+                                <div class="card-header document-header">
+                                    <div class="d-flex align-items-center">
+                                        <div class="document-icon booking-icon me-3">
+                                            <i class="fa-solid fa-handshake"></i>
+                                        </div>
+                                        <h4 class="mb-0 fw-bold">Booking Documents</h4>
+                                    </div>
+                                </div>
+                                <div class="card-body">
+                                    <div id="bookingDocumentsList" class="document-list"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="card mb-4 document-card invoice-card">
+                                <div class="card-header document-header">
+                                    <div class="d-flex align-items-center justify-content-between">
+                                        <div class="d-flex align-items-center">
+                                            <div class="document-icon invoice-icon me-3">
+                                                <i class="fa-solid fa-receipt"></i>
+                                            </div>
+                                            <h4 class="mb-0 fw-bold">Invoice Documents</h4>
+                                        </div>
+                                        <button class="btn btn-modern btn-info" onclick="createInvoice(@Model.LeadId)">
+                                            <i class="fa-solid fa-plus me-2"></i>New Invoice
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="card-body">
+                                    <div id="invoiceDocumentsList" class="document-list"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="card mb-4 document-card payment-card">
+                                <div class="card-header document-header">
+                                    <div class="d-flex align-items-center justify-content-between">
+                                        <div class="d-flex align-items-center">
+                                            <div class="document-icon payment-icon me-3">
+                                                <i class="fa-solid fa-credit-card"></i>
+                                            </div>
+                                            <h4 class="mb-0 fw-bold">Payments</h4>
+                                        </div>
+                                        <button class="btn btn-modern btn-success" onclick="recordPayment(@Model.LeadId)">
+                                            <i class="fa-solid fa-plus me-2"></i>Record Payment
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="card-body">
+                                    <div id="paymentsList" class="document-list"></div>
+                                </div>
+                            </div>
+                            
+                            <div id="noDocumentsMessage" class="modern-alert" style="display:none;">
+                                <div class="alert-content">
+                                    <i class="fa-solid fa-info-circle me-3"></i>
+                                    <div>
+                                        <h5 class="mb-1">No Documents Available</h5>
+                                        <p class="mb-0">No quotations, bookings, or invoices available for this lead yet.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Sticky Sidebar */
+    .sticky-leads-sidebar {
+        position: sticky;
+        top: 20px;
+    }
+
+    /* Avatar Name Styles */
+    .avatar-name {
+        width: 100%;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+    }
+
+    /* Navigation Underline Active State - Modern Underline Style */
+    .nav-underline .nav-link.active {
+        background: transparent;
+        color: #667eea !important;
+        border-radius: 0;
+        padding: 0.625rem 1rem;
+        border-bottom: 3px solid #667eea !important;
+        font-weight: 600;
+    }
+
+    .nav-underline .nav-link {
+        color: #6b7280;
+        border-bottom: 3px solid transparent;
+        transition: all 0.3s ease;
+        padding: 0.625rem 1rem;
+        border-radius: 0;
+        font-weight: 500;
+        background: transparent;
+    }
+
+        .nav-underline .nav-link:hover {
+            background-color: transparent;
+            color: #667eea;
+            border-bottom-color: rgba(102, 126, 234, 0.3);
+        }
+
+    /* Smooth Scrolling for Tab Navigation */
+    .nav-underline-scrollspy {
+        border-bottom: 1px solid #e5e7eb;
+        background: white;
+    }
+
+    /* Content Area Minimum Height */
+    .min-vh-50 {
+        min-height: 50vh;
+    }
+
+    /* Card Hover Effects */
+    .card {
+        transition: all 0.3s ease;
+    }
+
+        .card:hover {
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.1);
+        }
+
+    /* Custom Scrollbar for Navigation */
+    .nav.scrollbar {
+        overflow-x: auto;
+        overflow-y: hidden;
+        white-space: nowrap;
+        scrollbar-width: none; /* Firefox */
+        -ms-overflow-style: none; /* IE/Edge */
+    }
+
+        .nav.scrollbar::-webkit-scrollbar {
+            display: none; /* Chrome/Safari */
+        }
+
+    /* Loading Spinner */
+    .spinner-border {
+        width: 3rem;
+        height: 3rem;
+    }
+
+    /* Dark Mode Support */
+    .dark-mode .modern-header-bg {
+        background: linear-gradient(135deg, #1e1b4b 0%, #581c87 100%) !important;
+    }
+    
+    .dark-mode .card {
+        background: #222639 !important;
+        border-color: #2c3049 !important;
+        color: #e4e6eb !important;
+    }
+    
+    .dark-mode .card-body h4,
+    .dark-mode .card-body h5 {
+        color: #e4e6eb !important;
+    }
+    
+    .dark-mode .text-body-secondary {
+        color: #a6adc8 !important;
+    }
+    
+    .dark-mode .text-body-highlight {
+        color: #e4e6eb !important;
+    }
+
+    /* Responsive Adjustments */
+    @@media (max-width: 768px) {
+        .modern-header-section {
+            margin: -0.5rem -0.5rem 1rem -0.5rem;
+        }
+        
+        .header-content-wrapper {
+            padding: 1.5rem;
+        }
+        
+        .header-main-title {
+            font-size: 2rem;
+        }
+        
+        .header-icon {
+            font-size: 2rem;
+        }
+        .sticky-leads-sidebar {
+            position: relative !important;
+            top: 0 !important;
+            margin-bottom: 1rem;
+        }
+
+        .nav-underline {
+            overflow-x: auto;
+            display: flex;
+            flex-wrap: nowrap;
+        }
+
+            .nav-underline .nav-link {
+                white-space: nowrap;
+                font-size: 0.875rem;
+                padding: 6px 12px;
+            }
+
+        .avatar.avatar-5xl {
+            width: 80px !important;
+            height: 80px !important;
+            border-width: 2px;
+        }
+        /* Make cards more compact */
+        .card-body {
+            padding: 1rem;
+        }
+
+            .card-body h4 {
+                font-size: 1.1rem;
+            }
+
+            .card-body h5 {
+                font-size: 1rem;
+            }
+
+            .card-body p {
+                font-size: 0.875rem;
+            }
+        /* Adjust spacing */
+        .pb-9 {
+            padding-bottom: 2rem !important;
+        }
+
+        .g-3 {
+            gap: 0.75rem !important;
+        }
+        /* Make buttons stack better */
+        .d-flex.flex-wrap.gap-2 {
+            gap: 0.5rem !important;
+        }
+
+        .btn {
+            font-size: 0.875rem;
+            padding: 0.375rem 0.75rem;
+        }
+        /* Timeline adjustments */
+        .timeline-item {
+            padding-left: 1rem;
+        }
+        /* Table responsive */
+        .table-responsive {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+        /* Reduce header size */
+        h2 {
+            font-size: 1.5rem !important;
+        }
+
+        h3 {
+            font-size: 1.25rem !important;
+        }
+        /* Fix column gaps */
+        .row.g-3.g-md-4.g-xl-6 {
+            gap: 0.75rem !important;
+        }
+
+        .col-md-5, .col-md-7 {
+            padding-left: 0.5rem;
+            padding-right: 0.5rem;
+        }
+    }
+
+    /* Extra small devices */
+    @@media (max-width: 576px) {
+        .avatar.avatar-5xl {
+            width: 60px !important;
+            height: 60px !important;
+            border-width: 2px;
+        }
+
+            .avatar.avatar-5xl .fs-2 {
+                font-size: 1.5rem !important;
+            }
+        /* Make action buttons full width on mobile */
+        .d-flex.flex-wrap.gap-2 {
+            width: 100%;
+        }
+
+            .d-flex.flex-wrap.gap-2 .btn {
+                flex: 1 1 auto;
+            }
+        /* Smaller badges */
+        .badge {
+            font-size: 0.75rem !important;
+            padding: 0.25rem 0.5rem;
+        }
+        /* Contact info compact */
+        .card-body .row.g-2 p {
+            margin-bottom: 0.5rem;
+        }
+    }
+
+    /* Modern Header Styles - Cleaner Design */
+    .modern-header-section {
+        margin: -1rem -1rem 2rem -1rem;
+        padding: 0;
+    }
+    
+    .modern-header-bg {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        position: relative;
+        overflow: hidden;
+        border-radius: 0 0 16px 16px;
+        box-shadow: 0 4px 20px rgba(102, 126, 234, 0.15);
+    }
+    
+    .modern-header-bg::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="50" cy="50" r="1" fill="%23ffffff" opacity="0.1"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>') repeat;
+        opacity: 0.2;
+    }
+    
+    .header-content-wrapper {
+        position: relative;
+        z-index: 2;
+        padding: 1.5rem 1.25rem;
+        color: white;
+    }
+    
+    .breadcrumb-modern {
+        background: rgba(255, 255, 255, 0.08);
+        padding: 0.3rem 0.75rem;
+        border-radius: 6px;
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        display: inline-flex;
+        font-size: 0.75rem;
+        opacity: 0.7;
+    }
+    
+    .breadcrumb-modern .breadcrumb-item a {
+        color: rgba(255, 255, 255, 0.75);
+        text-decoration: none;
+        transition: color 0.2s;
+    }
+    
+    .breadcrumb-modern .breadcrumb-item a:hover {
+        color: rgba(255, 255, 255, 0.95);
+    }
+    
+    .breadcrumb-modern .breadcrumb-item.active {
+        color: rgba(255, 255, 255, 0.85);
+        font-weight: 400;
+    }
+    
+    .breadcrumb-modern .breadcrumb-item + .breadcrumb-item::before {
+        color: rgba(255, 255, 255, 0.5);
+    }
+    
+    .header-icon {
+        font-size: 2.5rem;
+        opacity: 0.95;
+    }
+    
+    .header-main-title {
+        font-size: 1.875rem;
+        font-weight: 600;
+        margin: 0;
+        text-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    }
+    
+    .header-subtitle {
+        font-size: 0.95rem;
+        opacity: 0.85;
+        font-weight: 400;
+    }
+    
+    /* Enhanced Card Styles - Cleaner Design */
+    .card {
+        border: none;
+        border-radius: 12px;
+        box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+        transition: all 0.3s ease;
+        background: white;
+        border: 1px solid rgba(0, 0, 0, 0.06);
+        margin-bottom: 1rem;
+    }
+    
+    .card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        border-color: rgba(102, 126, 234, 0.15);
+    }
+    
+    .card-body {
+        padding: 1.25rem;
+    }
+    
+    .card-body h4 {
+        font-size: 1.125rem;
+        font-weight: 600;
+        color: #2d3748;
+        margin-bottom: 1rem;
+    }
+    
+    .card-body h5 {
+        font-size: 0.8125rem;
+        font-weight: 600;
+        color: #4a5568;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    
+    /* Enhanced Avatar - Softer Colors */
+    .avatar.avatar-5xl {
+        width: 90px;
+        height: 90px;
+        border: 3px solid rgba(102, 126, 234, 0.1);
+        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.12);
+    }
+    
+    .avatar.avatar-xl {
+        width: 60px;
+        height: 60px;
+        border: 2px solid rgba(79, 70, 229, 0.1);
+        box-shadow: 0 2px 10px rgba(79, 70, 229, 0.08);
+    }
+    
+    .avatar-name {
+        background: #e0e7ff !important;
+        color: #4f46e5 !important;
+    }
+
+    /* Badge Custom Colors - Softer Tones */
+    .badge-phoenix-success,
+    .badge-phoenix-warning,
+    .badge-phoenix-info,
+    .badge-phoenix-primary,
+    .badge-phoenix-secondary,
+    .badge-phoenix-danger {
+        font-weight: 500;
+        padding: 0.3rem 0.625rem;
+        font-size: 0.75rem;
+        border-radius: 12px;
+    }
+    
+    .badge-phoenix-success {
+        background-color: rgba(16, 185, 129, 0.1);
+        color: #10b981;
+    }
+
+    .badge-phoenix-warning {
+        background-color: rgba(245, 158, 11, 0.1);
+        color: #f59e0b;
+    }
+
+    .badge-phoenix-info {
+        background-color: rgba(59, 130, 246, 0.1);
+        color: #3b82f6;
+    }
+
+    .badge-phoenix-primary {
+        background-color: rgba(102, 126, 234, 0.1);
+        color: #667eea;
+    }
+
+    .badge-phoenix-secondary {
+        background-color: rgba(107, 114, 128, 0.1);
+        color: #6b7280;
+    }
+
+    .badge-phoenix-danger {
+        background-color: rgba(239, 68, 68, 0.1);
+        color: #ef4444;
+    }
+
+    /* Dynamic Content Animations */
+    #detailSubContent {
+        animation: fadeIn 0.3s ease-in;
+    }
+
+    @@keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(10px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    /* Phoenix Button Styles - Cleaner */
+    .btn-phoenix-primary,
+    .btn-success,
+    .btn-info {
+        border-radius: 8px;
+        font-weight: 500;
+        padding: 0.625rem 1.25rem;
+        font-size: 0.875rem;
+        border: none;
+        transition: all 0.3s ease;
+    }
+
+    .btn-phoenix-primary {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+    }
+
+    .btn-phoenix-primary:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+        color: white;
+    }
+
+    .btn-phoenix-secondary {
+        background-color: white;
+        color: #4a5568;
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        font-weight: 500;
+        padding: 0.625rem 1.25rem;
+        font-size: 0.875rem;
+        transition: all 0.3s ease;
+    }
+
+    .btn-phoenix-secondary:hover {
+        background-color: #f9fafb;
+        border-color: #cbd5e0;
+        transform: translateY(-1px);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    }
+    
+    /* Follow-up Card Styling */
+    .followup-card {
+        border-left: 3px solid #667eea !important;
+        background: rgba(102, 126, 234, 0.02);
+    }
+
+    /* Documents & Transactions Section Styles - Cleaner Design */
+    .documents-section {
+        animation: fadeIn 0.3s ease-in;
+    }
+    
+    .document-card {
+        border: none;
+        border-radius: 12px;
+        box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+        border: 1px solid rgba(0, 0, 0, 0.06);
+        transition: all 0.3s ease;
+        overflow: hidden;
+        margin-bottom: 1.25rem;
+    }
+    
+    .document-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    }
+    
+    .document-header {
+        background: #f9fafb;
+        border: none;
+        padding: 1.25rem;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+    }
+    
+    .quotation-card .document-header {
+        background: rgba(102, 126, 234, 0.04);
+        border-left: 3px solid #667eea;
+    }
+    
+    .booking-card .document-header {
+        background: rgba(16, 185, 129, 0.04);
+        border-left: 3px solid #10b981;
+    }
+    
+    .invoice-card .document-header {
+        background: rgba(59, 130, 246, 0.04);
+        border-left: 3px solid #3b82f6;
+    }
+    
+    .payment-card .document-header {
+        background: rgba(16, 185, 129, 0.04);
+        border-left: 3px solid #10b981;
+    }
+    
+    .document-icon {
+        width: 42px;
+        height: 42px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.25rem;
+        color: white;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+    
+    .quotation-icon {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    }
+    
+    .booking-icon {
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    }
+    
+    .invoice-icon {
+        background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+    }
+    
+    .payment-icon {
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    }
+    
+    .btn-modern {
+        border-radius: 8px;
+        padding: 0.625rem 1.25rem;
+        font-weight: 500;
+        border: none;
+        transition: all 0.3s ease;
+        font-size: 0.875rem;
+    }
+    
+    .btn-modern:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+    
+    .document-list .list-group {
+        border: none;
+    }
+    
+    .document-list .list-group-item {
+        border: none;
+        border-radius: 8px;
+        margin-bottom: 0.625rem;
+        padding: 1rem;
+        background: #f9fafb;
+        border: 1px solid rgba(0, 0, 0, 0.06);
+        transition: all 0.3s ease;
+    }
+    
+    .document-list .list-group-item:hover {
+        transform: translateX(3px);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        background: white;
+    }
+    
+    .document-list .btn-outline-primary {
+        border-radius: 6px;
+        padding: 0.4rem 0.875rem;
+        font-size: 0.8125rem;
+        font-weight: 500;
+        transition: all 0.3s ease;
+    }
+    
+    .document-list .btn-outline-primary:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 2px 8px rgba(102, 126, 234, 0.25);
+    }
+    
+    .modern-alert {
+        background: rgba(59, 130, 246, 0.04);
+        border: 1px solid rgba(59, 130, 246, 0.15);
+        border-radius: 12px;
+        padding: 1.5rem;
+        text-align: center;
+    }
+    
+    .modern-alert .alert-content {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-align: left;
+    }
+    
+    .modern-alert i {
+        font-size: 1.75rem;
+        color: #3b82f6;
+    }
+    
+    .modern-alert h5 {
+        color: #2d3748;
+        font-weight: 600;
+        font-size: 1rem;
+    }
+    
+    .modern-alert p {
+        color: #6b7280;
+        margin: 0;
+        font-size: 0.875rem;
+    }
+    
+    /* Dark Mode Support */
+    .dark-mode .document-card {
+        background: #222639 !important;
+        border-color: #2c3049 !important;
+    }
+    
+    .dark-mode .document-header {
+        background: #2c3049 !important;
+        color: #e4e6eb !important;
+    }
+    
+    .dark-mode .document-list .list-group-item {
+        background: #2c3049 !important;
+        color: #e4e6eb !important;
+        border-color: #3d4461 !important;
+    }
+    
+    .dark-mode .modern-alert {
+        background: #2c3049 !important;
+        border-color: #3d4461 !important;
+    }
+    
+    .dark-mode .modern-alert h5 {
+        color: #e4e6eb !important;
+    }
+    
+    .dark-mode .modern-alert p {
+        color: #a6adc8 !important;
+    }
+
+    /* Icon Colors */
+    .fa-solid.text-primary {
+        color: var(--phoenix-primary) !important;
+    }
+</style>
+
+<script>
+    // AJAX Content Loading Functions
+    function loadFollowups(leadId) {
+        showLoading();
+        $.ajax({
+            url: '/Leads/GetFollowups',
+            type: 'GET',
+            data: { leadId: leadId },
+            success: function (data) {
+                $("#detailSubContent").html(data);
+            },
+            error: function (xhr, status, error) {
+                console.error('Error loading follow-ups:', error);
+                showError("Failed to load follow-ups");
+            }
+        });
+        if (typeof event !== 'undefined' && event && event.target) {
+            setActiveTab(event.target);
+        }
+    }
+    // Load Documents & Transactions
+    function loadDocuments(leadId) {
+        // Hide other content, show documents section
+        $("#detailSubContent > div").hide();
+        $("#documentsSection").show();
+        // Fetch quotations
+        $.get('/Leads/GetQuotations', { leadId: leadId }, function (data) {
+            console.log('Quotations:', data);
+            if (data && data.length > 0) {
+                let html = '<ul class="list-group">';
+                data.forEach(function (q) {
+                    const id = q.QuotationId ?? q.quotationId;
+                    const status = q.Status ?? q.status;
+                    html += `<li class="list-group-item d-flex justify-content-between align-items-center">
+                                <span>Quotation #${id} - ${status}</span>
+                                    <a href="/Quotations/DownloadPdf/${id}" class="btn btn-sm btn-outline-primary ms-2"><span class="fa fa-download"></span> Download</a>
+                            </li>`;
+                });
+                html += '</ul>';
+                $("#quotationList").html(html);
+            } else {
+                $("#quotationList").html('<div class="text-muted">No quotations available.</div>');
+            }
+            checkNoDocuments();
+        });
+        // Fetch booking documents
+        $.get('/Leads/GetBookingDocuments', { leadId: leadId }, function (data) {
+            console.log('Bookings:', data);
+            if (data && data.length > 0) {
+                let html = '<ul class="list-group">';
+                data.forEach(function (b) {
+                    const id = b.BookingId ?? b.bookingId;
+                    const status = b.Status ?? b.status;
+                    html += `<li class="list-group-item d-flex justify-content-between align-items-center">
+                                <span>Booking #${id} - ${status}</span>
+                                    <a href="/Bookings/DownloadPdf/${id}" class="btn btn-sm btn-outline-primary ms-2"><span class="fa fa-download"></span> Download</a>
+                            </li>`;
+                });
+                html += '</ul>';
+                $("#bookingDocumentsList").html(html);
+            } else {
+                $("#bookingDocumentsList").html('<div class="text-muted">No booking documents available.</div>');
+            }
+            checkNoDocuments();
+        });
+        // Fetch invoice documents
+        $.get('/Leads/GetInvoiceDocuments', { leadId: leadId }, function (data) {
+            console.log('Invoices:', data);
+            if (data && data.length > 0) {
+                let html = '<ul class="list-group">';
+                data.forEach(function (i) {
+                    const id = i.InvoiceId ?? i.invoiceId;
+                    const status = i.Status ?? i.status;
+                    html += `<li class="list-group-item d-flex justify-content-between align-items-center">
+                                <span>Invoice #${id} - ${status}</span>
+                                    <a href="/Invoices/DownloadPdf/${id}" class="btn btn-sm btn-outline-primary ms-2"><span class="fa fa-download"></span> Download</a>
+                            </li>`;
+                });
+                html += '</ul>';
+                $("#invoiceDocumentsList").html(html);
+            } else {
+                $("#invoiceDocumentsList").html('<div class="text-muted">No invoice documents available.</div>');
+            }
+            // Fetch payments for the lead
+            $.get('/Leads/GetPayments', { leadId: leadId }, function (data) {
+                console.log('Payments:', data);
+                if (data && data.length > 0) {
+                    let html = '<ul class="list-group">';
+                    data.forEach(function (p) {
+                        const id = p.PaymentId ?? p.paymentId;
+                        const status = p.Status ?? p.status;
+                        html += `<li class="list-group-item d-flex justify-content-between align-items-center">
+                                    <span>Payment #${id} - ${status}</span>
+                                        <a href="/Payments/Receipt/${id}" class="btn btn-sm btn-outline-primary ms-2"><span class="fa fa-file-invoice"></span> View Receipt</a>
+                                </li>`;
+                    });
+                    html += '</ul>';
+                    $("#paymentsList").html(html);
+                } else {
+                    $("#paymentsList").html('<div class="text-muted">No payments recorded.</div>');
+                }
+                checkNoDocuments();
+            });
+        });
+        if (typeof event !== 'undefined' && event && event.target) {
+            setActiveTab(event.target);
+        }
+    }
+
+    function checkNoDocuments() {
+        var hasQuotations = $("#quotationList ul li").length > 0;
+        var hasBookings = $("#bookingDocumentsList ul li").length > 0;
+        var hasInvoices = $("#invoiceDocumentsList ul li").length > 0;
+        var hasPayments = $("#paymentsList ul li").length > 0;
+        if (!hasQuotations && !hasBookings && !hasInvoices && !hasPayments) {
+            $("#noDocumentsMessage").show();
+        } else {
+            $("#noDocumentsMessage").hide();
+        }
+    }
+
+    function createQuotation(leadId) {
+        window.location.href = '/Quotations/Create?leadId=' + leadId;
+    }
+
+    function createInvoice(leadId) {
+        window.location.href = '/Invoices/Create?leadId=' + leadId;
+    }
+
+    function recordPayment(leadId) {
+        window.location.href = '/Payments/Create?leadId=' + leadId;
+    }
+
+    function loadNotes(leadId) {
+        showLoading();
+        $("#detailSubContent").load('/Leads/GetNotes?leadId=' + leadId, function (response, status) {
+            if (status === "error") {
+                showError("Failed to load notes");
+            }
+        });
+        if (typeof event !== 'undefined' && event && event.target) {
+            setActiveTab(event.target);
+        }
+    }
+
+    function loadUploads(leadId) {
+        showLoading();
+        $("#detailSubContent").load('/Leads/GetUploads?leadId=' + leadId, function (response, status) {
+            if (status === "error") {
+                showError("Failed to load uploads");
+            }
+        });
+        if (typeof event !== 'undefined' && event && event.target) {
+            setActiveTab(event.target);
+        }
+    }
+
+    function loadHistory(leadId) {
+        showLoading();
+        $("#detailSubContent").load('/Leads/GetHistory?leadId=' + leadId, function (response, status) {
+            if (status === "error") {
+                showError("Failed to load history");
+            }
+        });
+        if (typeof event !== 'undefined' && event && event.target) {
+            setActiveTab(event.target);
+        } else {
+            // Set Activities tab as active when loading initially
+            const activitiesTab = document.querySelector('a[href="#scrollspyHistory"]');
+            if (activitiesTab) {
+                setActiveTab(activitiesTab);
+            }
+        }
+    }
+
+    function loadSiteVisits(leadId) {
+        showLoading();
+        $("#detailSubContent").load('/Leads/GetSiteVisits?leadId=' + leadId, function (response, status) {
+            if (status === "error") {
+                showError("Failed to load site visit activities");
+            }
+        });
+        if (typeof event !== 'undefined' && event && event.target) {
+            setActiveTab(event.target);
+        }
+    }
+
+    // Helper Functions
+    function showLoading() {
+        $("#detailSubContent").html(`
+                    <div class="text-center py-5">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <p class="mt-3 text-body-tertiary">Loading content...</p>
+                    </div>
+                `);
+    }
+
+    function showError(message) {
+        $("#detailSubContent").html(`
+                    <div class="alert alert-danger text-center" role="alert">
+                        <i class="fa-solid fa-exclamation-triangle me-2"></i>${message}
+                    </div>
+                `);
+    }
+
+    function setActiveTab(element) {
+        // Remove active class from all nav links
+        document.querySelectorAll('.nav-link').forEach(link => {
+            link.classList.remove('active');
+        });
+        // Add active class to clicked link
+        if (element && element.classList) {
+            element.classList.add('active');
+        }
+    }
+
+    // Action Functions
+    function openNoteModal() {
+        // Switch to Notes tab and focus on the note input
+        loadNotes(@Model.LeadId);
+        document.querySelectorAll('.nav-link').forEach(link => {
+            if (link.textContent.includes('Notes')) {
+                link.click();
+            }
+        });
+        setTimeout(() => {
+            document.getElementById('noteText')?.focus();
+        }, 500);
+    }
+
+    function openFollowUpModal(leadId) {
+        $("#fuLeadId").val(leadId);
+        var modal = new bootstrap.Modal(document.getElementById("followUpModal"));
+        modal.show();
+    }
+
+    function editLead(leadId) {
+        // Navigate to edit page or open edit modal
+        window.location.href = '/Leads/Edit/' + leadId;
+    }
+
+    function deleteLead(leadId) {
+        if (confirm('Are you sure you want to delete this lead?')) {
+            $.ajax({
+                url: '/Leads/Delete/' + leadId,
+                type: 'POST',
+                headers: {
+                    'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val()
+                },
+                success: function () {
+                    alert('Lead deleted successfully');
+                    window.location.href = '/Leads/Index';
+                },
+                error: function () {
+                    alert('Failed to delete lead');
+                }
+            });
+        }
+    }
+
+    function sendEmail(email) {
+        window.location.href = 'mailto:' + email;
+    }
+
+    function callLead(phone) {
+        window.location.href = 'tel:' + phone;
+    }
+
+    // Initialize on Page Load
+    window.addEventListener('load', function() {
+        // Wait for jQuery to be available
+        if (typeof $ !== 'undefined') {
+            // Set first tab as active
+            const firstTab = document.querySelector('.nav-link');
+            if (firstTab) {
+                firstTab.classList.add('active');
+            }
+            
+            // Load Activities content immediately
+            loadHistory(@Model.LeadId);
+            
+            // Auto-refresh Activities tab when page regains focus
+            window.addEventListener('focus', function() {
+                setTimeout(function() {
+                    loadHistory(@Model.LeadId);
+                }, 100);
+            });
+            
+            // Also refresh when page becomes visible
+            document.addEventListener('visibilitychange', function() {
+                if (!document.hidden) {
+                    setTimeout(function() {
+                        loadHistory(@Model.LeadId);
+                    }, 100);
+                }
+            });
+            
+            // Handle browser back/forward navigation
+            window.addEventListener('pageshow', function(event) {
+                loadHistory(@Model.LeadId);
+            });
+        } else {
+            // Fallback if jQuery is not available
+            setTimeout(function() {
+                if (typeof $ !== 'undefined') {
+                    loadHistory(@Model.LeadId);
+                }
+            }, 1000);
+        }
+    });
+</script>
+
+@await Html.PartialAsync("_FollowUpModal", new FollowUpModel())

@@ -1,0 +1,31 @@
+@model CRM.Models.InvoiceModel
+@{
+    ViewData["Title"] = "Edit Invoice";
+}
+
+<h2>Edit Invoice</h2>
+
+<form asp-action="Edit" method="post">
+    <input type="hidden" asp-for="InvoiceId" />
+    <div class="form-group">
+        <label asp-for="InvoiceNumber"></label>
+        <input asp-for="InvoiceNumber" class="form-control" />
+        <span asp-validation-for="InvoiceNumber" class="text-danger"></span>
+    </div>
+    <div class="form-group">
+        <label asp-for="InvoiceDate"></label>
+        <input asp-for="InvoiceDate" type="date" class="form-control" />
+        <span asp-validation-for="InvoiceDate" class="text-danger"></span>
+    </div>
+    <div class="form-group">
+        <label asp-for="Amount"></label>
+        <input asp-for="Amount" class="form-control" />
+        <span asp-validation-for="Amount" class="text-danger"></span>
+    </div>
+    <div class="form-group">
+        <label asp-for="Notes"></label>
+        <textarea asp-for="Notes" class="form-control"></textarea>
+        <span asp-validation-for="Notes" class="text-danger"></span>
+    </div>
+    <button type="submit" class="btn btn-primary">Save</button>
+</form>

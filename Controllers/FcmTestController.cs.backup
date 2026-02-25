@@ -1,0 +1,95 @@
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Mvc;
+using FirebaseAdmin;
+using FirebaseAdmin.Messaging;
+using Google.Apis.Auth.OAuth2;
+
+namespace CRM.Controllers
+{
+    public class FcmTestController : Controller
+    {
+        private static bool _firebaseInitialized = false;
+        private static readonly object _lock = new object();
+
+        private void EnsureFirebaseInitialized()
+        {
+            if (!_firebaseInitialized)
+            {
+                lock (_lock)
+                {
+                    if (!_firebaseInitialized)
+                    {
+                        try
+                        {
+                            // Check if default app already exists
+                            var app = FirebaseApp.DefaultInstance;
+                        }
+                        catch
+                        {
+                            // Create new app if it doesn't exist
+                            FirebaseApp.Create(new AppOptions()
+                            {
+                                Credential = GoogleCredential.FromFile("C:/Users/aviditej/source/repos/CRM/CRM_beforeauth/CRM/CRM/CRM/realestatecrm-b1b4f-firebase-adminsdk-fbsvc-d2181a60b4.json")
+                            });
+                        }
+                        _firebaseInitialized = true;
+                    }
+                }
+            }
+        }
+
+        public IActionResult Index()
+        {
+            return View();
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> SendNotification(string deviceToken, string title, string body)
+        {
+            // Handle test tokens for development
+            if (deviceToken == "fakeToken123ForTesting" || deviceToken.StartsWith("localhost_test_token_"))
+            {
+                ViewBag.Response = "Development Mode: Notification sent!\nTitle: " + title + "\nBody: " + body + "\nToken: " + deviceToken;
+                ViewBag.ShowNotification = true;
+                ViewBag.NotificationTitle = title;
+                ViewBag.NotificationBody = body;
+                return View("Index");
+            }
+
+            EnsureFirebaseInitialized();
+            var message = new Message()
+            {
+                Token = deviceToken,
+                Notification = new Notification
+                {
+                    Title = title,
+                    Body = body
+                }
+            };
+            string result = string.Empty;
+            try
+            {
+                string response = await FirebaseMessaging.DefaultInstance.SendAsync(message);
+                result = $"Success! Message ID: {response}";
+            }
+            catch (FirebaseMessagingException ex)
+            {
+                if (ex.MessagingErrorCode == MessagingErrorCode.Unregistered)
+                {
+                    result = "Error: Device token is invalid or expired. Please refresh the page to get a new token.";
+                }
+                else
+                {
+                    result = $"Firebase Error ({ex.MessagingErrorCode}): {ex.Message}";
+                }
+            }
+            catch (System.Exception ex)
+            {
+                result = $"Error: {ex.Message}";
+            }
+            ViewBag.Response = result;
+            return View("Index");
+        }
+    }
+}

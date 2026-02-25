@@ -1,0 +1,465 @@
+﻿@{
+    ViewData["Title"] = "Sales Pipeline";
+}
+
+<style>
+    .modern-header {
+        background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+        position: relative;
+        overflow: hidden;
+        border-radius: 16px;
+        box-shadow: 0 8px 32px rgba(79, 70, 229, 0.15);
+        margin-bottom: 1.5rem;
+    }
+
+    .modern-header::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="50" cy="50" r="1" fill="%23ffffff" opacity="0.1"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>') repeat;
+        opacity: 0.3;
+    }
+
+    .header-content {
+        position: relative;
+        z-index: 2;
+        padding: 1.5rem 1.25rem;
+        color: white;
+    }
+
+    .header-title {
+        font-size: 1.75rem;
+        font-weight: 700;
+        margin-bottom: 0.25rem;
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .header-subtitle {
+        font-size: 0.95rem;
+        opacity: 0.9;
+        font-weight: 400;
+    }
+
+    .kanban-board {
+        display: flex;
+        gap: 15px;
+        overflow-x: auto;
+        padding-bottom: 20px;
+    }
+
+    .kanban-column {
+        background: #ffffff;
+        min-width: 280px;
+        flex: 1;
+        border-radius: 12px;
+        padding: 15px;
+        box-shadow: 0px 4px 10px rgba(0,0,0,0.08);
+        border: 1px solid rgba(0, 0, 0, 0.05);
+        display: flex;
+        flex-direction: column;
+    }
+
+    .kanban-column h3 {
+        text-align: center;
+        background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+        color: white;
+        padding: 12px;
+        border-radius: 8px;
+        font-size: 16px;
+        margin: 0 0 15px 0;
+        font-weight: 600;
+        box-shadow: 0 2px 8px rgba(79, 70, 229, 0.2);
+    }
+
+    .kanban-cards {
+        flex: 1;
+        overflow-y: auto;
+        max-height: calc(100vh - 280px);
+        min-height: 200px;
+        padding-right: 5px;
+    }
+
+    .kanban-cards::-webkit-scrollbar {
+        width: 4px;
+    }
+
+    .kanban-cards::-webkit-scrollbar-track {
+        background: #f1f1f1;
+        border-radius: 10px;
+    }
+
+    .kanban-cards::-webkit-scrollbar-thumb {
+        background: #888;
+        border-radius: 10px;
+    }
+
+    .kanban-cards::-webkit-scrollbar-thumb:hover {
+        background: #555;
+    }
+
+    .kanban-card {
+        padding: 12px;
+        margin-bottom: 10px;
+        background: #f8f9fa;
+        border-radius: 10px;
+        cursor: grab;
+        transition: all 0.2s;
+        border: 2px solid transparent;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+
+    .kanban-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        border-color: #4f46e5;
+    }
+
+    .kanban-card:active {
+        cursor: grabbing;
+    }
+
+    .kanban-card.dragging {
+        opacity: 0.5;
+    }
+
+    .card-name {
+        font-weight: 600;
+        color: #2d3748;
+        margin-bottom: 6px;
+        font-size: 14px;
+    }
+
+    .card-contact {
+        font-size: 12px;
+        color: #6b7280;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        margin-bottom: 4px;
+    }
+
+    .card-status {
+        display: inline-block;
+        padding: 3px 8px;
+        border-radius: 12px;
+        font-size: 11px;
+        font-weight: 600;
+        margin-top: 6px;
+    }
+
+    .status-active { background-color: #d1fae5; color: #065f46; }
+    .status-hot { background-color: #fee2e2; color: #991b1b; }
+    .status-warm { background-color: #fef3c7; color: #92400e; }
+    .status-cold { background-color: #e5e7eb; color: #374151; }
+    .status-inactive { background-color: #f3f4f6; color: #1f2937; }
+
+    .kanban-column.drag-over .kanban-cards {
+        background: #e0e7ff;
+        border: 2px dashed #4f46e5;
+        border-radius: 8px;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 20px;
+        color: #9ca3af;
+        font-size: 13px;
+    }
+
+    .dark-mode .kanban-column {
+        background: #222639 !important;
+        border-color: #2c3049 !important;
+    }
+
+    .dark-mode .kanban-card {
+        background: #2c3049 !important;
+        color: #e4e6eb !important;
+    }
+
+    .dark-mode .card-name {
+        color: #e4e6eb !important;
+    }
+
+    .dark-mode .card-contact {
+        color: #a6adc8 !important;
+    }
+
+    @@media (max-width: 768px) {
+        .kanban-board {
+            flex-direction: column;
+        }
+
+        .kanban-column {
+            min-width: 100%;
+        }
+
+        .kanban-cards {
+            max-height: 300px;
+        }
+    }
+</style>
+
+<div class="content">
+    <!-- Breadcrumb -->
+    <nav class="mb-3" aria-label="breadcrumb">
+        <ol class="breadcrumb mb-0">
+            <li class="breadcrumb-item"><a href="/Home/Index">Home</a></li>
+            <li class="breadcrumb-item active">Sales Pipeline</li>
+        </ol>
+    </nav>
+
+    <!-- Modern Header -->
+    <div class="modern-header">
+        <div class="header-content">
+            <div class="d-flex align-items-center">
+                <div class="me-3">
+                    <i class="fa-solid fa-chart-line" style="font-size: 2.5rem; opacity: 0.9;"></i>
+                </div>
+                <div>
+                    <h1 class="header-title mb-0">Sales Pipeline</h1>
+                    <p class="header-subtitle mb-0">Drag and drop leads to update their stage</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Kanban Board -->
+    <div class="kanban-board" id="kanbanBoard">
+        <!-- Columns will be dynamically generated -->
+    </div>
+    
+    @Html.AntiForgeryToken()
+</div>
+
+@section Scripts {
+    <script>
+        const stages = [
+            'New',
+            'Office Meeting',
+            'Site Visit Requested',
+            'Site Visit Done',
+            'Quotation',
+            'Quotation Sent',
+            'Negotiation',
+            'Booked'
+        ];
+
+        let draggedCard = null;
+        let draggedLeadId = null;
+
+        // Load leads on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            loadLeads();
+        });
+
+        function loadLeads() {
+            fetch('@Url.Action("GetLeadsByStage", "SalesPipelines")')
+                .then(response => response.json())
+                .then(data => {
+                    renderKanbanBoard(data);
+                    attachDragEvents();
+                })
+                .catch(error => {
+                    console.error('Error loading leads:', error);
+                    showToast('Error loading leads', 'error');
+                });
+        }
+
+        function renderKanbanBoard(data) {
+            const board = document.getElementById('kanbanBoard');
+            board.innerHTML = '';
+
+            stages.forEach(stage => {
+                const stageData = data.find(d => d.stage === stage);
+                const leads = stageData ? stageData.leads : [];
+
+                const column = document.createElement('div');
+                column.className = 'kanban-column';
+                column.dataset.stage = stage;
+
+                column.innerHTML = `
+                    <h3>${stage} <span class="badge bg-light text-dark ms-2">${leads.length}</span></h3>
+                    <div class="kanban-cards" data-stage="${stage}">
+                        ${leads.length === 0 ? '<div class="empty-state">No leads</div>' : ''}
+                    </div>
+                `;
+
+                const cardsContainer = column.querySelector('.kanban-cards');
+
+                leads.forEach(lead => {
+                    const card = createLeadCard(lead);
+                    cardsContainer.appendChild(card);
+                });
+
+                board.appendChild(column);
+            });
+        }
+
+        function createLeadCard(lead) {
+            const card = document.createElement('div');
+            card.className = 'kanban-card';
+            card.draggable = true;
+            card.dataset.leadId = lead.leadId;
+            card.style.cursor = 'pointer';
+
+            const statusClass = lead.status ? `status-${lead.status.toLowerCase()}` : 'status-inactive';
+
+            card.innerHTML = `
+                <div class="card-name">${lead.name || 'Unnamed Lead'}</div>
+                <div class="card-contact">
+                    <i class="fa-solid fa-phone" style="font-size: 10px;"></i>
+                    <span>${lead.contact || 'No contact'}</span>
+                </div>
+                <div class="card-status ${statusClass}">${lead.status || 'Inactive'}</div>
+            `;
+
+            // Add click event to navigate to lead details
+            card.addEventListener('click', function(e) {
+                // Prevent navigation during drag operations
+                if (this.classList.contains('dragging')) {
+                    return;
+                }
+                window.location.href = `/Leads/Details/${lead.leadId}`;
+            });
+
+            return card;
+        }
+
+        function attachDragEvents() {
+            // Card drag events
+            document.querySelectorAll('.kanban-card').forEach(card => {
+                card.addEventListener('dragstart', handleDragStart);
+                card.addEventListener('dragend', handleDragEnd);
+            });
+
+            // Column drop events
+            document.querySelectorAll('.kanban-cards').forEach(container => {
+                container.addEventListener('dragover', handleDragOver);
+                container.addEventListener('drop', handleDrop);
+                container.addEventListener('dragleave', handleDragLeave);
+            });
+        }
+
+        function handleDragStart(e) {
+            draggedCard = this;
+            draggedLeadId = parseInt(this.dataset.leadId);
+            this.classList.add('dragging');
+            e.dataTransfer.effectAllowed = 'move';
+        }
+
+        function handleDragEnd(e) {
+            this.classList.remove('dragging');
+            document.querySelectorAll('.kanban-column').forEach(col => {
+                col.classList.remove('drag-over');
+            });
+        }
+
+        function handleDragOver(e) {
+            e.preventDefault();
+            e.dataTransfer.dropEffect = 'move';
+            this.closest('.kanban-column').classList.add('drag-over');
+        }
+
+        function handleDragLeave(e) {
+            if (e.target.classList.contains('kanban-cards')) {
+                this.closest('.kanban-column').classList.remove('drag-over');
+            }
+        }
+
+        function handleDrop(e) {
+            e.preventDefault();
+            const column = this.closest('.kanban-column');
+            column.classList.remove('drag-over');
+
+            if (!draggedCard) return;
+
+            const newStage = this.dataset.stage;
+            const oldStage = draggedCard.closest('.kanban-cards').dataset.stage;
+
+            if (newStage === oldStage) return;
+
+            // Update UI immediately
+            this.appendChild(draggedCard);
+            updateEmptyStates();
+            updateCounts();
+
+            // Update database
+            updateLeadStage(draggedLeadId, newStage);
+        }
+
+        function updateLeadStage(leadId, newStage) {
+            // Get anti-forgery token
+            const token = document.querySelector('input[name="__RequestVerificationToken"]');
+            
+            fetch('@Url.Action("UpdateLeadStage", "SalesPipelines")', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'RequestVerificationToken': token ? token.value : ''
+                },
+                body: JSON.stringify({
+                    leadId: leadId,
+                    newStage: newStage
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showToast('Lead stage updated successfully', 'success');
+                } else {
+                    showToast('Error updating lead stage', 'error');
+                    loadLeads(); // Reload to revert changes
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showToast('Error updating lead stage', 'error');
+                loadLeads(); // Reload to revert changes
+            });
+        }
+
+        function updateEmptyStates() {
+            document.querySelectorAll('.kanban-cards').forEach(container => {
+                const cards = container.querySelectorAll('.kanban-card');
+                const emptyState = container.querySelector('.empty-state');
+
+                if (cards.length === 0 && !emptyState) {
+                    container.innerHTML = '<div class="empty-state">No leads</div>';
+                } else if (cards.length > 0 && emptyState) {
+                    emptyState.remove();
+                }
+            });
+        }
+
+        function updateCounts() {
+            document.querySelectorAll('.kanban-column').forEach(column => {
+                const stage = column.dataset.stage;
+                const count = column.querySelectorAll('.kanban-card').length;
+                const badge = column.querySelector('h3 .badge');
+                if (badge) {
+                    badge.textContent = count;
+                }
+            });
+        }
+
+        function showToast(message, type) {
+            const alertDiv = document.createElement('div');
+            alertDiv.className = `alert alert-${type === 'success' ? 'success' : 'danger'} alert-dismissible fade show position-fixed`;
+            alertDiv.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+            alertDiv.innerHTML = `
+                <i class="fa-solid fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'} me-2"></i>
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            `;
+
+            document.body.appendChild(alertDiv);
+
+            setTimeout(() => {
+                alertDiv.remove();
+            }, 3000);
+        }
+    </script>
+}

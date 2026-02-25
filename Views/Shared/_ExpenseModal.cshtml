@@ -1,0 +1,115 @@
+<!-- Expense Modal -->
+<div class="modal fade" id="expenseModal" tabindex="-1" aria-labelledby="expenseModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" style="width: 50%; max-width: 50%;">
+        <div class="modal-content" style="border: none; border-radius: 15px; box-shadow: 0 10px 40px rgba(0,0,0,0.15);">
+            <div class="modal-header" style="border-bottom: 1px solid #f0f0f0; padding: 1.5rem; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border-radius: 15px 15px 0 0;">
+                <h5 class="modal-title" id="expenseModalLabel" style="margin: 0; font-weight: 600;"><i class="fa-solid fa-money-bill-wave me-2"></i>Add Expense</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="expenseForm">
+                <div class="modal-body" style="padding: 2rem;">
+                    <input type="hidden" id="expenseId" name="ExpenseId" value="0" />
+                    
+                    <div class="mb-3">
+                        <label class="form-label" style="font-weight: 600; color: #495057;">Category Type</label>
+                        <select id="expenseType" name="Type" class="form-select" style="border-radius: 8px; border: 1px solid #e0e0e0; padding: 0.75rem;" required>
+                            <option value="Land">Land cost / Purchase price</option>
+                            <option value="Construction">Construction / Development</option>
+                            <option value="Legal">Legal / Registration</option>
+                            <option value="Marketing">Marketing / Sales</option>
+                            <option value="Agent">Agent / Channel Partner Commission</option>
+                            <option value="Tax">Taxes (GST, Stamp Duty)</option>
+                            <option value="Maintenance">Maintenance / Utilities / Operations</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label" style="font-weight: 600; color: #495057;">Description</label>
+                        <input id="expenseDescription" name="Description" class="form-control" style="border-radius: 8px; border: 1px solid #e0e0e0; padding: 0.75rem;" required />
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label" style="font-weight: 600; color: #495057;">Amount</label>
+                        <input id="expenseAmount" name="Amount" class="form-control" type="number" step="0.01" min="0" style="border-radius: 8px; border: 1px solid #e0e0e0; padding: 0.75rem;" required />
+                    </div>
+                </div>
+                <div class="modal-footer" style="border-top: 1px solid #f0f0f0; padding: 1.5rem; gap: 10px;">
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal" style="border-radius: 8px; padding: 0.75rem 1.5rem; font-weight: 500;">Cancel</button>
+                    <button type="submit" class="btn" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 8px; padding: 0.75rem 1.5rem; font-weight: 500;">Save Expense</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const expenseModal = document.getElementById('expenseModal');
+    const expenseForm = document.getElementById('expenseForm');
+    
+    // Handle form submission
+    expenseForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const formData = new FormData(expenseForm);
+        const expenseId = document.getElementById('expenseId').value;
+        const url = expenseId === '0' ? '/Expenses/CreateModal' : '/Expenses/EditModal';
+        
+        fetch(url, {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                bootstrap.Modal.getInstance(expenseModal).hide();
+                location.reload(); // Refresh the page to show updated data
+            } else {
+                alert('Error: ' + (data.message || 'Failed to save expense'));
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('An error occurred while saving expense');
+        });
+    });
+    
+    // Reset form when modal is hidden
+    expenseModal.addEventListener('hidden.bs.modal', function() {
+        expenseForm.reset();
+        document.getElementById('expenseId').value = '0';
+        document.getElementById('expenseModalLabel').textContent = 'Add Expense';
+    });
+});
+
+// Function to open modal for creating new expense
+function openExpenseModal() {
+    document.getElementById('expenseModalLabel').textContent = 'Add Expense';
+    document.getElementById('expenseId').value = '0';
+    document.getElementById('expenseForm').reset();
+    new bootstrap.Modal(document.getElementById('expenseModal')).show();
+}
+
+// Function to open modal for editing existing expense
+function editExpense(expenseId) {
+    fetch(`/Expenses/GetExpense/${expenseId}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                document.getElementById('expenseModalLabel').textContent = 'Edit Expense';
+                document.getElementById('expenseId').value = data.data.expenseId;
+                document.getElementById('expenseType').value = data.data.type;
+                document.getElementById('expenseDescription').value = data.data.description;
+                document.getElementById('expenseAmount').value = data.data.amount;
+                new bootstrap.Modal(document.getElementById('expenseModal')).show();
+            } else {
+                alert('Error: ' + (data.message || 'Failed to load expense data'));
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('An error occurred while loading expense data');
+        });
+}
+</script>

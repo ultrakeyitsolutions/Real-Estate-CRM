@@ -1,0 +1,443 @@
+@model CRM.Models.PaymentModel
+@{
+    ViewData["Title"] = "Payment Receipt";
+    var invoice = Model.Invoice;
+    var booking = invoice?.Booking;
+    var lead = booking?.Lead;
+    var property = booking?.Property;
+    var flat = booking?.Flat;
+    var installment = Model.Installment;
+    
+    var companyName = ViewBag.CompanyName?.ToString() ?? "Company Name";
+    var companyAddress = ViewBag.CompanyAddress?.ToString() ?? "Company Address";
+    var companyPhone = ViewBag.CompanyPhone?.ToString() ?? "Phone";
+    var companyEmail = ViewBag.CompanyEmail?.ToString() ?? "Email";
+    var companyGst = ViewBag.CompanyGST?.ToString() ?? "GST Number";
+}
+
+<style>
+    .receipt-container {
+        max-width: 800px;
+        margin: 0 auto;
+        background: white;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    }
+
+    .dark-mode .receipt-container {
+        background: #222639 !important;
+        box-shadow: 0 4px 20px rgba(255, 255, 255, 0.05) !important;
+    }
+
+    .action-bar {
+        background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+        padding: 1rem 2rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .print-section {
+        padding: 3rem;
+    }
+
+    .dark-mode .print-section {
+        background: #222639 !important;
+        color: #e4e6eb !important;
+    }
+
+    .company-header {
+        text-align: center;
+        border-bottom: 3px solid #28a745;
+        padding-bottom: 1.5rem;
+        margin-bottom: 2rem;
+    }
+
+    .company-header h1 {
+        color: #28a745;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+    }
+
+    .dark-mode .company-header h1 {
+        color: #28a745 !important;
+    }
+
+    .dark-mode .company-header p {
+        color: #e4e6eb !important;
+    }
+
+    .receipt-number {
+        background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+        color: white;
+        padding: 1rem 2rem;
+        border-radius: 8px;
+        font-size: 1.5rem;
+        font-weight: 700;
+        text-align: center;
+        margin-bottom: 2rem;
+    }
+
+    .info-section {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 2rem;
+        margin-bottom: 2rem;
+    }
+
+    .info-box h5 {
+        color: #28a745;
+        font-weight: 600;
+        margin-bottom: 1rem;
+    }
+
+    .payment-details {
+        background: #f8f9fa;
+        padding: 1.5rem;
+        border-radius: 8px;
+        margin-bottom: 2rem;
+    }
+
+    .dark-mode .payment-details {
+        background: #2c3049 !important;
+    }
+
+    .payment-details h5 {
+        color: #28a745;
+        font-weight: 600;
+        margin-bottom: 1rem;
+    }
+
+    .amount-box {
+        background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+        color: white;
+        padding: 2rem;
+        border-radius: 8px;
+        text-align: center;
+        margin: 2rem 0;
+    }
+
+    .amount-box .amount {
+        font-size: 3rem;
+        font-weight: 700;
+        margin: 1rem 0;
+    }
+
+    .payment-method-badge {
+        background: white;
+        color: #28a745;
+        padding: 0.5rem 1rem;
+        border-radius: 20px;
+        font-weight: 600;
+        display: inline-block;
+    }
+
+    @@media print {
+        .action-bar, .no-print {
+            display: none !important;
+        }
+
+        .receipt-container {
+            box-shadow: none;
+            background: white !important;
+        }
+
+        .print-section {
+            padding: 1rem;
+            background: white !important;
+            color: black !important;
+        }
+
+        /* Force light colors for print */
+        .receipt-text,
+        .receipt-heading,
+        .receipt-footer {
+            color: black !important;
+        }
+
+        div[style*="background"] {
+            background: #f8f9fa !important;
+            color: black !important;
+        }
+
+        div[style*="background: #fff3cd"] {
+            background: #fff3cd !important;
+            color: #997404 !important;
+        }
+
+        div[style*="border-top"] {
+            border-top-color: #333 !important;
+        }
+    }
+
+    @@media (max-width: 768px) {
+        .info-section {
+            grid-template-columns: 1fr;
+            gap: 1rem;
+        }
+
+        .print-section {
+            padding: 1.5rem;
+        }
+
+        .amount-box .amount {
+            font-size: 2rem;
+        }
+    }
+
+    /* Dark mode overrides for inline styles */
+    .dark-mode div[style*="color: #28a745"] {
+        color: #28a745 !important;
+    }
+
+    .dark-mode p[style*="color"],
+    .dark-mode div[style*="color"] {
+        color: #e4e6eb !important;
+    }
+
+    .dark-mode p[style*="color: #999"] {
+        color: #a6adc8 !important;
+    }
+
+    .dark-mode p[style*="color: #666"] {
+        color: #a6adc8 !important;
+    }
+
+    .dark-mode p[style*="color: #333"] {
+        color: #e4e6eb !important;
+    }
+
+    .dark-mode h5[style*="color: #997404"] {
+        color: #fff3cd !important;
+    }
+
+    .dark-mode h3[style*="color: #997404"] {
+        color: #fff3cd !important;
+    }
+
+    /* Dark mode for receipt-specific classes */
+    .dark-mode .receipt-text {
+        color: #e4e6eb !important;
+    }
+
+    .dark-mode .receipt-heading {
+        color: #28a745 !important;
+    }
+
+    .dark-mode .receipt-footer {
+        color: #a6adc8 !important;
+    }
+
+    /* Terms section dark mode */
+    .dark-mode .terms-section {
+        border-top: 2px solid #2c3049 !important;
+    }
+
+    /* Amount words and outstanding sections */
+    .dark-mode div[style*="background: var(--bs-gray-100, #f8f9fa)"],
+    .dark-mode div[style*="background: #f8f9fa"] {
+        background: #2c3049 !important;
+    }
+
+    .dark-mode div[style*="background: #fff3cd"] {
+        background: #3d3d00 !important;
+        color: #fff3cd !important;
+    }
+
+    .dark-mode div[style*="border-top: 1px solid #333"] {
+        border-top: 1px solid #e4e6eb !important;
+    }
+</style>
+
+<div class="content">
+    <div class="receipt-container">
+        <!-- Action Bar -->
+        <div class="action-bar no-print">
+            <div>
+                <a href="/Payments/Index" class="btn btn-light">
+                    <i class="fa-solid fa-arrow-left me-2"></i>Back to List
+                </a>
+            </div>
+            <div>
+                <button onclick="window.print()" class="btn btn-light">
+                    <i class="fa-solid fa-print me-2"></i>Print Receipt
+                </button>
+                <a href="/Payments/DownloadPdf/@Model.PaymentId" class="btn btn-light">
+                    <i class="fa-solid fa-download me-2"></i>Download PDF
+                </a>
+            </div>
+        </div>
+
+        <!-- Printable Section -->
+        <div class="print-section">
+            <!-- Company Header -->
+            <div class="company-header">
+                <h1>@companyName</h1>
+                <p class="mb-0">@companyAddress</p>
+                <p class="mb-0">Phone: @companyPhone | Email: @companyEmail</p>
+                <p class="mb-0"><strong>GSTIN: @companyGst</strong></p>
+            </div>
+
+            <!-- Receipt Number -->
+            <div class="receipt-number">
+                PAYMENT RECEIPT: @Model.ReceiptNumber
+            </div>
+
+            <!-- Payment Details on Right -->
+            <div style="display: grid; grid-template-columns: 1fr auto; margin-bottom: 2rem;">
+                <div></div>
+                <div style="padding-left: 2rem; min-width: 300px;">
+                    <h5 class="receipt-heading" style="color: #28a745; font-weight: 600; margin-bottom: 1rem;">
+                        <i class="fa-solid fa-calendar me-2"></i>Payment Details
+                    </h5>
+                    <p class="receipt-text" style="margin-bottom: 0.5rem;"><strong>Payment Date:</strong> @Model.PaymentDate.ToString("MMM dd, yyyy")</p>
+                    <p class="receipt-text" style="margin-bottom: 0.5rem;"><strong>Payment Method:</strong> @Model.PaymentMethod</p>
+                    @if (!string.IsNullOrEmpty(Model.TransactionReference))
+                    {
+                        <p class="receipt-text" style="margin-bottom: 0.5rem;"><strong>Reference:</strong> @Model.TransactionReference</p>
+                    }
+                    @if (!string.IsNullOrEmpty(Model.ChequeNumber))
+                    {
+                        <p class="receipt-text" style="margin-bottom: 0.5rem;"><strong>Cheque No:</strong> @Model.ChequeNumber</p>
+                    }
+                    @if (!string.IsNullOrEmpty(Model.BankName))
+                    {
+                        <p class="receipt-text" style="margin-bottom: 0;"><strong>Bank:</strong> @Model.BankName</p>
+                    }
+                </div>
+            </div>
+
+            <!-- Full Width Paragraph - Customer & Property Information -->
+            <div style="margin-bottom: 2rem;">
+                <p class="receipt-text" style="line-height: 1.8; color: #333; margin-bottom: 1.5rem;">
+                    Payment received from <strong>@lead?.Name</strong>, who can be reached at 
+                    <strong>@lead?.Contact</strong> or via email at <strong>@lead?.Email</strong>. 
+                    This payment is associated with booking <strong>@booking?.BookingNumber</strong>.
+                </p>
+
+                <p class="receipt-text" style="line-height: 1.8; color: #333;">
+                    The property is located at <strong>@property?.PropertyName</strong>. 
+                    The customer has booked <strong>Unit @flat?.FlatName</strong>, which is a <strong>@flat?.BHK</strong> unit 
+                    with an area of <strong>@flat?.Area sq.ft</strong>. 
+                    This payment is for invoice <strong>@invoice?.InvoiceNumber</strong>@(installment != null ? $", specifically for installment #{installment.InstallmentNumber} - {installment.MilestoneName}" : ""). 
+                    The invoice total amount is <strong>₹@invoice?.TotalAmount.ToString("N2")</strong>.
+                </p>
+            </div>
+
+            <!-- Amount Received -->
+            <div class="amount-box">
+                <div>AMOUNT RECEIVED</div>
+                <div class="amount">₹@Model.Amount.ToString("N2")</div>
+                <div class="payment-method-badge">
+                    <i class="fa-solid fa-check-circle me-2"></i>@Model.PaymentMethod
+                </div>
+            </div>
+
+            <!-- Amount in Words -->
+            <div style="background: var(--bs-gray-100, #f8f9fa); padding: 1rem; border-radius: 8px; margin-bottom: 2rem;">
+                <p class="receipt-text mb-0"><strong>Amount in Words:</strong> <span style="text-transform: capitalize;">Rupees @NumberToWords((int)Model.Amount) Only</span></p>
+            </div>
+
+            <!-- Outstanding Balance -->
+            @if (invoice != null)
+            {
+                var outstanding = invoice.TotalAmount - invoice.PaidAmount;
+                if (outstanding > 0)
+                {
+                    <div style="background: #fff3cd; padding: 1rem; border-radius: 8px; margin-bottom: 2rem; text-align: center;">
+                        <h5 style="color: #997404; font-weight: 600; margin-bottom: 0.5rem;">
+                            Outstanding Balance
+                        </h5>
+                        <h3 style="color: #997404; font-weight: 700; margin: 0;">
+                            ₹@outstanding.ToString("N2")
+                        </h3>
+                    </div>
+                }
+            }
+
+            <!-- Notes -->
+            @if (!string.IsNullOrEmpty(Model.Notes))
+            {
+                <div class="mt-4">
+                    <h5 class="receipt-heading" style="color: #28a745; font-weight: 600;">Notes:</h5>
+                    <p class="receipt-text" style="color: #666;">@Model.Notes</p>
+                </div>
+            }
+
+            <!-- Terms -->
+            <div class="terms-section" style="margin-top: 3rem; padding-top: 2rem; border-top: 2px solid #e9ecef;">
+                <p style="color: #666; font-size: 0.9rem; margin-bottom: 0.5rem;">• This is a computer-generated receipt and does not require a signature.</p>
+                <p style="color: #666; font-size: 0.9rem; margin-bottom: 0.5rem;">• Payment is subject to realization of cheque/online transfer.</p>
+                <p style="color: #666; font-size: 0.9rem; margin-bottom: 0;">• Please retain this receipt for your records.</p>
+            </div>
+
+            <!-- Signature Section -->
+            <div style="margin-top: 3rem; padding-top: 2rem;">
+                <div class="row">
+                    <div class="col-12">
+                        <p class="receipt-text" style="margin-bottom: 3rem;"><strong>Received By:</strong></p>
+                        <div style="border-top: 1px solid #333; width: 200px;"></div>
+                        <p class="receipt-text" style="margin-top: 0.5rem; color: #666;">Authorized Signature</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Footer -->
+            <div class="text-center mt-4 receipt-footer" style="color: #999; font-size: 0.875rem;">
+                <p class="receipt-text">Thank you for your payment!</p>
+                <p class="receipt-text">For any queries, please contact us at @companyPhone or @companyEmail</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+@functions {
+    private string NumberToWords(int number)
+    {
+        if (number == 0) return "Zero";
+        
+        string[] ones = { "", "One", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine" };
+        string[] teens = { "Ten", "Eleven", "Twelve", "Thirteen", "Fourteen", "Fifteen", "Sixteen", "Seventeen", "Eighteen", "Nineteen" };
+        string[] tens = { "", "", "Twenty", "Thirty", "Forty", "Fifty", "Sixty", "Seventy", "Eighty", "Ninety" };
+        string[] thousands = { "", "Thousand", "Lakh", "Crore" };
+        
+        string words = "";
+        
+        // Handle Indian numbering system
+        if (number >= 10000000) // Crores
+        {
+            words += NumberToWords(number / 10000000) + " Crore ";
+            number %= 10000000;
+        }
+        if (number >= 100000) // Lakhs
+        {
+            words += NumberToWords(number / 100000) + " Lakh ";
+            number %= 100000;
+        }
+        if (number >= 1000) // Thousands
+        {
+            words += NumberToWords(number / 1000) + " Thousand ";
+            number %= 1000;
+        }
+        if (number >= 100) // Hundreds
+        {
+            words += ones[number / 100] + " Hundred ";
+            number %= 100;
+        }
+        if (number >= 20)
+        {
+            words += tens[number / 10] + " ";
+            number %= 10;
+        }
+        if (number >= 10)
+        {
+            words += teens[number - 10] + " ";
+            number = 0;
+        }
+        if (number > 0)
+        {
+            words += ones[number] + " ";
+        }
+        
+        return words.Trim();
+    }
+}

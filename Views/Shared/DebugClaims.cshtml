@@ -1,0 +1,40 @@
+@{
+    ViewData["Title"] = "Debug Claims";
+}
+
+<div class="container mt-4">
+    <h3>Current User Claims</h3>
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th>Claim Type</th>
+                <th>Claim Value</th>
+            </tr>
+        </thead>
+        <tbody>
+            @if (User.Identity.IsAuthenticated)
+            {
+                @foreach (var claim in User.Claims)
+                {
+                    <tr>
+                        <td>@claim.Type</td>
+                        <td>@claim.Value</td>
+                    </tr>
+                }
+            }
+            else
+            {
+                <tr>
+                    <td colspan="2">User is not authenticated</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    <h4>Permission Test</h4>
+    @inject CRM.Services.ViewPermissionService _viewPermissionService
+    <p>Can Create Leads: @_viewPermissionService.HasPermission("Leads", "Index", "Create")</p>
+    <p>Can Edit Leads: @_viewPermissionService.HasPermission("Leads", "Index", "Edit")</p>
+    <p>Can Delete Leads: @_viewPermissionService.HasPermission("Leads", "Index", "Delete")</p>
+    <p>Can View Leads: @_viewPermissionService.HasPermission("Leads", "Index", "View")</p>
+</div>

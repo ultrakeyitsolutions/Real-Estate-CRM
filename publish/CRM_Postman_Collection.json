@@ -1,0 +1,783 @@
+{
+	"info": {
+		"name": "CRM API Collection",
+		"description": "Complete API collection for Real Estate CRM with Razorpay Integration",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "https://localhost:44383",
+			"type": "string"
+		},
+		{
+			"key": "jwtToken",
+			"value": "",
+			"type": "string"
+		}
+	],
+	"item": [
+		{
+			"name": "Authentication",
+			"item": [
+				{
+					"name": "Login",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Extract JWT token from cookie",
+									"pm.test(\"Login successful\", function () {",
+									"    pm.response.to.have.status(200);",
+									"    const cookies = pm.cookies.toObject();",
+									"    if (cookies.jwtToken) {",
+									"        pm.collectionVariables.set('jwtToken', cookies.jwtToken);",
+									"    }",
+									"});"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/x-www-form-urlencoded"
+							}
+						],
+						"body": {
+							"mode": "urlencoded",
+							"urlencoded": [
+								{
+									"key": "Username",
+									"value": "admin",
+									"type": "text"
+								},
+								{
+									"key": "Password",
+									"value": "Admin@123",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{baseUrl}}/Account/Login",
+							"host": ["{{baseUrl}}"],
+							"path": ["Account", "Login"]
+						}
+					}
+				},
+				{
+					"name": "Register",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "urlencoded",
+							"urlencoded": [
+								{
+									"key": "Username",
+									"value": "testuser"
+								},
+								{
+									"key": "Email",
+									"value": "test@example.com"
+								},
+								{
+									"key": "Password",
+									"value": "Test@123"
+								},
+								{
+									"key": "Role",
+									"value": "Sales"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{baseUrl}}/Account/Register",
+							"host": ["{{baseUrl}}"],
+							"path": ["Account", "Register"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Leads",
+			"item": [
+				{
+					"name": "Get All Leads",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/Leads/Index",
+							"host": ["{{baseUrl}}"],
+							"path": ["Leads", "Index"]
+						}
+					}
+				},
+				{
+					"name": "Create Lead",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "urlencoded",
+							"urlencoded": [
+								{
+									"key": "FirstName",
+									"value": "John"
+								},
+								{
+									"key": "LastName",
+									"value": "Doe"
+								},
+								{
+									"key": "Email",
+									"value": "john.doe@example.com"
+								},
+								{
+									"key": "Phone",
+									"value": "9876543210"
+								},
+								{
+									"key": "Status",
+									"value": "New"
+								},
+								{
+									"key": "Source",
+									"value": "Website"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{baseUrl}}/Leads/Create",
+							"host": ["{{baseUrl}}"],
+							"path": ["Leads", "Create"]
+						}
+					}
+				},
+				{
+					"name": "Bulk Delete Leads",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"leadIds\": [1, 2, 3]\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/Leads/BulkDelete",
+							"host": ["{{baseUrl}}"],
+							"path": ["Leads", "BulkDelete"]
+						}
+					}
+				},
+				{
+					"name": "Bulk Assign Leads",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"leadIds\": [1, 2, 3],\n    \"assignedToUserId\": 5\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/Leads/BulkAssign",
+							"host": ["{{baseUrl}}"],
+							"path": ["Leads", "BulkAssign"]
+						}
+					}
+				},
+				{
+					"name": "Bulk Update Status",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"leadIds\": [1, 2, 3],\n    \"newStatus\": \"Qualified\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/Leads/BulkUpdateStatus",
+							"host": ["{{baseUrl}}"],
+							"path": ["Leads", "BulkUpdateStatus"]
+						}
+					}
+				},
+				{
+					"name": "Bulk Export Leads",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"leadIds\": [1, 2, 3, 4, 5]\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/Leads/BulkExport",
+							"host": ["{{baseUrl}}"],
+							"path": ["Leads", "BulkExport"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Subscriptions",
+			"item": [
+				{
+					"name": "Get Subscription Plans",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/Subscription/Index",
+							"host": ["{{baseUrl}}"],
+							"path": ["Subscription", "Index"]
+						}
+					}
+				},
+				{
+					"name": "Create Razorpay Order",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Order created\", function () {",
+									"    const jsonData = pm.response.json();",
+									"    pm.expect(jsonData.success).to.be.true;",
+									"    pm.environment.set('orderId', jsonData.orderId);",
+									"    pm.environment.set('amount', jsonData.amount);",
+									"});"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "urlencoded",
+							"urlencoded": [
+								{
+									"key": "planId",
+									"value": "1"
+								},
+								{
+									"key": "billingCycle",
+									"value": "monthly"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{baseUrl}}/Subscription/SelectPlan",
+							"host": ["{{baseUrl}}"],
+							"path": ["Subscription", "SelectPlan"]
+						}
+					}
+				},
+				{
+					"name": "Confirm Payment",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "urlencoded",
+							"urlencoded": [
+								{
+									"key": "razorpayPaymentId",
+									"value": "pay_MfKJxAbc123xyz"
+								},
+								{
+									"key": "razorpayOrderId",
+									"value": "{{orderId}}"
+								},
+								{
+									"key": "razorpaySignature",
+									"value": "signature_here"
+								},
+								{
+									"key": "planId",
+									"value": "1"
+								},
+								{
+									"key": "billingCycle",
+									"value": "monthly"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{baseUrl}}/Subscription/ConfirmPayment",
+							"host": ["{{baseUrl}}"],
+							"path": ["Subscription", "ConfirmPayment"]
+						}
+					}
+				},
+				{
+					"name": "Get Transactions",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/Subscription/Transactions?type=Subscription&fromDate=2026-01-01&toDate=2026-01-31",
+							"host": ["{{baseUrl}}"],
+							"path": ["Subscription", "Transactions"],
+							"query": [
+								{
+									"key": "type",
+									"value": "Subscription"
+								},
+								{
+									"key": "fromDate",
+									"value": "2026-01-01"
+								},
+								{
+									"key": "toDate",
+									"value": "2026-01-31"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Process Refund",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "urlencoded",
+							"urlencoded": [
+								{
+									"key": "subscriptionId",
+									"value": "22"
+								},
+								{
+									"key": "refundNotes",
+									"value": "Customer requested cancellation"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{baseUrl}}/Subscription/MarkRefundProcessed",
+							"host": ["{{baseUrl}}"],
+							"path": ["Subscription", "MarkRefundProcessed"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Notifications",
+			"item": [
+				{
+					"name": "Get All Notifications",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/Notification/Index?userId=1",
+							"host": ["{{baseUrl}}"],
+							"path": ["Notification", "Index"],
+							"query": [
+								{
+									"key": "userId",
+									"value": "1"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Mark as Read",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "urlencoded",
+							"urlencoded": [
+								{
+									"key": "notificationId",
+									"value": "1"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{baseUrl}}/Notification/MarkAsRead",
+							"host": ["{{baseUrl}}"],
+							"path": ["Notification", "MarkAsRead"]
+						}
+					}
+				},
+				{
+					"name": "Get Unread Count",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/Notification/UnreadCount?userId=1",
+							"host": ["{{baseUrl}}"],
+							"path": ["Notification", "UnreadCount"],
+							"query": [
+								{
+									"key": "userId",
+									"value": "1"
+								}
+							]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "FCM Push Notifications",
+			"item": [
+				{
+					"name": "Save Device Token",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"userId\": 1,\n    \"token\": \"fcm_device_token_here\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/Fcm/SaveToken",
+							"host": ["{{baseUrl}}"],
+							"path": ["Fcm", "SaveToken"]
+						}
+					}
+				},
+				{
+					"name": "Send Push Notification",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"userId\": 1,\n    \"title\": \"New Lead Assigned\",\n    \"body\": \"You have a new lead from Website\",\n    \"data\": {\n        \"leadId\": \"123\",\n        \"type\": \"lead\"\n    }\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/Fcm/SendNotification",
+							"host": ["{{baseUrl}}"],
+							"path": ["Fcm", "SendNotification"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "WhatsApp",
+			"item": [
+				{
+					"name": "Send Message",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"phoneNumber\": \"+919876543210\",\n    \"message\": \"Hello from CRM! Thank you for your interest.\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/WhatsApp/SendMessage",
+							"host": ["{{baseUrl}}"],
+							"path": ["WhatsApp", "SendMessage"]
+						}
+					}
+				},
+				{
+					"name": "Send Lead Follow-up",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"leadId\": 1,\n    \"message\": \"Hi! Following up on your property inquiry.\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/WhatsApp/SendLeadFollowUp",
+							"host": ["{{baseUrl}}"],
+							"path": ["WhatsApp", "SendLeadFollowUp"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Webhooks",
+			"item": [
+				{
+					"name": "Razorpay Payment Webhook",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "X-Razorpay-Signature",
+								"value": "signature_here"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"event\": \"payment.captured\",\n    \"payload\": {\n        \"payment\": {\n            \"entity\": {\n                \"id\": \"pay_MfKIQPM6zXK7Pe\",\n                \"amount\": 29900,\n                \"currency\": \"INR\",\n                \"status\": \"captured\",\n                \"order_id\": \"order_MfKIQPM6zXK7Pe\",\n                \"method\": \"card\"\n            }\n        }\n    }\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/Webhook/RazorpayPayment",
+							"host": ["{{baseUrl}}"],
+							"path": ["Webhook", "RazorpayPayment"]
+						}
+					}
+				},
+				{
+					"name": "Facebook Leads Webhook",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"object\": \"page\",\n    \"entry\": [\n        {\n            \"id\": \"page_id\",\n            \"changes\": [\n                {\n                    \"value\": {\n                        \"leadgen_id\": \"123456\",\n                        \"form_id\": \"form123\"\n                    }\n                }\n            ]\n        }\n    ]\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/WebhookLeads/FacebookLeads",
+							"host": ["{{baseUrl}}"],
+							"path": ["WebhookLeads", "FacebookLeads"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Agents",
+			"item": [
+				{
+					"name": "Get All Agents",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/Agent/Index",
+							"host": ["{{baseUrl}}"],
+							"path": ["Agent", "Index"]
+						}
+					}
+				},
+				{
+					"name": "Create Agent",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "urlencoded",
+							"urlencoded": [
+								{
+									"key": "Name",
+									"value": "Agent Name"
+								},
+								{
+									"key": "Email",
+									"value": "agent@example.com"
+								},
+								{
+									"key": "Phone",
+									"value": "9876543210"
+								},
+								{
+									"key": "AgentType",
+									"value": "Field Agent"
+								},
+								{
+									"key": "BaseSalary",
+									"value": "30000"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{baseUrl}}/Agent/Create",
+							"host": ["{{baseUrl}}"],
+							"path": ["Agent", "Create"]
+						}
+					}
+				},
+				{
+					"name": "Get Agent Details",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/Agent/Details?id=1",
+							"host": ["{{baseUrl}}"],
+							"path": ["Agent", "Details"],
+							"query": [
+								{
+									"key": "id",
+									"value": "1"
+								}
+							]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Properties",
+			"item": [
+				{
+					"name": "Get All Properties",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/Properties/Index",
+							"host": ["{{baseUrl}}"],
+							"path": ["Properties", "Index"]
+						}
+					}
+				},
+				{
+					"name": "Create Property",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "urlencoded",
+							"urlencoded": [
+								{
+									"key": "PropertyName",
+									"value": "Sunrise Apartments"
+								},
+								{
+									"key": "Location",
+									"value": "Bangalore"
+								},
+								{
+									"key": "PropertyType",
+									"value": "Apartment"
+								},
+								{
+									"key": "Price",
+									"value": "5000000"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{baseUrl}}/Properties/Create",
+							"host": ["{{baseUrl}}"],
+							"path": ["Properties", "Create"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Reports",
+			"item": [
+				{
+					"name": "Revenue Report",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/Revenue/Index?fromDate=2026-01-01&toDate=2026-01-31",
+							"host": ["{{baseUrl}}"],
+							"path": ["Revenue", "Index"],
+							"query": [
+								{
+									"key": "fromDate",
+									"value": "2026-01-01"
+								},
+								{
+									"key": "toDate",
+									"value": "2026-01-31"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Profit Report",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/Profit/Index?month=January&year=2026",
+							"host": ["{{baseUrl}}"],
+							"path": ["Profit", "Index"],
+							"query": [
+								{
+									"key": "month",
+									"value": "January"
+								},
+								{
+									"key": "year",
+									"value": "2026"
+								}
+							]
+						}
+					}
+				}
+			]
+		}
+	],
+	"auth": {
+		"type": "bearer",
+		"bearer": [
+			{
+				"key": "token",
+				"value": "{{jwtToken}}",
+				"type": "string"
+			}
+		]
+	}
+}

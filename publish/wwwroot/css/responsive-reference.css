@@ -1,0 +1,365 @@
+/* ============================================
+   QUICK REFERENCE GUIDE
+   Copy-paste these classes for consistent responsive design
+   ============================================ */
+
+/* ==================== MODERN HEADER PATTERN ==================== */
+/*
+<div class="modern-header">
+    <div class="header-content">
+        <div class="row align-items-center mb-4">
+            <div class="col-lg-8">
+                <h1 class="header-title">Page Title</h1>
+                <p class="header-subtitle">Page description</p>
+            </div>
+            <div class="col-lg-4 text-lg-end">
+                <button class="action-btn">
+                    <i class="fa-solid fa-plus"></i>
+                    <span>Add New</span>
+                </button>
+            </div>
+        </div>
+        <div class="stats-grid">
+            <div class="stats-card">
+                <div class="stats-number">100</div>
+                <div class="stats-label">Total</div>
+            </div>
+        </div>
+    </div>
+</div>
+*/
+
+/* ==================== FILTER SECTION PATTERN ==================== */
+/*
+<div class="filter-section">
+    <div class="filter-title">
+        <i class="fa-solid fa-filter"></i>
+        <span>Filter & Search</span>
+    </div>
+    <div class="row g-3">
+        <div class="col-md-4">
+            <label class="form-label fw-semibold">Search</label>
+            <input type="text" class="form-control" placeholder="Search...">
+        </div>
+    </div>
+</div>
+*/
+
+/* ==================== LIST CARD PATTERN ==================== */
+/*
+<div class="lead-card">
+    <div class="row align-items-center">
+        <div class="col-md-4">
+            <div class="lead-name">Item Name</div>
+            <div class="lead-info">
+                <i class="fa-solid fa-icon"></i>
+                <span>Information</span>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <span class="status-badge status-active">Active</span>
+        </div>
+        <div class="col-md-4">
+            <div class="action-buttons">
+                <button class="btn-action btn-edit">
+                    <i class="fa-solid fa-edit"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+*/
+
+/* ==================== RESPONSIVE TABLE PATTERN ==================== */
+/*
+<!-- Desktop Table View -->
+<div class="table-responsive d-none d-md-block">
+    <table class="table table-hover">
+        <thead>
+            <tr>
+                <th>Column 1</th>
+                <th>Column 2</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>Data 1</td>
+                <td>Data 2</td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+
+<!-- Mobile Card View -->
+<div class="d-block d-md-none">
+    <div class="table-card-mobile">
+        <div><strong>Column 1:</strong> Data 1</div>
+        <div><strong>Column 2:</strong> Data 2</div>
+    </div>
+</div>
+*/
+
+/* ==================== STATUS BADGE COLORS ==================== */
+.status-active { background-color: #d1fae5; color: #065f46; border-color: #10b981; }
+.status-inactive { background-color: #f3f4f6; color: #1f2937; border-color: #9ca3af; }
+.status-hot { background-color: #fee2e2; color: #991b1b; border-color: #ef4444; }
+.status-warm { background-color: #fef3c7; color: #92400e; border-color: #f59e0b; }
+.status-cold { background-color: #e5e7eb; color: #374151; border-color: #6b7280; }
+.status-pending { background-color: #fef3c7; color: #92400e; border-color: #f59e0b; }
+.status-approved { background-color: #d1fae5; color: #065f46; border-color: #10b981; }
+.status-rejected { background-color: #fee2e2; color: #991b1b; border-color: #ef4444; }
+.status-confirmed { background-color: #d1fae5; color: #065f46; border-color: #10b981; }
+.status-cancelled { background-color: #fee2e2; color: #991b1b; border-color: #ef4444; }
+.status-completed { background-color: #dbeafe; color: #1e40af; border-color: #3b82f6; }
+
+/* ==================== SPACING UTILITIES ==================== */
+/* Margins */
+.mt-1 { margin-top: 0.25rem !important; }      /* 4px */
+.mt-2 { margin-top: 0.5rem !important; }       /* 8px */
+.mt-3 { margin-top: 1rem !important; }         /* 16px */
+.mt-4 { margin-top: 1.5rem !important; }       /* 24px */
+.mt-5 { margin-top: 3rem !important; }         /* 48px */
+
+.mb-1 { margin-bottom: 0.25rem !important; }   /* 4px */
+.mb-2 { margin-bottom: 0.5rem !important; }    /* 8px */
+.mb-3 { margin-bottom: 1rem !important; }      /* 16px */
+.mb-4 { margin-bottom: 1.5rem !important; }    /* 24px */
+.mb-5 { margin-bottom: 3rem !important; }      /* 48px */
+
+/* Padding */
+.p-0 { padding: 0 !important; }
+.p-1 { padding: 0.25rem !important; }          /* 4px */
+.p-2 { padding: 0.5rem !important; }           /* 8px */
+.p-3 { padding: 1rem !important; }             /* 16px */
+.p-4 { padding: 1.5rem !important; }           /* 24px */
+.p-5 { padding: 3rem !important; }             /* 48px */
+
+/* ==================== BUTTON PATTERNS ==================== */
+/* Primary Action Button */
+.action-btn {
+    background: rgba(255, 255, 255, 0.2);
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    color: white;
+    padding: 0.875rem 2rem;
+    border-radius: 50px;
+    font-weight: 600;
+}
+
+/* Small Action Buttons */
+.btn-action {
+    padding: 0.5rem 0.875rem;
+    font-size: 0.875rem;
+    border-radius: 0.375rem;
+    min-width: 38px;
+}
+
+/* Icon Buttons */
+.btn-edit { background-color: #3b82f6; color: white; }
+.btn-delete { background-color: #ef4444; color: white; }
+.btn-approve { background-color: #10b981; color: white; }
+.btn-reject { background-color: #ef4444; color: white; }
+
+/* ==================== TYPOGRAPHY SCALE ==================== */
+/* Headings */
+h1, .h1 { font-size: 2rem; font-weight: 700; }       /* 32px */
+h2, .h2 { font-size: 1.75rem; font-weight: 600; }    /* 28px */
+h3, .h3 { font-size: 1.5rem; font-weight: 600; }     /* 24px */
+h4, .h4 { font-size: 1.25rem; font-weight: 600; }    /* 20px */
+h5, .h5 { font-size: 1.1rem; font-weight: 600; }     /* 17.6px */
+h6, .h6 { font-size: 1rem; font-weight: 600; }       /* 16px */
+
+/* Body Text */
+p { font-size: 0.95rem; line-height: 1.6; }          /* 15.2px */
+.text-sm, .small { font-size: 0.85rem; }             /* 13.6px */
+.text-xs { font-size: 0.75rem; }                     /* 12px */
+
+/* ==================== MODAL PATTERN ==================== */
+/*
+<div class="modal fade" id="myModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Modal Title</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form>
+                    <div class="mb-3">
+                        <label class="form-label">Field Label</label>
+                        <input type="text" class="form-control">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary">Save</button>
+            </div>
+        </div>
+    </div>
+</div>
+*/
+
+/* ==================== EMPTY STATE PATTERN ==================== */
+/*
+<div class="empty-state">
+    <i class="fa-solid fa-users"></i>
+    <h3>No Data Found</h3>
+    <p class="text-muted">Get started by adding your first item</p>
+    <button type="button" class="btn btn-primary mt-3">
+        <i class="fa-solid fa-plus me-2"></i>Add New
+    </button>
+</div>
+*/
+
+/* ==================== PAGINATION PATTERN ==================== */
+/*
+<div class="pagination-wrapper">
+    <div class="row align-items-center">
+        <div class="col-md-6">
+            <p class="text-muted mb-0">Showing 1 to 10 of 100 entries</p>
+        </div>
+        <div class="col-md-6">
+            <nav>
+                <ul class="pagination justify-content-end mb-0">
+                    <li class="page-item disabled">
+                        <a class="page-link">Previous</a>
+                    </li>
+                    <li class="page-item active">
+                        <a class="page-link">1</a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link">2</a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link">Next</a>
+                    </li>
+                </ul>
+            </nav>
+        </div>
+    </div>
+</div>
+*/
+
+/* ==================== FORM PATTERN ==================== */
+/*
+<form>
+    <div class="row">
+        <div class="col-md-6 mb-3">
+            <label class="form-label">Field Name <span class="text-danger">*</span></label>
+            <input type="text" class="form-control" required>
+            <div class="invalid-feedback">Please provide a value</div>
+        </div>
+        <div class="col-md-6 mb-3">
+            <label class="form-label">Select Field</label>
+            <select class="form-select">
+                <option value="">Choose...</option>
+                <option value="1">Option 1</option>
+            </select>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-12 mb-3">
+            <label class="form-label">Text Area</label>
+            <textarea class="form-control" rows="3"></textarea>
+        </div>
+    </div>
+</form>
+*/
+
+/* ==================== BREADCRUMB PATTERN ==================== */
+/*
+<nav class="mb-3" aria-label="breadcrumb">
+    <ol class="breadcrumb mb-0">
+        <li class="breadcrumb-item"><a href="/Home/Index">Home</a></li>
+        <li class="breadcrumb-item"><a href="/Module">Module</a></li>
+        <li class="breadcrumb-item active">Current Page</li>
+    </ol>
+</nav>
+*/
+
+/* ==================== ALERT PATTERN ==================== */
+/*
+<div class="alert alert-success alert-dismissible fade show" role="alert">
+    <i class="fa-solid fa-check-circle me-2"></i>
+    Success message here
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+</div>
+
+<div class="alert alert-danger alert-dismissible fade show" role="alert">
+    <i class="fa-solid fa-exclamation-circle me-2"></i>
+    Error message here
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+</div>
+
+<div class="alert alert-warning alert-dismissible fade show" role="alert">
+    <i class="fa-solid fa-exclamation-triangle me-2"></i>
+    Warning message here
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+</div>
+
+<div class="alert alert-info alert-dismissible fade show" role="alert">
+    <i class="fa-solid fa-info-circle me-2"></i>
+    Info message here
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+</div>
+*/
+
+/* ==================== RESPONSIVE BREAKPOINTS ==================== */
+/*
+Mobile (Portrait):    < 576px   - Single column, minimal padding
+Mobile (Landscape):   576px - 767px  - 2 columns for stats
+Tablet:               768px - 991px  - Sidebar overlay, 2 columns
+Desktop:              992px - 1399px - Full layout, sidebar fixed
+Large Desktop:        ≥ 1400px       - Centered content, max 1320px
+*/
+
+/* ==================== COMMON ISSUES & SOLUTIONS ==================== */
+
+/* Issue: Button text wrapping */
+.btn {
+    white-space: nowrap !important;
+}
+
+/* Issue: Text overflow in card */
+.text-truncate {
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+}
+
+/* Issue: Long text breaking layout */
+.word-break {
+    word-wrap: break-word !important;
+    word-break: break-word !important;
+    overflow-wrap: break-word !important;
+}
+
+/* Issue: Prevent horizontal scroll */
+body, html {
+    max-width: 100vw !important;
+    overflow-x: hidden !important;
+}
+
+/* Issue: Modal too tall on mobile */
+.modal-body {
+    max-height: calc(100vh - 200px) !important;
+    overflow-y: auto !important;
+}
+
+/* ==================== DARK MODE CLASSES ==================== */
+/*
+Add these classes automatically with dark mode:
+- .dark-mode to <body>
+- All color adjustments are handled in responsive-fixes.css
+*/
+
+/* ==================== ACCESSIBILITY TIPS ==================== */
+/*
+1. Always include aria-labels for icon-only buttons
+2. Use semantic HTML (nav, main, article, section)
+3. Maintain proper heading hierarchy (h1 → h2 → h3)
+4. Ensure sufficient color contrast (4.5:1 minimum)
+5. Make touch targets at least 44x44px on mobile
+6. Add focus styles for keyboard navigation
+7. Use <label> elements for all form inputs
+*/

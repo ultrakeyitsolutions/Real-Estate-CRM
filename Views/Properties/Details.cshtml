@@ -1,0 +1,1042 @@
+@model CRM.Models.PropertyModel
+@{
+    ViewData["Title"] = "Property Details";
+    var builder = ViewBag.Builder as CRM.Models.BuilderModel;
+    var assignedUser = ViewBag.AssignedUser as dynamic;
+    var assignedUserName = assignedUser != null ? assignedUser.Username : "Unassigned";
+}
+
+<style>
+    /* Mobile responsive styles */
+    @@media (max-width: 768px) {
+        body { overflow-x: hidden; }
+        html, body { max-width: 100vw; overflow-x: hidden; }
+        .sticky-leads-sidebar { position: relative !important; margin-bottom: 1rem; }
+        .pb-9 { padding-bottom: 2rem !important; }
+        main.content { padding: 0.5rem !important; overflow-x: hidden !important; max-width: 100vw; }
+        main.content > .container-fluid { padding-left: 0.5rem !important; padding-right: 0.5rem !important; max-width: 100% !important; margin: 0 !important; overflow-x: hidden !important; }
+        .row { margin-left: 0 !important; margin-right: 0 !important; max-width: 100%; }
+        .col-12, .col-md-5, .col-md-7, .col-lg-5, .col-lg-7, .col-xl-4, .col-xl-8, [class*="col-"] { padding-left: 0.5rem !important; padding-right: 0.5rem !important; max-width: 100%; }
+        .card { margin-bottom: 0.75rem !important; overflow-x: hidden; }
+        .card-body { overflow-x: hidden; word-wrap: break-word; }
+        .card-body h6 { font-size: 0.875rem; }
+        .card-body p { font-size: 0.875rem; margin-bottom: 0.75rem !important; }
+        .table-responsive { margin-left: 0; margin-right: 0; width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+        .table { margin-bottom: 0; }
+        .d-flex.flex-wrap.gap-2 { gap: 0.5rem !important; }
+        .btn { font-size: 0.875rem; padding: 0.4rem 0.8rem; white-space: nowrap; }
+        .nav-tabs .nav-link { padding: 0.5rem 0.75rem; font-size: 0.875rem; }
+        .breadcrumb { font-size: 0.875rem; margin-bottom: 0.5rem !important; }
+        .tab-content { padding: 0.75rem 0.5rem !important; overflow-x: hidden; }
+        .g-3, .g-md-4, .g-xl-6 { --bs-gutter-x: 0.5rem !important; --bs-gutter-y: 0.5rem !important; }
+        p, h1, h2, h3, h4, h5, h6, span, div { word-wrap: break-word; overflow-wrap: break-word; }
+    }
+</style>
+
+<div class="content">
+    <!-- Breadcrumb - Outside the card -->
+    <nav class="mb-3" aria-label="breadcrumb" style="background: transparent; padding: 0;">
+        <ol class="breadcrumb mb-0" style="background: transparent; padding: 0; font-size: 0.875rem;">
+            <li class="breadcrumb-item"><a href="/Home/Index" style="color: #6b7280; text-decoration: none;">Home</a></li>
+            <li class="breadcrumb-item"><a href="/Properties/Index" style="color: #6b7280; text-decoration: none;">Properties</a></li>
+            <li class="breadcrumb-item active" style="color: #9ca3af;">@Model.PropertyName</li>
+        </ol>
+    </nav>
+
+    <!-- Modern Header -->
+    <div class="modern-header-section mb-4">
+        <div class="modern-header-bg">
+            <div class="header-content-wrapper">
+                <!-- Header Title -->
+                <div class="modern-header-title">
+                    <div class="d-flex align-items-center">
+                        <div class="header-icon me-3">
+                            <i class="fa-solid fa-building"></i>
+                        </div>
+                        <div>
+                            <h1 class="header-main-title mb-1">@Model.PropertyName</h1>
+                            <p class="header-subtitle mb-0">Property Details & Management</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="pb-9">
+        <!-- Header Actions -->
+        <div class="row">
+            <div class="col-12">
+                <div class="row align-items-center justify-content-between g-3 mb-3">
+                    <div class="col-12 col-md-auto">
+                        <h2 class="mb-0">Property Details</h2>
+                    </div>
+                    <div class="col-12 col-md-auto">
+                        <div class="d-flex flex-wrap gap-2">
+                            <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#addFlatModal">
+                                <span class="fa-solid fa-plus me-2"></span>Add Flat
+                            </button>
+                            <button class="btn btn-info text-white" onclick="exportFlatsToExcel()">
+                                <span class="fa-solid fa-file-excel me-2"></span>Export Flats
+                            </button>
+                            <a href="/Properties/Index" class="btn btn-phoenix-secondary">
+                                <span class="fa-solid fa-arrow-left me-2"></span>Back to Properties
+                            </a>
+                            <button class="btn px-3 btn-phoenix-secondary" type="button" data-bs-toggle="dropdown"
+                                    data-boundary="window" aria-haspopup="true" aria-expanded="false" data-bs-reference="parent">
+                                <span class="fa-solid fa-ellipsis"></span>
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end p-0" style="z-index: 9999;">
+                                <li>
+                                    <a class="dropdown-item" href="#!" onclick="editProperty(@Model.PropertyId)">
+                                        <span class="fa-solid fa-edit me-2"></span>Edit Property
+                                    </a>
+                                </li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li>
+                                    <a class="dropdown-item text-danger" href="#!" onclick="deleteProperty(@Model.PropertyId)">
+                                        <span class="fa-solid fa-trash me-2"></span>Delete Property
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content Grid -->
+        <div class="row g-3 g-md-4 g-xl-6">
+            <!-- Left Sidebar - Property Info Cards -->
+            <div class="col-12 col-md-5 col-lg-5 col-xl-4">
+                <div class="sticky-leads-sidebar">
+                    <!-- Property Profile Card -->
+                    <div class="card mb-3">
+                        <div class="card-body">
+                            <div class="text-center mb-3">
+                                @if (Model.PropertyImage != null && Model.PropertyImage.Length > 0)
+                                {
+                                    <img src="data:image/jpeg;base64,@Convert.ToBase64String(Model.PropertyImage)"
+                                         class="img-fluid rounded" alt="@Model.PropertyName" style="max-height: 200px; width: 100%; object-fit: cover;">
+                                }
+                                else
+                                {
+                                    <div class="avatar avatar-5xl">
+                                        <div class="avatar-name rounded-circle bg-primary-subtle text-primary">
+                                            <span class="fs-2">@Model.PropertyName.Substring(0, 1).ToUpper()</span>
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                            <h3 class="fw-bolder mb-2 text-center">@Model.PropertyName</h3>
+                            <p class="text-center mb-0">
+                                <span class="badge bg-success">Active</span>
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Property Information Card -->
+                    <div class="card mb-3">
+                        <div class="card-body">
+                            <div class="d-flex align-items-center mb-4">
+                                <h4 class="mb-0">Property Information</h4>
+                            </div>
+
+                            <div class="mb-4">
+                                <div class="d-flex align-items-center mb-1">
+                                    <span class="me-2 fa-solid fa-building"></span>
+                                    <h5 class="text-body-highlight mb-0 fs-9">Builder</h5>
+                                </div>
+                                <p class="mb-0 text-body-secondary fw-semibold">@(builder?.BuilderName ?? "N/A")</p>
+                            </div>
+
+                            @if (!string.IsNullOrEmpty(Model.Location))
+                            {
+                                <div class="mb-4">
+                                    <div class="d-flex align-items-center mb-1">
+                                        <span class="me-2 fa-solid fa-location-dot"></span>
+                                        <h5 class="text-body-highlight mb-0 fs-9">Location</h5>
+                                    </div>
+                                    <p class="mb-0 text-body-secondary">@Model.Location</p>
+                                </div>
+                            }
+
+                            @if (Model.AreaSqft.HasValue)
+                            {
+                                <div class="mb-4">
+                                    <div class="d-flex align-items-center mb-1">
+                                        <span class="me-2 fa-solid fa-ruler-combined"></span>
+                                        <h5 class="text-body-highlight mb-0 fs-9">Area</h5>
+                                    </div>
+                                    <p class="mb-0 text-body-secondary">@Model.AreaSqft.Value.ToString("N2") Sqft</p>
+                                </div>
+                            }
+
+                            @if (Model.Price.HasValue)
+                            {
+                                <div class="mb-4">
+                                    <div class="d-flex align-items-center mb-1">
+                                        <span class="me-2 fa-solid fa-indian-rupee-sign"></span>
+                                        <h5 class="text-body-highlight mb-0 fs-9">Price</h5>
+                                    </div>
+                                    <p class="mb-0 text-body-secondary fw-bold text-success">₹@Model.Price.Value.ToString("N2")</p>
+                                </div>
+                            }
+
+                            @if (!string.IsNullOrEmpty(Model.PurchaseType))
+                            {
+                                <div class="mb-4">
+                                    <div class="d-flex align-items-center mb-1">
+                                        <span class="me-2 fa-solid fa-handshake"></span>
+                                        <h5 class="text-body-highlight mb-0 fs-9">Purchase Type</h5>
+                                    </div>
+                                    <p class="mb-0 text-body-secondary">@Model.PurchaseType</p>
+                                </div>
+                            }
+
+                            <div class="mb-4">
+                                <div class="d-flex align-items-center mb-1">
+                                    <span class="me-2 fa-solid fa-door-open"></span>
+                                    <h5 class="text-body-highlight mb-0 fs-9">Units</h5>
+                                </div>
+                                <p class="mb-0 text-body-secondary"><span id="totalFlatsCount">0</span> Flats Available</p>
+                            </div>
+
+                            <div class="mb-4">
+                                <div class="d-flex align-items-center mb-1">
+                                    <span class="me-2 fa-solid fa-user-tie"></span>
+                                    <h5 class="text-body-highlight mb-0 fs-9">Assigned To</h5>
+                                </div>
+                                <p class="mb-0 text-body-secondary fw-semibold">@assignedUserName</p>
+                            </div>
+
+                            <div class="mb-0">
+                                <div class="d-flex align-items-center mb-1">
+                                    <span class="me-2 fa-solid fa-clock"></span>
+                                    <h5 class="text-body-highlight mb-0 fs-9">Created On</h5>
+                                </div>
+                                <p class="mb-0 text-body-secondary">@Model.CreatedOn.ToString("MMMM dd, yyyy hh:mm tt")</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Content Area - Activity Tabs -->
+            <div class="col-12 col-md-7 col-lg-7 col-xl-8">
+                <div class="lead-details-container">
+                    <!-- Tab Navigation -->
+                    <nav class="navbar pb-4 px-0 sticky-top bg-white nav-underline-scrollspy" id="navbar-property-detail">
+                        <ul class="nav nav-underline fs-9 flex-nowrap scrollbar">
+                            <li class="nav-item">
+                                <a class="nav-link active me-2" href="#scrollspyFlats" onclick="loadFlats(propertyId)">
+                                    <span class="fa-solid fa-building me-1"></span>Flats
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link me-2" href="#scrollspyImages" onclick="loadImages(propertyId)">
+                                    <span class="fa-solid fa-images me-1"></span>Images
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link me-2" href="#scrollspyDocuments" onclick="loadDocuments(propertyId)">
+                                    <span class="fa-solid fa-file-alt me-1"></span>Documents
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link me-2" href="#scrollspyBulkUpload" onclick="loadBulkUpload()">
+                                    <span class="fa-solid fa-upload me-1"></span>Bulk Upload
+                                </a>
+                            </li>
+                        </ul>
+                    </nav>
+
+                    <!-- Dynamic Content Area -->
+                    <div id="detailSubContent" class="min-vh-50">
+                        <!-- Content will be loaded dynamically -->
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modals -->
+@await Html.PartialAsync("_FlatModal")
+@await Html.PartialAsync("_BulkUploadFlatsModal")
+
+<style>
+    /* Modern Header Styles */
+    .modern-header-section { margin: -1rem -1rem 2rem -1rem; padding: 0; }
+    .modern-header-bg { background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%); position: relative; overflow: hidden; border-radius: 0 0 20px 20px; box-shadow: 0 8px 32px rgba(79, 70, 229, 0.15); }
+    .modern-header-bg::before { content: ''; position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="50" cy="50" r="1" fill="%23ffffff" opacity="0.1"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>') repeat; opacity: 0.3; }
+    .header-content-wrapper { position: relative; z-index: 2; padding: 2rem; color: white; }
+    .breadcrumb-modern { background: rgba(255, 255, 255, 0.1); padding: 0.5rem 1rem; border-radius: 25px; backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.2); display: inline-flex; }
+    .breadcrumb-modern .breadcrumb-item a { color: rgba(255, 255, 255, 0.8); text-decoration: none; }
+    .breadcrumb-modern .breadcrumb-item.active { color: white; font-weight: 600; }
+    .header-icon { font-size: 3rem; opacity: 0.9; }
+    .header-main-title { font-size: 2.5rem; font-weight: 700; margin: 0; text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); }
+    .header-subtitle { font-size: 1.1rem; opacity: 0.9; font-weight: 400; }
+
+    /* Sticky Sidebar */
+    .sticky-leads-sidebar { position: sticky; top: 20px; }
+
+    /* Avatar Name Styles */
+    .avatar-name { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; font-weight: 700; }
+
+    /* Navigation Underline Active State */
+    .nav-underline .nav-link.active { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white !important; border-radius: 8px; padding: 8px 16px; border-bottom: none !important; }
+    .nav-underline .nav-link { color: #2d3748; border-bottom: 2px solid transparent; transition: all 0.3s ease; padding: 8px 16px; border-radius: 8px; font-weight: 500; }
+    .nav-underline .nav-link:hover { background-color: rgba(102, 126, 234, 0.1); color: #667eea; }
+
+    /* Enhanced Card Styles */
+    .card { border: none; border-radius: 16px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08); transition: all 0.3s ease; background: white; border: 1px solid rgba(0, 0, 0, 0.05); }
+    .card:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12); border-color: rgba(79, 70, 229, 0.2); }
+
+    /* Enhanced Avatar */
+    .avatar.avatar-5xl { width: 100px; height: 100px; border: 4px solid rgba(79, 70, 229, 0.1); box-shadow: 0 4px 20px rgba(79, 70, 229, 0.15); }
+    .avatar-name { background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%) !important; color: white !important; }
+
+    /* Content Area Minimum Height */
+    .min-vh-50 { min-height: 50vh; }
+
+    /* Phoenix Button Styles */
+    .btn-phoenix-secondary { background-color: transparent; color: var(--phoenix-body-color); border: 1px solid var(--phoenix-border-color); }
+    .btn-phoenix-secondary:hover { background-color: var(--phoenix-body-bg-emphasis); }
+
+    /* Dynamic Content Animations */
+    #detailSubContent { animation: fadeIn 0.3s ease-in; }
+    @@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* Document Card Styles */
+    .documents-section { animation: fadeIn 0.3s ease-in; }
+    .document-card { border: none; border-radius: 16px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08); border: 1px solid rgba(0, 0, 0, 0.05); transition: all 0.3s ease; overflow: hidden; }
+    .document-card:hover { transform: translateY(-3px); box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12); }
+    .document-header { background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%); border: none; padding: 1.5rem; border-bottom: 1px solid rgba(0, 0, 0, 0.05); }
+    .document-icon { width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; color: white; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15); }
+
+    /* Enhanced Table Styles */
+    .table-responsive { border-radius: 12px; overflow: hidden; box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05); }
+    .table tbody tr:hover { background-color: rgba(79, 70, 229, 0.05) !important; transform: scale(1.001); }
+    .table thead th { background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%) !important; border: none; font-weight: 600; color: #495057; }
+    .table tbody td { border-color: rgba(0, 0, 0, 0.08); vertical-align: middle; }
+    .badge { font-size: 0.75rem; font-weight: 500; letter-spacing: 0.5px; }
+    .btn-sm { padding: 0.4rem 0.8rem; font-size: 0.8rem; border-radius: 6px; }
+    .btn-outline-primary:hover, .btn-outline-danger:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15); }
+    
+    /* Card Header Enhancement */
+    .card-header.bg-light { background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%) !important; border-bottom: 2px solid rgba(79, 70, 229, 0.1); }
+    
+    /* Loading and Empty States */
+    .spinner-border { width: 2rem; height: 2rem; }
+    
+    /* Dark Mode Support */
+    .dark-mode .modern-header-bg { background: linear-gradient(135deg, #1e1b4b 0%, #581c87 100%) !important; }
+    .dark-mode .card { background: #222639 !important; border-color: #2c3049 !important; color: #e4e6eb !important; }
+    .dark-mode .card-body h4, .dark-mode .card-body h5 { color: #e4e6eb !important; }
+    .dark-mode .text-body-secondary { color: #a6adc8 !important; }
+    .dark-mode .text-body-highlight { color: #e4e6eb !important; }
+    .dark-mode .document-card { background: #222639 !important; border-color: #2c3049 !important; }
+    .dark-mode .document-header { background: #2c3049 !important; color: #e4e6eb !important; }
+    .dark-mode .table { background: #222639 !important; color: #e4e6eb !important; }
+    .dark-mode .table thead th { background: #2c3049 !important; color: #e4e6eb !important; }
+    .dark-mode .table tbody tr:hover { background-color: rgba(124, 58, 237, 0.1) !important; }
+</style>
+
+@section Scripts {
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script>
+        const propertyId = @Model.PropertyId;
+        let currentFlatsData = [];
+
+        document.addEventListener('DOMContentLoaded', function () {
+            loadFlats(propertyId);
+        });
+
+        function loadFlats(propertyId) {
+            // Show flats section
+            const flatsHtml = `
+                <div class="card">
+                    <div class="card-header bg-light">
+                        <div class="row align-items-center g-3">
+                            <div class="col-12 col-md-auto">
+                                <h5 class="mb-0 fw-bold"><i class="fa-solid fa-building me-2 text-primary"></i>Flats / Units</h5>
+                            </div>
+                            <div class="col-12 col-md-auto ms-auto">
+                                <div class="d-flex gap-3 flex-wrap">
+                                    <select class="form-select" id="bhkFilter" onchange="filterFlats()" style="min-width: 120px;">
+                                        <option value="">All BHK</option>
+                                        <option value="1BHK">1BHK</option>
+                                        <option value="2BHK">2BHK</option>
+                                        <option value="3BHK">3BHK</option>
+                                        <option value="4BHK">4BHK</option>
+                                        <option value="5BHK">5BHK</option>
+                                    </select>
+                                   
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-body p-3">
+                        <div id="flatsContainer">
+                            <div class="text-center text-muted py-4">
+                                <div class="spinner-border text-primary mb-3" role="status">
+                                    <span class="visually-hidden">Loading...</span>
+                                </div>
+                                <p class="mb-0">Loading flats...</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            document.getElementById('detailSubContent').innerHTML = flatsHtml;
+            
+            // Load flats data
+            fetchFlatsData(propertyId, '');
+            setActiveTab(event?.target);
+        }
+        
+        function fetchFlatsData(propertyId, bhkFilter) {
+            fetch(`/Properties/GetFlats?propertyId=${propertyId}&searchBhk=${bhkFilter}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success && data.flats && data.flats.length > 0) {
+                        currentFlatsData = data.flats;
+                        let html = '<div class="table-responsive rounded border">';
+                        html += '<table class="table table-hover mb-0" style="border-collapse: separate; border-spacing: 0;">';
+                        html += '<thead class="table-light"><tr style="border-bottom: 2px solid #dee2e6;">';
+                        html += '<th class="py-2 px-3 fw-bold">Block</th>';
+                        html += '<th class="py-2 px-3 fw-bold">Floor</th>';
+                        html += '<th class="py-2 px-3 fw-bold">Flat Name</th>';
+                        html += '<th class="py-2 px-3 fw-bold">BHK</th>';
+                        html += '<th class="py-2 px-3 fw-bold">Area (Sqft)</th>';
+                        html += '<th class="py-2 px-3 fw-bold">Status</th>';
+                        html += '<th class="py-2 px-3 fw-bold">Price</th>';
+                        html += '<th class="py-2 px-3 fw-bold text-center">Actions</th>';
+                        html += '</tr></thead><tbody>';
+                        
+                        data.flats.forEach(flat => {
+                            const statusClass = flat.flatStatus === 'Available' ? 'success' : flat.flatStatus === 'Booked' ? 'warning' : 'secondary';
+                            html += `<tr class="border-bottom" style="transition: all 0.2s ease;">
+                                <td class="py-2 px-3">${flat.blockName || '-'}</td>
+                                <td class="py-2 px-3">${flat.floorName || '-'}</td>
+                                <td class="py-2 px-3"><strong class="text-dark">${flat.flatName}</strong></td>
+                                <td class="py-2 px-3"><span class="badge bg-info px-2 py-1">${flat.bhk || '-'}</span></td>
+                                <td class="py-2 px-3">${flat.areaSqft ? flat.areaSqft.toFixed(2) : '-'}</td>
+                                <td class="py-2 px-3"><span class="badge bg-${statusClass} px-2 py-1">${flat.flatStatus}</span></td>
+                                <td class="py-2 px-3 fw-bold text-success">${flat.price ? '₹' + flat.price.toLocaleString('en-IN') : '-'}</td>
+                                <td class="py-2 px-3 text-center">
+                                    <div class="d-flex justify-content-center gap-1">
+                                        ${flat.flatStatus !== 'Booked' ? `
+                                            <button class="btn btn-sm btn-outline-primary" onclick="editFlat(${flat.flatId})" title="Edit">
+                                                <i class="fa-solid fa-edit"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-danger" onclick="deleteFlat(${flat.flatId})" title="Delete">
+                                                <i class="fa-solid fa-trash"></i>
+                                            </button>
+                                        ` : '<span class="text-muted">-</span>'}
+                                    </div>
+                                </td>
+                            </tr>`;
+                        });
+                        
+                        html += '</tbody></table></div>';
+                        document.getElementById('flatsContainer').innerHTML = html;
+                        
+                        // Update flat count in sidebar
+                        const totalFlatsElement = document.getElementById('totalFlatsCount');
+                        if (totalFlatsElement) {
+                            totalFlatsElement.textContent = data.flats.filter(f => f.flatStatus === 'Available').length;
+                        }
+                    } else {
+                        document.getElementById('flatsContainer').innerHTML = `
+                            <div class="text-center py-5">
+                                <div class="mb-3">
+                                    <i class="fa-solid fa-building text-muted" style="font-size: 3rem; opacity: 0.3;"></i>
+                                </div>
+                                <h5 class="text-muted mb-2">No flats found</h5>
+                                <p class="text-muted mb-3">Start by adding flats to this property</p>
+                                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addFlatModal">
+                                    <i class="fa-solid fa-plus me-2"></i>Add First Flat
+                                </button>
+                            </div>
+                        `;
+                        const totalFlatsElement = document.getElementById('totalFlatsCount');
+                        if (totalFlatsElement) {
+                            totalFlatsElement.textContent = '0';
+                        }
+                        currentFlatsData = [];
+                    }
+                })
+                .catch(error => {
+                    console.error('Error loading flats:', error);
+                    document.getElementById('flatsContainer').innerHTML = `
+                        <div class="text-center py-5">
+                            <div class="mb-3">
+                                <i class="fa-solid fa-exclamation-triangle text-danger" style="font-size: 3rem; opacity: 0.5;"></i>
+                            </div>
+                            <h5 class="text-danger mb-2">Failed to load flats</h5>
+                            <p class="text-muted mb-3">There was an error loading the flats data</p>
+                            <button class="btn btn-outline-primary" onclick="loadFlats(propertyId)">
+                                <i class="fa-solid fa-refresh me-2"></i>Try Again
+                            </button>
+                        </div>
+                    `;
+                });
+        }
+        
+        function filterFlats() {
+            const bhkFilter = document.getElementById('bhkFilter').value;
+            fetchFlatsData(propertyId, bhkFilter);
+        }
+
+        function loadImages(propertyId) {
+            showLoading();
+            fetch(`/Properties/GetImages?propertyId=${propertyId}`)
+                .then(response => response.json())
+                .then(data => {
+                    let html = `
+                        <div class="card document-card">
+                            <div class="card-header document-header bg-light">
+                                <div class="d-flex align-items-center justify-content-between">
+                                    <div class="d-flex align-items-center">
+                                        <div class="document-icon me-3" style="background: linear-gradient(135deg, #17a2b8 0%, #138496 100%);">
+                                            <i class="fa-solid fa-images"></i>
+                                        </div>
+                                        <h5 class="mb-0 fw-bold">Property Images</h5>
+                                    </div>
+                                    <button class="btn btn-primary" onclick="document.getElementById('imageUploadInput').click()">
+                                        <i class="fa-solid fa-upload me-2"></i>Upload Image
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="card-body p-3">
+                                <input type="file" id="imageUploadInput" class="d-none" accept="image/*" onchange="uploadImage()">
+                    `;
+                    
+                    if (data.success && data.uploads.length > 0) {
+                        html += '<div class="row g-3">';
+                        data.uploads.forEach(upload => {
+                            html += `<div class="col-md-4 col-lg-3">
+                                <div class="card border-0 shadow-sm">
+                                    <div class="card-body p-2">
+                                        <div class="position-relative">
+                                            <img src="/Properties/DownloadImage?uploadId=${upload.uploadId}" class="img-fluid rounded mb-2" style="width: 100%; height: 150px; object-fit: cover;">
+                                            <div class="position-absolute top-0 end-0 m-1">
+                                                <div class="btn-group" role="group">
+                                                    <button class="btn btn-sm btn-outline-light" onclick="window.open('/Properties/DownloadImage?uploadId=${upload.uploadId}', '_blank')" title="View">
+                                                        <i class="fa-solid fa-eye"></i>
+                                                    </button>
+                                                    <a href="/Properties/DownloadImage?uploadId=${upload.uploadId}" class="btn btn-sm btn-outline-light" download title="Download">
+                                                        <i class="fa-solid fa-download"></i>
+                                                    </a>
+                                                    <button class="btn btn-sm btn-outline-danger" onclick="deleteImage(${upload.uploadId})" title="Delete">
+                                                        <i class="fa-solid fa-trash"></i>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <small class="text-muted d-block text-truncate fw-medium">${upload.fileName}</small>
+                                    </div>
+                                </div>
+                            </div>`;
+                        });
+                        html += '</div>';
+                    } else {
+                        html += `
+                            <div class="text-center py-5">
+                                <div class="mb-3">
+                                    <i class="fa-solid fa-images text-muted" style="font-size: 3rem; opacity: 0.3;"></i>
+                                </div>
+                                <h5 class="text-muted mb-2">No images uploaded yet</h5>
+                                <p class="text-muted mb-3">Upload property images to showcase this property</p>
+                                <button class="btn btn-primary" onclick="document.getElementById('imageUploadInput').click()">
+                                    <i class="fa-solid fa-upload me-2"></i>Upload First Image
+                                </button>
+                            </div>
+                        `;
+                    }
+                    html += '</div></div>';
+                    document.getElementById('detailSubContent').innerHTML = html;
+                })
+                .catch(error => showError('Failed to load images'));
+            setActiveTab(event?.target);
+        }
+
+        function loadDocuments(propertyId) {
+            showLoading();
+            fetch(`/Properties/GetDocuments?propertyId=${propertyId}`)
+                .then(response => response.json())
+                .then(data => {
+                    let html = `
+                        <div class="card document-card">
+                            <div class="card-header document-header bg-light">
+                                <div class="d-flex align-items-center justify-content-between">
+                                    <div class="d-flex align-items-center">
+                                        <div class="document-icon me-3" style="background: linear-gradient(135deg, #6f42c1 0%, #5a2d91 100%);">
+                                            <i class="fa-solid fa-file-alt"></i>
+                                        </div>
+                                        <h5 class="mb-0 fw-bold">Property Documents</h5>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="card-body p-3">
+                                <div class="mb-4">
+                                    <div class="row g-3">
+                                        <div class="col-md-4">
+                                            <label class="form-label fw-medium">Document Type</label>
+                                            <select class="form-select" id="documentType">
+                                                <option value="">Select Document Type</option>
+                    `;
+                    const docTypes = ['Approval Letter', 'NOC', 'Plan Copy', 'Building Plan', 'Occupancy Certificate', 'Title Deed', 'Tax Receipts', 'Encumbrance Certificate'];
+                    docTypes.forEach(type => html += `<option value="${type}">${type}</option>`);
+                    html += `
+                                            </select>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label class="form-label fw-medium">Select File</label>
+                                            <input type="file" id="documentUploadInput" class="form-control">
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label class="form-label">&nbsp;</label>
+                                            <button class="btn btn-primary w-100" onclick="uploadDocument()">
+                                                <i class="fa-solid fa-upload me-2"></i>Upload Document
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                    `;
+                    
+                    if (data.success && data.documents.length > 0) {
+                        html += `
+                            <div class="table-responsive rounded border">
+                                <table class="table table-hover mb-0">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th class="py-3 px-3 fw-bold">Document Type</th>
+                                            <th class="py-3 px-3 fw-bold">File Name</th>
+                                            <th class="py-3 px-3 fw-bold">Uploaded On</th>
+                                            <th class="py-3 px-3 fw-bold text-center">Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                        `;
+                        data.documents.forEach(doc => {
+                            html += `
+                                <tr class="border-bottom">
+                                    <td class="py-3 px-3"><span class="badge bg-info px-3 py-2">${doc.documentType}</span></td>
+                                    <td class="py-3 px-3 fw-medium">${doc.fileName}</td>
+                                    <td class="py-3 px-3">${new Date(doc.uploadedOn).toLocaleDateString('en-GB')}</td>
+                                    <td class="py-3 px-3 text-center">
+                                        <div class="d-flex justify-content-center gap-1">
+                                            <a href="/Properties/DownloadDocument?documentId=${doc.documentId}" class="btn btn-sm btn-outline-primary" download title="Download">
+                                                <i class="fa-solid fa-download"></i>
+                                            </a>
+                                            <button class="btn btn-sm btn-outline-danger" onclick="deleteDocument(${doc.documentId})" title="Delete">
+                                                <i class="fa-solid fa-trash"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            `;
+                        });
+                        html += '</tbody></table></div>';
+                    } else {
+                        html += `
+                            <div class="text-center py-5">
+                                <div class="mb-3">
+                                    <i class="fa-solid fa-file-alt text-muted" style="font-size: 3rem; opacity: 0.3;"></i>
+                                </div>
+                                <h5 class="text-muted mb-2">No documents uploaded yet</h5>
+                                <p class="text-muted mb-3">Upload important property documents for record keeping</p>
+                            </div>
+                        `;
+                    }
+                    html += '</div></div>';
+                    document.getElementById('detailSubContent').innerHTML = html;
+                })
+                .catch(error => showError('Failed to load documents'));
+            setActiveTab(event?.target);
+        }
+
+        function exportFlatsToExcel() {
+            if (!currentFlatsData || currentFlatsData.length === 0) {
+                showToast('No flats data to export', 'error');
+                return;
+            }
+
+            const ws_data = [
+                ['Block', 'Floor', 'Flat Name', 'BHK', 'Property Type', 'Area (Sqft)', 'Status', 'Price']
+            ];
+
+            currentFlatsData.forEach(flat => {
+                ws_data.push([
+                    flat.blockName || '',
+                    flat.floorName || '',
+                    flat.flatName || '',
+                    flat.bhk || '',
+                    flat.propertyType || '',
+                    flat.areaSqft ? flat.areaSqft.toFixed(2) : '',
+                    flat.flatStatus || '',
+                    flat.price ? flat.price.toFixed(2) : ''
+                ]);
+            });
+
+            const wb = XLSX.utils.book_new();
+            const ws = XLSX.utils.aoa_to_sheet(ws_data);
+            ws['!cols'] = [{ wch: 12 }, { wch: 10 }, { wch: 15 }, { wch: 10 }, { wch: 15 }, { wch: 12 }, { wch: 12 }, { wch: 15 }];
+            XLSX.utils.book_append_sheet(wb, ws, "Flats");
+            XLSX.writeFile(wb, `@Model.PropertyName.Replace(" ", "_")_Flats_${new Date().toISOString().split('T')[0]}.xlsx`);
+            showToast('Excel exported successfully!', 'success');
+        }
+
+        function editFlat(flatId) {
+            window.editFlatId = flatId;
+            fetch(`/Properties/GetFlat?flatId=${flatId}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success && window.populateFlatModal) {
+                        window.populateFlatModal(data.flat);
+                        new bootstrap.Modal(document.getElementById('addFlatModal')).show();
+                    }
+                });
+        }
+
+        function deleteFlat(flatId) {
+            if (!confirm('Are you sure you want to delete this flat?')) return;
+            
+            const formData = new FormData();
+            // Add anti-forgery token
+            const token = document.querySelector('input[name="__RequestVerificationToken"]');
+            if (token) {
+                formData.append('__RequestVerificationToken', token.value);
+            }
+            
+            fetch(`/Properties/DeleteFlat?flatId=${flatId}`, { method: 'POST', body: formData })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        showToast('Flat deleted successfully!', 'success');
+                        loadFlats(propertyId);
+                    } else {
+                        showToast(data.message || 'Error deleting flat', 'error');
+                    }
+                });
+        }
+
+        function uploadImage() {
+            const input = document.getElementById('imageUploadInput');
+            const file = input.files[0];
+            if (!file) return;
+
+            const formData = new FormData();
+            formData.append('propertyId', propertyId);
+            formData.append('file', file);
+
+            // Add anti-forgery token
+            const token = document.querySelector('input[name="__RequestVerificationToken"]');
+            if (token) {
+                formData.append('__RequestVerificationToken', token.value);
+            }
+
+            fetch('/Properties/UploadImage', { method: 'POST', body: formData })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        showToast('Image uploaded successfully!', 'success');
+                        loadImages(propertyId);
+                    } else {
+                        showToast(data.message || 'Error uploading image', 'error');
+                    }
+                });
+        }
+
+        function deleteImage(uploadId) {
+            if (!confirm('Are you sure you want to delete this image?')) return;
+            
+            const formData = new FormData();
+            // Add anti-forgery token
+            const token = document.querySelector('input[name="__RequestVerificationToken"]');
+            if (token) {
+                formData.append('__RequestVerificationToken', token.value);
+            }
+            
+            fetch(`/Properties/DeleteImage?uploadId=${uploadId}`, { method: 'POST', body: formData })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        showToast('Image deleted successfully!', 'success');
+                        loadImages(propertyId);
+                    } else {
+                        showToast(data.message || 'Error deleting image', 'error');
+                    }
+                });
+        }
+
+        function uploadDocument() {
+            const documentType = document.getElementById('documentType').value;
+            const input = document.getElementById('documentUploadInput');
+            const file = input.files[0];
+
+            if (!documentType || !file) {
+                showToast('Please select document type and file', 'error');
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('propertyId', propertyId);
+            formData.append('documentType', documentType);
+            formData.append('file', file);
+
+            // Add anti-forgery token
+            const token = document.querySelector('input[name="__RequestVerificationToken"]');
+            if (token) {
+                formData.append('__RequestVerificationToken', token.value);
+            }
+
+            fetch('/Properties/UploadDocument', { method: 'POST', body: formData })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        showToast('Document uploaded successfully!', 'success');
+                        loadDocuments(propertyId);
+                    } else {
+                        showToast(data.message || 'Error uploading document', 'error');
+                    }
+                });
+        }
+
+        function deleteDocument(documentId) {
+            if (!confirm('Are you sure you want to delete this document?')) return;
+            
+            const formData = new FormData();
+            // Add anti-forgery token
+            const token = document.querySelector('input[name="__RequestVerificationToken"]');
+            if (token) {
+                formData.append('__RequestVerificationToken', token.value);
+            }
+            
+            fetch(`/Properties/DeleteDocument?documentId=${documentId}`, { method: 'POST', body: formData })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        showToast('Document deleted successfully!', 'success');
+                        loadDocuments(propertyId);
+                    } else {
+                        showToast(data.message || 'Error deleting document', 'error');
+                    }
+                });
+        }
+
+        function showLoading() {
+            document.getElementById('detailSubContent').innerHTML = `
+                <div class="text-center py-5">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <p class="mt-3 text-body-tertiary">Loading content...</p>
+                </div>
+            `;
+        }
+
+        function showError(message) {
+            document.getElementById('detailSubContent').innerHTML = `
+                <div class="alert alert-danger text-center" role="alert">
+                    <i class="fa-solid fa-exclamation-triangle me-2"></i>${message}
+                </div>
+            `;
+        }
+
+        function setActiveTab(element) {
+            document.querySelectorAll('.nav-link').forEach(link => link.classList.remove('active'));
+            if (element) element.classList.add('active');
+        }
+
+        function showToast(message, type) {
+            const alertDiv = document.createElement('div');
+            alertDiv.className = `alert alert-${type === 'success' ? 'success' : 'danger'} alert-dismissible fade show position-fixed`;
+            alertDiv.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+            alertDiv.innerHTML = `
+                <i class="fa-solid fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'} me-2"></i>
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            `;
+            document.body.appendChild(alertDiv);
+            setTimeout(() => alertDiv.remove(), 5000);
+        }
+
+        function editProperty(id) {
+            fetch(`/Properties/GetProperty?id=${id}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success && window.populatePropertyModal) {
+                        window.populatePropertyModal(data);
+                        new bootstrap.Modal(document.getElementById('addPropertyModal')).show();
+                    }
+                });
+        }
+
+        function deleteProperty(id) {
+            if (!confirm('Are you sure you want to delete this property?')) return;
+            
+            const formData = new FormData();
+            // Add anti-forgery token
+            const token = document.querySelector('input[name="__RequestVerificationToken"]');
+            if (token) {
+                formData.append('__RequestVerificationToken', token.value);
+            }
+            
+            fetch(`/Properties/Delete?id=${id}`, { method: 'POST', body: formData })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        showToast('Property deleted successfully!', 'success');
+                        setTimeout(() => window.location.href = '/Properties/Index', 1500);
+                    } else {
+                        showToast(data.message || 'Error deleting property', 'error');
+                    }
+                });
+        }
+
+        function loadBulkUpload() {
+            const bulkUploadHtml = `
+                <div class="card mb-4 document-card">
+                    <div class="card-header document-header">
+                        <div class="d-flex align-items-center justify-content-between">
+                            <div class="d-flex align-items-center">
+                                <div class="document-icon me-3" style="background: linear-gradient(135deg, #28a745 0%, #20c997 100%);">
+                                    <i class="fa-solid fa-upload"></i>
+                                </div>
+                                <h4 class="mb-0 fw-bold">Bulk Upload Flats</h4>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label class="form-label">Download Sample Template</label>
+                            <div>
+                                <a href="/Properties/DownloadSample" class="btn btn-outline-primary btn-sm">
+                                    <i class="fa-solid fa-download me-2"></i>Download Sample Excel
+                                </a>
+                            </div>
+                            <small class="text-muted">Download the template, fill in flat details, and upload below.</small>
+                        </div>
+                        <div class="mb-3">
+                            <label for="bulkFlatsFile" class="form-label">Upload Excel File <span class="text-danger">*</span></label>
+                            <input type="file" class="form-control" id="bulkFlatsFile" accept=".xlsx,.xls" required />
+                        </div>
+                        <div id="uploadProgress" class="progress mb-3" style="display: none;">
+                            <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: 0%">0%</div>
+                        </div>
+                        <div id="uploadResults" style="display: none;">
+                            <div class="alert alert-info mb-0">
+                                <h6 class="alert-heading">Upload Results:</h6>
+                                <div id="uploadResultsContent"></div>
+                            </div>
+                        </div>
+                        <button type="button" class="btn btn-primary" onclick="uploadBulkFlats()">
+                            <i class="fa-solid fa-upload me-2"></i>Upload Flats
+                        </button>
+                    </div>
+                </div>
+            `;
+            
+            document.getElementById('detailSubContent').innerHTML = bulkUploadHtml;
+            setActiveTab(event?.target);
+        }
+
+        function uploadBulkFlats() {
+            const fileInput = document.getElementById('bulkFlatsFile');
+            const file = fileInput.files[0];
+
+            if (!file) {
+                showToast('Please select a file to upload', 'error');
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('propertyId', propertyId);
+
+            // Add anti-forgery token
+            const token = document.querySelector('input[name="__RequestVerificationToken"]');
+            if (token) {
+                formData.append('__RequestVerificationToken', token.value);
+            }
+
+            // Show progress
+            const progressDiv = document.getElementById('uploadProgress');
+            const progressBar = progressDiv.querySelector('.progress-bar');
+            const resultsDiv = document.getElementById('uploadResults');
+            const resultsContent = document.getElementById('uploadResultsContent');
+            
+            progressDiv.style.display = 'block';
+            resultsDiv.style.display = 'none';
+
+            // Simulate progress
+            let progress = 0;
+            const progressInterval = setInterval(() => {
+                progress += 10;
+                if (progress <= 90) {
+                    progressBar.style.width = progress + '%';
+                    progressBar.textContent = progress + '%';
+                }
+            }, 200);
+
+            fetch('/Properties/BulkUploadFlats', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                clearInterval(progressInterval);
+                progressBar.style.width = '100%';
+                progressBar.textContent = '100%';
+
+                setTimeout(() => {
+                    progressDiv.style.display = 'none';
+                    resultsDiv.style.display = 'block';
+
+                    if (data.success) {
+                        resultsContent.innerHTML = `
+                            <p class="mb-1"><strong>Total Rows:</strong> ${data.totalRows}</p>
+                            <p class="mb-1"><strong>Successfully Uploaded:</strong> ${data.successCount}</p>
+                            <p class="mb-0"><strong>Failed:</strong> ${data.errorCount}</p>
+                            ${data.errors && data.errors.length > 0 ? `
+                                <hr>
+                                <p class="mb-1"><strong>Errors:</strong></p>
+                                <ul class="mb-0">
+                                    ${data.errors.map(e => `<li>${e}</li>`).join('')}
+                                </ul>
+                            ` : ''}
+                        `;
+                        showToast(`${data.successCount} flats uploaded successfully!`, 'success');
+                        
+                        // Reset file input
+                        setTimeout(() => {
+                            fileInput.value = '';
+                            resultsDiv.style.display = 'none';
+                        }, 3000);
+                    } else {
+                        resultsContent.innerHTML = `<p class="mb-0 text-danger">${data.message || 'Upload failed. Please check your file format.'}</p>`;
+                        showToast(data.message || 'Upload failed', 'error');
+                    }
+                }, 500);
+            })
+            .catch(error => {
+                clearInterval(progressInterval);
+                progressDiv.style.display = 'none';
+                resultsDiv.style.display = 'block';
+                resultsContent.innerHTML = `<p class="mb-0 text-danger">An error occurred during upload. Please try again.</p>`;
+                showToast('Upload failed', 'error');
+                console.error('Error:', error);
+            });
+        }
+
+        window.addEventListener('flat-saved', function () {
+            loadFlats(propertyId);
+        });
+    </script>
+}

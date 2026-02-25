@@ -1,0 +1,484 @@
+@model List<CRM.Models.BookingModel>
+@inject CRM.Services.ViewPermissionService _viewPermissionService
+@{
+    ViewData["Title"] = "Bookings";
+    var leads = ViewBag.Leads as List<CRM.Models.LeadModel> ?? new List<CRM.Models.LeadModel>();
+    var properties = ViewBag.Properties as List<CRM.Models.PropertyModel> ?? new List<CRM.Models.PropertyModel>();
+    var flats = ViewBag.Flats as List<CRM.Models.PropertyFlatModel> ?? new List<CRM.Models.PropertyFlatModel>();
+    var quotations = ViewBag.Quotations as List<CRM.Models.QuotationModel> ?? new List<CRM.Models.QuotationModel>();
+}
+
+<style>
+    .bookings-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 2rem;
+        border-radius: 12px;
+        margin-bottom: 2rem;
+    }
+
+    .stats-card {
+        background: rgba(255, 255, 255, 0.15);
+        backdrop-filter: blur(10px);
+        border-radius: 10px;
+        padding: 1.5rem;
+        text-align: center;
+    }
+
+    .stats-number {
+        font-size: 2rem;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+    }
+
+    .filter-card {
+        background: white;
+        border-radius: 12px;
+        padding: 1.5rem;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        margin-bottom: 2rem;
+    }
+
+    .booking-card {
+        background: white;
+        border-radius: 12px;
+        padding: 1.5rem;
+        margin-bottom: 1rem;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: visible !important;
+        z-index: 1;
+    }
+
+    .booking-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+    }
+
+    .booking-card:has(.dropdown.show) {
+        z-index: 9999 !important;
+    }
+
+    .booking-card .dropdown {
+        position: static !important;
+    }
+
+    .booking-card .dropdown-menu {
+        z-index: 10000 !important;
+        position: absolute !important;
+    }
+
+    .status-badge {
+        padding: 0.5rem 1rem;
+        border-radius: 20px;
+        font-weight: 600;
+        font-size: 0.875rem;
+    }
+
+    .status-pending { background-color: #fff3cd; color: #997404; }
+    .status-confirmed { background-color: #d1e7dd; color: #0a3622; }
+    .status-cancelled { background-color: #f8d7da; color: #842029; }
+    .status-completed { background-color: #cfe2ff; color: #084298; }
+
+    .create-btn {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border: none;
+        color: white;
+        padding: 0.75rem 2rem;
+        border-radius: 8px;
+        font-weight: 600;
+        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+        transition: all 0.3s ease;
+    }
+
+    .create-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        color: white;
+    }
+
+    .payment-type-badge {
+        padding: 0.35rem 0.75rem;
+        border-radius: 15px;
+        font-size: 0.8rem;
+        font-weight: 600;
+    }
+
+    .payment-full { background-color: #d1e7dd; color: #0a3622; }
+    .payment-emi { background-color: #cfe2ff; color: #084298; }
+
+    .paid-amount {
+        background-color: #d1e7dd !important;
+        color: #0a3622 !important;
+        padding: 0.25rem 0.5rem !important;
+        border-radius: 12px !important;
+        font-weight: 600 !important;
+        font-size: 0.8rem !important;
+        display: inline-block !important;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 4rem 2rem;
+    }
+
+    .empty-state i {
+        font-size: 5rem;
+        color: #e9ecef;
+        margin-bottom: 1.5rem;
+    }
+
+    @@media (max-width: 768px) {
+        .booking-card {
+            padding: 1rem;
+        }
+
+        .stats-number {
+            font-size: 1.5rem;
+        }
+    }
+</style>
+
+<div class="content">
+    <!-- Breadcrumb -->
+    <nav class="mb-3" aria-label="breadcrumb">
+        <ol class="breadcrumb mb-0">
+            <li class="breadcrumb-item"><a href="/Home/Index">Home</a></li>
+            <li class="breadcrumb-item active">Bookings</li>
+        </ol>
+    </nav>
+
+    <!-- Header with Stats -->
+    <div class="bookings-header">
+        <div class="row align-items-center mb-4">
+            <div class="col-md-6">
+                <h2 class="mb-0"><i class="fa-solid fa-handshake me-2"></i>Property Bookings</h2>
+                <p class="mb-0 mt-2 opacity-75">Manage all property bookings and payments</p>
+            </div>
+            <div class="col-md-6 text-md-end">
+                @{
+                    var canCreate = _viewPermissionService.HasPermission("Bookings", "Index", "Create");
+                }
+                @if (canCreate)
+                {
+                    <a href="/Bookings/Create" class="btn create-btn">
+                        <i class="fa-solid fa-plus me-2"></i>New Booking
+                    </a>
+                }
+            </div>
+        </div>
+
+        <div class="row g-3">
+            <div class="col-md-3">
+                <div class="stats-card">
+                    <div class="stats-number">@Model.Count</div>
+                    <div>Total Bookings</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stats-card">
+                    <div class="stats-number">@Model.Count(b => b.Status == "Confirmed")</div>
+                    <div>Confirmed</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stats-card">
+                    <div class="stats-number">@Model.Count(b => b.PaymentType == "EMI")</div>
+                    <div>EMI Plans</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stats-card">
+                    <div class="stats-number">₹@Model.Sum(b => b.BookingAmount).ToString("N0")</div>
+                    <div>Total Booked</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filter Section -->
+    <div class="filter-card">
+        <div class="row g-3 align-items-end">
+            <div class="col-md-4">
+                <div class="input-group">
+
+                    <input type="text" class="form-control" id="searchInput" 
+                           placeholder="Search anything..."
+                           value="@ViewBag.SearchTerm">
+                </div>
+            </div>
+
+            <div class="col-md-3">
+                <select class="form-select" id="statusFilter">
+                    <option value="">All Status</option>
+                    <option value="Pending" selected="@(ViewBag.StatusFilter == "Pending")">Pending</option>
+                    <option value="Confirmed" selected="@(ViewBag.StatusFilter == "Confirmed")">Confirmed</option>
+                    <option value="Completed" selected="@(ViewBag.StatusFilter == "Completed")">Completed</option>
+                    <option value="Cancelled" selected="@(ViewBag.StatusFilter == "Cancelled")">Cancelled</option>
+                </select>
+            </div>
+
+            <div class="col-md-3">
+                <!-- Filter button removed for true instant filtering -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Bookings List -->
+    @if (Model.Any())
+    {
+        foreach (var booking in Model)
+        {
+            var lead = leads.FirstOrDefault(l => l.LeadId == booking.LeadId);
+            var property = properties.FirstOrDefault(p => p.PropertyId == booking.PropertyId);
+            var flat = flats.FirstOrDefault(f => f.FlatId == booking.FlatId);
+
+            <div class="card booking-card paginated-item">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col-md-4">
+                            <h5 class="mb-2">
+                                <i class="fa-solid fa-file-contract text-primary me-2"></i>
+                                @booking.BookingNumber
+                            </h5>
+                            <p class="mb-1 text-muted">
+                                <i class="fa-solid fa-user me-2"></i>
+                                <strong>@lead?.Name</strong>
+                            </p>
+                            <p class="mb-1 text-muted">
+                                <i class="fa-solid fa-building me-2"></i>
+                                @property?.PropertyName
+                            </p>
+                            <p class="mb-0 text-muted">
+                                <i class="fa-solid fa-door-open me-2"></i>
+                                @flat?.FlatName - @flat?.BHK
+                            </p>
+                        </div>
+
+                        <div class="col-md-3">
+                            <small class="text-muted d-block">Booking Date</small>
+                            <p class="mb-2">
+                                <i class="fa-solid fa-calendar me-1"></i>
+                                <strong>@booking.BookingDate.ToString("MMM dd, yyyy")</strong>
+                            </p>
+                            <small class="text-muted d-block">Payment Type</small>
+                            <span class="payment-type-badge payment-@booking.PaymentType.ToLower()">
+                                @booking.PaymentType
+                            </span>
+                        </div>
+
+                        <div class="col-md-2 text-center">
+                            <small class="text-muted d-block mb-1">Total Amount</small>
+                            <h4 class="text-primary mb-0">₹@booking.TotalAmount.ToString("N0")</h4>
+                            @if (booking.PaymentType == "FullPayment")
+                            {
+                                <span class="paid-amount">
+                                    Paid: ₹@booking.TotalAmount.ToString("N0")
+                                </span>
+                            }
+                            else
+                            {
+                                var paymentPlans = ViewBag.PaymentPlans as Dictionary<int, decimal> ?? new Dictionary<int, decimal>();
+                                var paidAmount = paymentPlans.ContainsKey(booking.BookingId) ? paymentPlans[booking.BookingId] : booking.BookingAmount;
+                                <span class="paid-amount">
+                                    Paid: ₹@paidAmount.ToString("N0")
+                                </span>
+                            }
+                        </div>
+
+                        <div class="col-md-2 text-center">
+                            <span class="status-badge status-@booking.Status.ToLower()">
+                                @booking.Status
+                            </span>
+                        </div>
+
+                        <div class="col-md-1 text-end">
+                            <div class="dropdown">
+                                <button class="btn btn-sm btn-outline-primary" 
+                                        type="button" data-bs-toggle="dropdown">
+                                    <i class="fa-solid fa-ellipsis-vertical"></i>
+                                </button>
+                                <ul class="dropdown-menu dropdown-menu-end">
+                                    <li>
+                                        <a class="dropdown-item" href="/Bookings/Details/@booking.BookingId">
+                                            <i class="fa-solid fa-eye me-2"></i>View Details
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item" href="/Bookings/Details/@booking.BookingId">
+                                            <i class="fa-solid fa-download me-2"></i>Download PDF
+                                        </a>
+                                    </li>
+                                    @{
+                                        var canEdit = _viewPermissionService.HasPermission("Bookings", "Index", "Edit");
+                                        var canDelete = _viewPermissionService.HasPermission("Bookings", "Index", "Delete");
+                                    }
+                                    @if (canEdit && booking.Status != "Completed" && booking.Status != "Cancelled")
+                                    {
+                                        <li><hr class="dropdown-divider"></li>
+                                        <li>
+                                            <a class="dropdown-item" href="#" 
+                                               onclick="updateStatus(@booking.BookingId, 'Completed')">
+                                                <i class="fa-solid fa-check me-2"></i>Mark Completed
+                                            </a>
+                                        </li>
+                                        <li>
+                                            <a class="dropdown-item text-danger" href="#" 
+                                               onclick="updateStatus(@booking.BookingId, 'Cancelled')">
+                                                <i class="fa-solid fa-times me-2"></i>Cancel Booking
+                                            </a>
+                                        </li>
+                                    }
+                                    @if (canDelete)
+                                    {
+                                        <li><hr class="dropdown-divider"></li>
+                                        <li>
+                                            <a class="dropdown-item text-danger" href="#" 
+                                               onclick="deleteBooking(@booking.BookingId)">
+                                                <i class="fa-solid fa-trash me-2"></i>Delete
+                                            </a>
+                                        </li>
+                                    }
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+        
+        <!-- Pagination -->
+        <div id="pagination-container" class="mt-4"></div>
+    }
+    else
+    {
+        <div class="empty-state">
+            <i class="fa-solid fa-handshake"></i>
+            <h3>No Bookings Found</h3>
+            <p class="text-muted">Start by creating your first property booking</p>
+            @if (canCreate)
+            {
+                <a href="/Bookings/Create" class="btn create-btn mt-3">
+                    <i class="fa-solid fa-plus me-2"></i>Create Booking
+                </a>
+            }
+        </div>
+    }
+</div>
+
+<script>
+    @section Scripts {
+    <script>
+    $(document).ready(function () {
+        function applyFilters() {
+            var search = $('#searchInput').val().toLowerCase();
+            var status = $('#statusFilter').val();
+            var anyVisible = false;
+            $('.booking-card').each(function () {
+                var card = $(this);
+                var cardText = card.text().toLowerCase();
+                var cardStatus = card.find('.status-badge').text().trim();
+                var matchesSearch = !search || cardText.includes(search);
+                var matchesStatus = !status || cardStatus === status;
+                if (matchesSearch && matchesStatus) {
+                    card.show();
+                    anyVisible = true;
+                } else {
+                    card.hide();
+                }
+            });
+            if (!anyVisible) {
+                $('.empty-state').show();
+            } else {
+                $('.empty-state').hide();
+            }
+        }
+        $('#searchInput').on('input', applyFilters);
+        $('#statusFilter').on('change', applyFilters);
+        applyFilters();
+
+        // Handle dropdown z-index to ensure it appears above all cards
+        $('.booking-card .dropdown').on('show.bs.dropdown', function () {
+            $(this).closest('.booking-card').css('z-index', '9999');
+        });
+
+        $('.booking-card .dropdown').on('hide.bs.dropdown', function () {
+            $(this).closest('.booking-card').css('z-index', '1');
+        });
+    });
+    </script>
+    }
+
+    function updateStatus(bookingId, status) {
+        Swal.fire({
+            title: 'Are you sure?',
+            text: `Do you want to change the status to ${status}?`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#667eea',
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: 'Yes, update it!'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                $.ajax({
+                    url: '/Bookings/UpdateStatus',
+                    type: 'POST',
+                    data: { bookingId, status },
+                    success: function (response) {
+                        if (response.success) {
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Success!',
+                                text: response.message,
+                                timer: 2000,
+                                showConfirmButton: false
+                            }).then(() => location.reload());
+                        } else {
+                            Swal.fire('Error', response.message, 'error');
+                        }
+                    },
+                    error: function () {
+                        Swal.fire('Error', 'Failed to update status', 'error');
+                    }
+                });
+            }
+        });
+    }
+
+    function deleteBooking(bookingId) {
+        Swal.fire({
+            title: 'Are you sure?',
+            text: "You won't be able to revert this!",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: 'Yes, delete it!'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                $.ajax({
+                    url: '/Bookings/Delete/' + bookingId,
+                    type: 'POST',
+                    success: function (response) {
+                        if (response.success) {
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Deleted!',
+                                text: response.message,
+                                timer: 2000,
+                                showConfirmButton: false
+                            }).then(() => location.reload());
+                        } else {
+                            Swal.fire('Error', response.message, 'error');
+                        }
+                    },
+                    error: function () {
+                        Swal.fire('Error', 'Failed to delete booking', 'error');
+                    }
+                });
+            }
+        });
+    }
+
+</script>

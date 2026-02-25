@@ -1,0 +1,1114 @@
+@model List<CRM.Models.LeadModel>
+@{
+    ViewData["Title"] = "Unassigned Leads";
+    var executives = ViewBag.Executives as IEnumerable<dynamic> ?? Enumerable.Empty<dynamic>();
+    var executivesList = executives.ToList();
+    var facebookLeads = Model.Where(l => l.Source == "Facebook Webhook" || l.Source == "Facebook API").Count();
+    var otherLeads = Model.Count - facebookLeads;
+}
+
+<style>
+    .webhook-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 2rem;
+        border-radius: 12px;
+        margin-bottom: 2rem;
+    }
+
+    .stats-card {
+        background: rgba(255, 255, 255, 0.15);
+        backdrop-filter: blur(10px);
+        border-radius: 10px;
+        padding: 1.5rem;
+        text-align: center;
+    }
+
+    .stats-number {
+        font-size: 2rem;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+    }
+
+    .lead-card {
+        background: white;
+        border-radius: 12px;
+        padding: 1.5rem;
+        margin-bottom: 1rem;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        transition: all 0.3s ease;
+        position: relative;
+    }
+
+    .lead-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+    }
+
+    .lead-card.selected {
+        border: 2px solid #4267B2;
+        background: #f8f9ff;
+    }
+
+    .lead-checkbox {
+        width: 20px;
+        height: 20px;
+        cursor: pointer;
+    }
+
+    .badge-facebook {
+        background-color: #4267B2;
+        color: white;
+    }
+
+    .assign-panel {
+        position: sticky;
+        top: 20px;
+        background: white;
+        border-radius: 12px;
+        padding: 1.5rem;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        margin-bottom: 2rem;
+    }
+
+    .assign-btn {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border: none;
+        color: white;
+        padding: 0.75rem 2rem;
+        border-radius: 8px;
+        font-weight: 600;
+        width: 100%;
+        transition: all 0.3s ease;
+    }
+
+    .assign-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        color: white;
+    }
+
+    .assign-btn:disabled {
+        background: #ccc;
+        cursor: not-allowed;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 4rem 2rem;
+    }
+
+    .empty-state i {
+        font-size: 5rem;
+        color: #e9ecef;
+        margin-bottom: 1.5rem;
+    }
+    
+    /* Pagination Styles */
+    .pagination-container {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: 2rem;
+        padding: 1rem;
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    }
+    
+    .pagination-info {
+        color: #666;
+        font-size: 0.9rem;
+    }
+    
+    .pagination-controls {
+        display: flex;
+        gap: 0.5rem;
+        align-items: center;
+    }
+    
+    .pagination-btn {
+        padding: 0.5rem 0.75rem;
+        border: 1px solid #ddd;
+        background: white;
+        color: #666;
+        border-radius: 4px;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+    
+    .pagination-btn:hover:not(:disabled) {
+        background: #f8f9fa;
+        border-color: #667eea;
+        color: #667eea;
+    }
+    
+    .pagination-btn:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+    
+    .pagination-btn.active {
+        background: #667eea;
+        border-color: #667eea;
+        color: white;
+    }
+    
+    .page-size-selector {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.9rem;
+    }
+    
+    .page-size-selector select {
+        padding: 0.25rem 0.5rem;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+    }
+    
+    /* Dark Mode Styles */
+    .dark-mode .assign-panel {
+        background: #222639 !important;
+        border: 1px solid #2c3049 !important;
+        color: #e4e6eb !important;
+    }
+    
+    .dark-mode .assign-panel .form-label {
+        color: #e4e6eb !important;
+    }
+    
+    .dark-mode .assign-panel .text-muted {
+        color: #a6adc8 !important;
+    }
+    
+    .dark-mode .lead-card {
+        background: #222639 !important;
+        border: 1px solid #2c3049 !important;
+        color: #e4e6eb !important;
+    }
+    
+    .dark-mode .lead-card.selected {
+        border-color: #4267B2 !important;
+        background: #2a2d47 !important;
+    }
+    
+    .dark-mode .text-muted {
+        color: #a6adc8 !important;
+    }
+    
+    /* Mobile Responsive Styles */
+    @@media (max-width: 768px) {
+        .desktop-layout {
+            display: none;
+        }
+        
+        .mobile-layout {
+            display: block;
+        }
+        
+        .mobile-header {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            margin-bottom: 0.75rem;
+        }
+        
+        .mobile-name-contact {
+            flex: 1;
+        }
+        
+        .mobile-delete-btn {
+            padding: 4px 8px;
+            font-size: 0.75rem;
+            min-width: auto;
+            border-color: #6c757d;
+            color: #6c757d;
+        }
+        
+        .mobile-delete-btn:hover {
+            background-color: #6c757d;
+            border-color: #6c757d;
+            color: white;
+        }
+        
+        .mobile-delete-btn i {
+            font-size: 0.7rem;
+        }
+        
+        .mobile-name {
+            font-weight: 600;
+            font-size: 1rem;
+            margin-bottom: 0.25rem;
+        }
+        
+        .mobile-contact {
+            color: #666;
+            font-size: 0.9rem;
+        }
+        
+        .mobile-details {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.5rem;
+            margin-bottom: 0.75rem;
+        }
+        
+        .mobile-detail-item {
+            font-size: 0.85rem;
+        }
+        
+        .mobile-detail-label {
+            font-weight: 600;
+            color: #666;
+        }
+        
+        .mobile-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.8rem;
+            color: #666;
+        }
+    }
+    
+    @@media (min-width: 769px) {
+        .desktop-layout {
+            display: block;
+        }
+        
+        .mobile-layout {
+            display: none;
+        }
+    }
+
+    /* Searchable Dropdown Styles */
+    .position-relative .dropdown-menu {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        z-index: 1000;
+        border: 1px solid #dee2e6;
+        border-radius: 0.375rem;
+        background-color: #fff;
+        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+    }
+
+    .position-relative .dropdown-item {
+        padding: 0.5rem 1rem;
+        cursor: pointer;
+        border-bottom: 1px solid #f8f9fa;
+    }
+
+    .position-relative .dropdown-item:hover {
+        background-color: #f8f9fa;
+    }
+
+    .position-relative .dropdown-item:last-child {
+        border-bottom: none;
+    }
+
+    .dark-mode .position-relative .dropdown-menu {
+        background-color: #2c3049 !important;
+        border-color: #3a3f5c !important;
+    }
+
+    .dark-mode .position-relative .dropdown-item {
+        color: #e4e6eb !important;
+        border-bottom-color: #3a3f5c !important;
+    }
+
+    .dark-mode .position-relative .dropdown-item:hover {
+        background-color: #3a3f5c !important;
+    }
+    
+    /* Mobile Responsive Styles */
+    @@media (max-width: 768px) {
+        .lead-card .row {
+            position: relative;
+        }
+        
+        .lead-card .col-md-1:first-child {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            width: auto;
+            z-index: 10;
+        }
+        
+        .lead-card .col-md-1:last-child {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            width: auto;
+            z-index: 10;
+        }
+        
+        .lead-card .col-md-3:first-of-type {
+            margin-left: 50px;
+            margin-right: 50px;
+        }
+        
+        .lead-card .col-md-2,
+        .lead-card .col-md-3:not(:first-of-type) {
+            margin-bottom: 1rem;
+        }
+        
+        .lead-checkbox {
+            width: 18px;
+            height: 18px;
+        }
+        
+        .btn-sm {
+            padding: 0.25rem 0.5rem;
+            font-size: 0.875rem;
+        }
+    }
+</style>
+
+<div class="content">
+    <!-- Breadcrumb -->
+    <nav class="mb-3" aria-label="breadcrumb">
+        <ol class="breadcrumb mb-0">
+            <li class="breadcrumb-item"><a href="/Home/Index">Home</a></li>
+            <li class="breadcrumb-item active">Unassigned Leads</li>
+        </ol>
+    </nav>
+
+    <!-- Header with Stats -->
+    <div class="webhook-header">
+        <div class="row align-items-center mb-4">
+            <div class="col-md-6">
+                <h2 class="mb-0">
+                    <i class="fa-solid fa-user-plus me-2"></i>Unassigned Leads
+                </h2>
+                <p class="mb-0 mt-2 opacity-75">Manage and assign leads from all sources</p>
+            </div>
+            <div class="col-md-6 text-md-end">
+                @{
+                    var currentRole = User?.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value;
+                }
+                @if (currentRole == "Admin" || currentRole == "Partner")
+                {
+                    <button type="button" class="btn btn-primary me-2" id="syncFacebookBtn" style="background: rgba(255, 255, 255, 0.2); border: 2px solid rgba(255, 255, 255, 0.3); color: white; padding: 0.625rem 1.25rem; border-radius: 50px; font-weight: 600; backdrop-filter: blur(10px);">
+                        <i class="fa-solid fa-sync me-2"></i>Sync Facebook
+                    </button>
+                }
+                @if (facebookLeads > 0)
+                {
+                    <span class="badge badge-facebook" style="font-size: 1rem; padding: 0.5rem 1rem;">
+                        <i class="fa-brands fa-facebook me-2"></i>@facebookLeads Facebook Leads
+                    </span>
+                }
+            </div>
+        </div>
+
+        <div class="row g-3">
+            <div class="col-md-3">
+                <div class="stats-card">
+                    <div class="stats-number">@Model.Count</div>
+                    <div>Total Unassigned</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stats-card">
+                    <div class="stats-number">@facebookLeads</div>
+                    <div>Facebook Webhook</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stats-card">
+                    <div class="stats-number" id="selectedCount">0</div>
+                    <div>Selected</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stats-card">
+                    <div class="stats-number">@executivesList.Count</div>
+                    <div>Available Executives</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Assignment Panel -->
+    @if (Model.Any())
+    {
+        <div class="assign-panel">
+            <div class="row align-items-end g-3 mb-3">
+                <div class="col-md-4">
+                    <label class="form-label fw-bold">
+                        <i class="fa-solid fa-search me-2"></i>Search Leads
+                    </label>
+                    <input type="text" id="searchInput" class="form-control" placeholder="Search by name, phone, email..." oninput="filterLeads()">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label fw-bold">
+                        <i class="fa-solid fa-filter me-2"></i>Filter by Source
+                    </label>
+                    <select id="sourceFilter" class="form-select" onchange="filterLeads()">
+                        <option value="">All Sources</option>
+                        <option value="Facebook">Facebook</option>
+                        <option value="Website">Website</option>
+                        <option value="Manual">Manual</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <button class="btn btn-outline-secondary" onclick="clearFilters()">
+                        <i class="fa-solid fa-times me-2"></i>Clear Filters
+                    </button>
+                </div>
+            </div>
+            <div class="row align-items-end g-3">
+                <div class="col-md-6">
+                    <label class="form-label fw-bold">
+                        <i class="fa-solid fa-user-tie me-2"></i>Select Executive
+                    </label>
+                    <div class="position-relative">
+                        <input type="text" class="form-control form-control-lg" id="executiveSearch" placeholder="Search executives..." autocomplete="off">
+                        <input type="hidden" id="executiveSelect" value="">
+                        <div class="dropdown-menu w-100" id="executiveDropdown" style="max-height: 200px; overflow-y: auto; display: none;">
+                            <div class="dropdown-item" data-value="">Choose Executive...</div>
+                            @foreach (var exec in executivesList)
+                            {
+                                <div class="dropdown-item" data-value="@exec.UserId" data-name="@exec.Username (@exec.Role)">@exec.Username (@exec.Role)</div>
+                            }
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <button class="btn btn-outline-primary" onclick="selectAll()">
+                        <i class="fa-solid fa-check-double me-2"></i>Select All
+                    </button>
+                </div>
+                <div class="col-md-3">
+                    <button id="assignBtn" class="assign-btn" onclick="assignLeads()" disabled>
+                        <i class="fa-solid fa-user-check me-2"></i>Assign Selected
+                    </button>
+                </div>
+            </div>
+            <div class="mt-3">
+                <small class="text-muted">
+                    <i class="fa-solid fa-info-circle me-1"></i>
+                    Search and filter leads, then select and assign them to executives.
+                </small>
+            </div>
+        </div>
+    }
+
+    @Html.AntiForgeryToken()
+
+    <!-- Leads List -->
+    @if (Model.Any())
+    {
+        foreach (var lead in Model)
+        {
+            <div class="card lead-card" data-lead-id="@lead.LeadId">
+                <div class="card-body">
+                    <!-- Desktop Layout -->
+                    <div class="desktop-layout">
+                        <div class="row align-items-center">
+                            <div class="col-md-1 text-center">
+                                <input type="checkbox" class="lead-checkbox" 
+                                       value="@lead.LeadId" 
+                                       onchange="updateSelection()">
+                            </div>
+
+                            <div class="col-md-5">
+                                <h5 class="mb-2">
+                                    <i class="fa-solid fa-user text-primary me-2"></i>
+                                    @lead.Name
+                                </h5>
+                                <p class="mb-1 text-muted">
+                                    <i class="fa-solid fa-phone me-2"></i>
+                                    @(lead.Contact ?? "N/A")
+                                </p>
+                                @if (!string.IsNullOrEmpty(lead.Email))
+                                {
+                                    <p class="mb-1 text-muted">
+                                        <i class="fa-solid fa-envelope me-2"></i>
+                                        @lead.Email
+                                        @if (!string.IsNullOrEmpty(lead.Source))
+                                        {
+                                            @if (lead.Source == "Facebook Webhook" || lead.Source == "Facebook API")
+                                            {
+                                                <span class="badge badge-facebook ms-2">
+                                                    <i class="fa-brands fa-facebook me-1"></i>@lead.Source
+                                                </span>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge bg-secondary ms-2">
+                                                    <i class="fa-solid fa-tag me-1"></i>@lead.Source
+                                                </span>
+                                            }
+                                        }
+                                    </p>
+                                }
+                                else if (!string.IsNullOrEmpty(lead.Source))
+                                {
+                                    <p class="mb-1 text-muted">
+                                        @if (lead.Source == "Facebook Webhook" || lead.Source == "Facebook API")
+                                        {
+                                            <span class="badge badge-facebook">
+                                                <i class="fa-brands fa-facebook me-1"></i>@lead.Source
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-secondary">
+                                                <i class="fa-solid fa-tag me-1"></i>@lead.Source
+                                            </span>
+                                        }
+                                    </p>
+                                }
+                            </div>
+
+                            <div class="col-md-1">
+                                <small class="text-muted d-block">BHK</small>
+                                <p class="mb-0 fw-bold">
+                                    @(lead.BHK ?? "N/A")
+                                </p>
+                            </div>
+
+                            <div class="col-md-2">
+                                <small class="text-muted d-block">Location</small>
+                                <p class="mb-0">
+                                    <i class="fa-solid fa-location-dot me-1 text-danger"></i>
+                                    @(lead.PreferredLocation ?? "N/A")
+                                </p>
+                            </div>
+
+                            <div class="col-md-2">
+                                <small class="text-muted d-block">Received</small>
+                                <p class="mb-0">
+                                    @lead.CreatedOn.ToString("MMM dd")
+                                </p>
+                                <small class="text-muted">
+                                    @lead.CreatedOn.ToString("HH:mm")
+                                </small>
+                            </div>
+
+                            <div class="col-md-1 text-end">
+                                <button class="btn btn-sm btn-outline-danger" 
+                                        onclick="deleteLead(@lead.LeadId)" 
+                                        title="Delete Lead">
+                                    <i class="fa-solid fa-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+                        
+                        @if (!string.IsNullOrEmpty(lead.Comments))
+                        {
+                            <div class="row mt-2">
+                                <div class="col-md-12">
+                                    <small class="text-muted">
+                                        <i class="fa-solid fa-comment me-1"></i>
+                                        @lead.Comments
+                                    </small>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                    
+                    <!-- Mobile Layout -->
+                    <div class="mobile-layout">
+                        <div class="mobile-header">
+                            <input type="checkbox" class="lead-checkbox" 
+                                   value="@lead.LeadId" 
+                                   onchange="updateSelection()">
+                            <div class="mobile-name-contact">
+                                <div class="mobile-name">@lead.Name</div>
+                                <div class="mobile-contact">@(lead.Contact ?? "N/A")</div>
+                            </div>
+                            <button class="mobile-delete-btn" 
+                                    onclick="deleteLead(@lead.LeadId)" 
+                                    title="Delete Lead">
+                                <i class="fa-solid fa-trash"></i>
+                            </button>
+                        </div>
+                        
+                        @if (!string.IsNullOrEmpty(lead.Email))
+                        {
+                            <div class="mb-2">
+                                <span class="mobile-contact">@lead.Email</span>
+                                @if (!string.IsNullOrEmpty(lead.Source))
+                                {
+                                    @if (lead.Source == "Facebook Webhook" || lead.Source == "Facebook API")
+                                    {
+                                        <span class="badge badge-facebook ms-2">
+                                            <i class="fa-brands fa-facebook me-1"></i>@lead.Source
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-secondary ms-2">
+                                            <i class="fa-solid fa-tag me-1"></i>@lead.Source
+                                        </span>
+                                    }
+                                }
+                            </div>
+                        }
+                        
+                        <div class="mobile-details">
+                            <div class="mobile-detail-item">
+                                <span class="mobile-detail-label">BHK</span> @(lead.BHK ?? "N/A")
+                            </div>
+                            <div class="mobile-detail-item">
+                                <span class="mobile-detail-label">Location</span> @(lead.PreferredLocation ?? "N/A")
+                            </div>
+                            <div class="mobile-detail-item">
+                                <span class="mobile-detail-label">Received</span> @lead.CreatedOn.ToString("MMM dd")
+                            </div>
+                            @if (!string.IsNullOrEmpty(lead.Comments))
+                            {
+                                <div class="mobile-detail-item">
+                                    @lead.Comments
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    }
+    else
+    {
+        <div class="card">
+            <div class="card-body">
+                <div class="empty-state">
+                    <i class="fa-solid fa-user-check"></i>
+                    <h3 class="mb-3">No Unassigned Leads</h3>
+                    <p class="text-muted mb-4">
+                        All leads have been assigned to sales executives.
+                    </p>
+                    <div class="alert alert-info d-inline-block">
+                        <strong><i class="fa-brands fa-facebook me-2"></i>Facebook Webhook URL:</strong> https://yourdomain.com/api/meta/webhook
+                        <br>
+                        <strong>Verify Token:</strong> MY_SECRET_TOKEN_123
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+    
+    <!-- Pagination -->
+    <div class="pagination-container" id="paginationContainer" style="display: none;">
+        <div class="pagination-info">
+            <span id="paginationInfo">Showing 1-10 of 50 leads</span>
+        </div>
+        <div class="pagination-controls">
+            <button class="pagination-btn" id="prevBtn" onclick="changePage(-1)">
+                <i class="fa-solid fa-chevron-left"></i> Previous
+            </button>
+            <div id="pageNumbers"></div>
+            <button class="pagination-btn" id="nextBtn" onclick="changePage(1)">
+                Next <i class="fa-solid fa-chevron-right"></i>
+            </button>
+        </div>
+        <div class="page-size-selector">
+            <span>Show:</span>
+            <select id="pageSizeSelect" onchange="changePageSize()">
+                <option value="10">10</option>
+                <option value="25">25</option>
+                <option value="50">50</option>
+                <option value="100">100</option>
+            </select>
+            <span>per page</span>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+    // Pagination variables
+    let currentPage = 1;
+    let pageSize = 10;
+    let totalLeads = 0;
+    let filteredLeads = [];
+    
+    // Initialize pagination on page load
+    document.addEventListener('DOMContentLoaded', function() {
+        initializePagination();
+        initializeExecutiveSearch();
+    });
+    
+    function initializePagination() {
+        const leadCards = document.querySelectorAll('.lead-card');
+        totalLeads = leadCards.length;
+        filteredLeads = Array.from(leadCards);
+        
+        if (totalLeads > 0) {
+            document.getElementById('paginationContainer').style.display = 'flex';
+            updatePagination();
+        }
+    }
+    
+    function updatePagination() {
+        const totalPages = Math.ceil(filteredLeads.length / pageSize);
+        const startIndex = (currentPage - 1) * pageSize;
+        const endIndex = Math.min(startIndex + pageSize, filteredLeads.length);
+        
+        // Hide all cards first
+        document.querySelectorAll('.lead-card').forEach(card => {
+            card.style.display = 'none';
+        });
+        
+        // Show cards for current page
+        for (let i = startIndex; i < endIndex; i++) {
+            if (filteredLeads[i]) {
+                filteredLeads[i].style.display = 'block';
+            }
+        }
+        
+        // Update pagination info
+        const start = filteredLeads.length > 0 ? startIndex + 1 : 0;
+        const end = endIndex;
+        document.getElementById('paginationInfo').textContent = 
+            `Showing ${start}-${end} of ${filteredLeads.length} leads`;
+        
+        // Update page numbers
+        updatePageNumbers(totalPages);
+        
+        // Update prev/next buttons
+        document.getElementById('prevBtn').disabled = currentPage === 1;
+        document.getElementById('nextBtn').disabled = currentPage === totalPages || totalPages === 0;
+        
+        // Update selection count
+        updateSelection();
+    }
+    
+    function updatePageNumbers(totalPages) {
+        const pageNumbers = document.getElementById('pageNumbers');
+        pageNumbers.innerHTML = '';
+        
+        const maxVisiblePages = 5;
+        let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
+        let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
+        
+        if (endPage - startPage + 1 < maxVisiblePages) {
+            startPage = Math.max(1, endPage - maxVisiblePages + 1);
+        }
+        
+        for (let i = startPage; i <= endPage; i++) {
+            const btn = document.createElement('button');
+            btn.className = `pagination-btn ${i === currentPage ? 'active' : ''}`;
+            btn.textContent = i;
+            btn.onclick = () => goToPage(i);
+            pageNumbers.appendChild(btn);
+        }
+    }
+    
+    function changePage(direction) {
+        const totalPages = Math.ceil(filteredLeads.length / pageSize);
+        const newPage = currentPage + direction;
+        
+        if (newPage >= 1 && newPage <= totalPages) {
+            currentPage = newPage;
+            updatePagination();
+        }
+    }
+    
+    function goToPage(page) {
+        currentPage = page;
+        updatePagination();
+    }
+    
+    function changePageSize() {
+        pageSize = parseInt(document.getElementById('pageSizeSelect').value);
+        currentPage = 1;
+        updatePagination();
+    }
+
+    function initializeExecutiveSearch() {
+        const searchInput = document.getElementById('executiveSearch');
+        const hiddenInput = document.getElementById('executiveSelect');
+        const dropdown = document.getElementById('executiveDropdown');
+        const dropdownItems = dropdown.querySelectorAll('.dropdown-item');
+
+        // Show dropdown on focus
+        searchInput.addEventListener('focus', function() {
+            dropdown.style.display = 'block';
+            filterExecutives('');
+        });
+
+        // Hide dropdown when clicking outside
+        document.addEventListener('click', function(e) {
+            if (!searchInput.contains(e.target) && !dropdown.contains(e.target)) {
+                dropdown.style.display = 'none';
+            }
+        });
+
+        // Filter on input
+        searchInput.addEventListener('input', function() {
+            const searchTerm = this.value.toLowerCase();
+            filterExecutives(searchTerm);
+        });
+
+        // Handle dropdown item selection
+        dropdownItems.forEach(item => {
+            item.addEventListener('click', function() {
+                const value = this.getAttribute('data-value');
+                const name = this.getAttribute('data-name') || this.textContent;
+                
+                hiddenInput.value = value;
+                searchInput.value = name;
+                dropdown.style.display = 'none';
+                
+                // Trigger selection update
+                updateSelection();
+            });
+        });
+
+        function filterExecutives(searchTerm) {
+            dropdownItems.forEach(item => {
+                const text = item.textContent.toLowerCase();
+                if (text.includes(searchTerm)) {
+                    item.style.display = 'block';
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+        }
+    }
+    function updateSelection() {
+        const visibleCheckboxes = Array.from(document.querySelectorAll('.lead-card'))
+            .filter(card => card.style.display !== 'none')
+            .map(card => card.querySelector('.lead-checkbox'))
+            .filter(cb => cb.checked);
+            
+        const count = visibleCheckboxes.length;
+        
+        document.getElementById('selectedCount').textContent = count;
+        document.getElementById('assignBtn').disabled = count === 0 || !document.getElementById('executiveSelect').value;
+        
+        // Highlight selected cards
+        document.querySelectorAll('.lead-card').forEach(card => {
+            const checkbox = card.querySelector('.lead-checkbox');
+            if (checkbox.checked) {
+                card.classList.add('selected');
+            } else {
+                card.classList.remove('selected');
+            }
+        });
+    }
+
+    function selectAll() {
+        // Get visible checkboxes on current page
+        const visibleCheckboxes = Array.from(document.querySelectorAll('.lead-card'))
+            .filter(card => card.style.display !== 'none')
+            .map(card => card.querySelector('.lead-checkbox'));
+            
+        const allChecked = visibleCheckboxes.every(cb => cb.checked);
+        
+        visibleCheckboxes.forEach(cb => {
+            cb.checked = !allChecked;
+        });
+        
+        updateSelection();
+    }
+
+    function filterLeads() {
+        const searchText = document.getElementById('searchInput').value.toLowerCase();
+        const sourceFilter = document.getElementById('sourceFilter').value.toLowerCase();
+        const leadCards = document.querySelectorAll('.lead-card');
+        
+        filteredLeads = [];
+        
+        leadCards.forEach(card => {
+            const name = card.querySelector('h5').textContent.toLowerCase();
+            const contact = card.querySelector('.fa-phone').parentElement.textContent.toLowerCase();
+            const email = card.querySelector('.fa-envelope')?.parentElement?.textContent?.toLowerCase() || '';
+            const source = card.querySelector('.badge')?.textContent?.toLowerCase() || '';
+            
+            const matchesSearch = !searchText || 
+                name.includes(searchText) || 
+                contact.includes(searchText) || 
+                email.includes(searchText);
+            
+            const matchesSource = !sourceFilter || 
+                (sourceFilter === 'facebook' && source.includes('facebook')) ||
+                (sourceFilter === 'website' && source.includes('website')) ||
+                (sourceFilter === 'manual' && source.includes('manual')) ||
+                (sourceFilter === 'other' && !source.includes('facebook') && !source.includes('website') && !source.includes('manual'));
+            
+            if (matchesSearch && matchesSource) {
+                filteredLeads.push(card);
+            }
+            
+            // Uncheck hidden cards
+            const checkbox = card.querySelector('.lead-checkbox');
+            if (!matchesSearch || !matchesSource) {
+                if (checkbox.checked) {
+                    checkbox.checked = false;
+                }
+            }
+        });
+        
+        // Reset to first page and update pagination
+        currentPage = 1;
+        updatePagination();
+        
+        // Show/hide pagination based on results
+        const paginationContainer = document.getElementById('paginationContainer');
+        if (filteredLeads.length > 0) {
+            paginationContainer.style.display = 'flex';
+        } else {
+            paginationContainer.style.display = 'none';
+        }
+    }
+
+    function clearFilters() {
+        document.getElementById('searchInput').value = '';
+        document.getElementById('sourceFilter').value = '';
+        
+        // Reset filtered leads to all leads
+        filteredLeads = Array.from(document.querySelectorAll('.lead-card'));
+        currentPage = 1;
+        updatePagination();
+        
+        // Show pagination
+        document.getElementById('paginationContainer').style.display = 'flex';
+    }
+
+    document.getElementById('executiveSelect').addEventListener('change', updateSelection);
+    
+
+
+    function assignLeads() {
+        const executiveId = document.getElementById('executiveSelect').value;
+        const leadIds = Array.from(document.querySelectorAll('.lead-checkbox:checked'))
+                             .map(cb => parseInt(cb.value));
+
+        if (!executiveId || leadIds.length === 0) {
+            Swal.fire('Error', 'Please select an executive and at least one lead', 'error');
+            return;
+        }
+
+        Swal.fire({
+            title: 'Assign Leads?',
+            text: `Assign ${leadIds.length} lead(s) to selected executive?`,
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonColor: '#667eea',
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: 'Yes, assign them!'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                // Get anti-forgery token
+                const token = document.querySelector('input[name="__RequestVerificationToken"]');
+                
+                fetch('/WebhookLeads/AssignExecutive', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'RequestVerificationToken': token ? token.value : ''
+                    },
+                    body: JSON.stringify({ leadIds, executiveId: parseInt(executiveId) })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Success!',
+                            text: data.message,
+                            timer: 2000,
+                            showConfirmButton: false
+                        }).then(() => location.reload());
+                    } else {
+                        Swal.fire('Error', data.message, 'error');
+                    }
+                })
+                .catch(error => {
+                    Swal.fire('Error', 'Failed to assign leads', 'error');
+                });
+            }
+        });
+    }
+
+    function deleteLead(leadId) {
+        Swal.fire({
+            title: 'Delete Lead?',
+            text: "This action cannot be undone!",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: 'Yes, delete it!'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                // Get anti-forgery token
+                const token = document.querySelector('input[name="__RequestVerificationToken"]');
+                
+                fetch('/WebhookLeads/DeleteLead', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'RequestVerificationToken': token ? token.value : ''
+                    },
+                    body: JSON.stringify({ leadId })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Deleted!',
+                            text: data.message,
+                            timer: 2000,
+                            showConfirmButton: false
+                        }).then(() => location.reload());
+                    } else {
+                        Swal.fire('Error', data.message, 'error');
+                    }
+                })
+                .catch(error => {
+                    Swal.fire('Error', 'Failed to delete lead', 'error');
+                });
+            }
+        });
+    }
+
+    // Sync Facebook Leads
+    document.getElementById('syncFacebookBtn').addEventListener('click', async function() {
+        const btn = this;
+        const originalText = btn.innerHTML;
+        
+        // Show loading
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Syncing...';
+        btn.disabled = true;
+        
+        try {
+            const response = await fetch('/api/facebook/fetch-leads');
+            const result = await response.json();
+            
+            if (result.success) {
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Sync Complete!',
+                    text: result.message,
+                    timer: 3000
+                });
+                
+                // Reload page to show new leads
+                setTimeout(() => location.reload(), 2000);
+            } else {
+                throw new Error(result.message || 'Sync failed');
+            }
+        } catch (error) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Sync Failed',
+                text: error.message
+            });
+        } finally {
+            // Reset button
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+        }
+    });
+</script>
+}

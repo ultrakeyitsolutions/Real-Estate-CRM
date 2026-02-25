@@ -1,0 +1,64 @@
+using Microsoft.AspNetCore.Mvc;
+using CRM.Services;
+using Microsoft.EntityFrameworkCore;
+
+namespace CRM.Controllers
+{
+    public class FcmController : Controller
+    {
+        private readonly FcmService _fcmService;
+        private readonly AppDbContext _context;
+
+        public FcmController(FcmService fcmService, AppDbContext context)
+        {
+            _fcmService = fcmService;
+            _context = context;
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> SaveToken(string token)
+        {
+            // Get current user from session/cookie
+            var username = HttpContext.Session.GetString("Username") ?? HttpContext.Request.Cookies["Username"];
+            if (!string.IsNullOrEmpty(username))
+            {
+                var user = await _context.Users.FirstOrDefaultAsync(u => u.Username == username);
+                if (user != null)
+                {
+                    await _fcmService.SaveDeviceToken(user.UserId, token);
+                    return Json(new { success = true });
+                }
+            }
+            return Json(new { success = false });
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> SendTestNotification(string title, string body)
+        {
+            var username = HttpContext.Session.GetString("Username") ?? HttpContext.Request.Cookies["Username"];
+            if (!string.IsNullOrEmpty(username))
+            {
+                var user = await _context.Users.FirstOrDefaultAsync(u => u.Username == username);
+                if (user != null)
+                {
+                    var success = await _fcmService.SendNotificationToUser(user.UserId, title, body);
+                    return Json(new { success });
+                }
+            }
+            return Json(new { success = false });
+        }
+    }
+
+    public class TokenRequest
+    {
+        public string Token { get; set; }
+    }
+
+    public class NotificationRequest
+    {
+        public string Title { get; set; }
+        public string Body { get; set; }
+    }
+}

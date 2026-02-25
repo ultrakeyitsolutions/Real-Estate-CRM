@@ -1,0 +1,613 @@
+@using CRM.Controllers
+@model List<CRM.Controllers.MilestoneTrackingViewModel>
+@{
+    ViewData["Title"] = "Milestone Payment Tracking";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<style>
+    .modern-header {
+        background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+        position: relative;
+        overflow: hidden;
+        border-radius: 16px;
+        box-shadow: 0 8px 32px rgba(79, 70, 229, 0.15);
+    }
+
+    .modern-header::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="50" cy="50" r="1" fill="%23ffffff" opacity="0.1"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>') repeat;
+        opacity: 0.3;
+    }
+
+    .header-content {
+        position: relative;
+        z-index: 2;
+        padding: 2rem 1.5rem;
+        color: white;
+    }
+
+    .header-title {
+        font-size: 1.75rem;
+        font-weight: 700;
+        margin-bottom: 0.25rem;
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .header-subtitle {
+        font-size: 0.95rem;
+        opacity: 0.9;
+        margin-bottom: 1.25rem;
+        font-weight: 400;
+    }
+
+    .action-btn {
+        background: rgba(255, 255, 255, 0.2);
+        border: 2px solid rgba(255, 255, 255, 0.3);
+        color: white;
+        padding: 0.625rem 1.25rem;
+        border-radius: 50px;
+        font-weight: 600;
+        font-size: 0.9rem;
+        backdrop-filter: blur(10px);
+        transition: all 0.3s ease;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.375rem;
+        margin: 0.25rem;
+    }
+
+    .action-btn:hover {
+        background: rgba(255, 255, 255, 0.3);
+        border-color: rgba(255, 255, 255, 0.5);
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+        color: white;
+    }
+
+    .filter-section {
+        background: white;
+        border-radius: 12px;
+        padding: 1.25rem;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        margin-bottom: 1.5rem;
+        border: 1px solid rgba(0, 0, 0, 0.05);
+    }
+
+    .filter-title {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: #2d3748;
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .milestone-card {
+        background: white;
+        border-radius: 12px;
+        padding: 1rem;
+        margin-bottom: 0.875rem;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        border: 1px solid rgba(0, 0, 0, 0.05);
+        transition: all 0.3s ease;
+    }
+
+    .milestone-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+        border-color: rgba(79, 70, 229, 0.2);
+    }
+
+    .milestone-info {
+        display: flex;
+        align-items: center;
+        gap: 0.375rem;
+        margin-bottom: 0.375rem;
+        color: #6b7280;
+        font-size: 0.85rem;
+    }
+
+    .status-badge {
+        padding: 0.375rem 0.75rem;
+        border-radius: 25px;
+        font-weight: 600;
+        font-size: 0.8rem;
+        border: 2px solid transparent;
+        transition: all 0.2s ease;
+    }
+
+    .status-active { background-color: #d1fae5; color: #065f46; border-color: #10b981; }
+    .status-pending { background-color: #fef3c7; color: #92400e; border-color: #f59e0b; }
+    .status-partial { background-color: #dbeafe; color: #1e40af; border-color: #3b82f6; }
+    .status-overdue { background-color: #fee2e2; color: #991b1b; border-color: #ef4444; }
+
+    .empty-state {
+        text-align: center;
+        padding: 3rem 2rem;
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        border: 1px solid rgba(0, 0, 0, 0.05);
+    }
+
+    .empty-state i {
+        font-size: 4rem;
+        color: #e5e7eb;
+        margin-bottom: 1.5rem;
+    }
+
+    .pagination-wrapper {
+        background: white;
+        border-radius: 12px;
+        padding: 1rem;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        border: 1px solid rgba(0, 0, 0, 0.05);
+        margin-top: 1.5rem;
+    }
+
+    .dark-mode .filter-section {
+        background: #222639 !important;
+        border-color: #2c3049 !important;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3) !important;
+    }
+    
+    .dark-mode .filter-title {
+        color: #e4e6eb !important;
+    }
+    
+    .dark-mode .milestone-card {
+        background: #222639 !important;
+        border-color: #2c3049 !important;
+        color: #e4e6eb !important;
+    }
+    
+    .dark-mode .milestone-info {
+        color: #a6adc8 !important;
+    }
+    
+    .dark-mode .empty-state {
+        background: #222639 !important;
+        border-color: #2c3049 !important;
+        color: #e4e6eb !important;
+    }
+    
+    .dark-mode .pagination-wrapper {
+        background: #222639 !important;
+        border-color: #2c3049 !important;
+    }
+</style>
+
+<div class="content">
+    <!-- Breadcrumb -->
+    <nav class="mb-3" aria-label="breadcrumb">
+        <ol class="breadcrumb mb-0">
+            <li class="breadcrumb-item"><a href="/Home/Index">Home</a></li>
+            <li class="breadcrumb-item active">Milestone Tracking</li>
+        </ol>
+    </nav>
+
+    <!-- Modern Header -->
+    <div class="modern-header">
+        <div class="header-content">
+            <div class="row align-items-center">
+                <div class="col-lg-8">
+                    <div class="d-flex align-items-center">
+                        <div class="me-3">
+                            <i class="fa-solid fa-check-square" style="font-size: 2.5rem; opacity: 0.9;"></i>
+                        </div>
+                        <div>
+                            <h1 class="header-title mb-0">Milestone Payment Tracking</h1>
+                            <p class="header-subtitle mb-0">Track and manage all milestone payments and statuses</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-4 text-lg-end">
+                    <button type="button" class="action-btn" id="exportPDF">
+                        <i class="fa-solid fa-file-pdf"></i>
+                        <span>Export PDF</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filter Section -->
+    <div class="filter-section">
+        <div class="filter-title">
+            <i class="fa-solid fa-filter"></i>
+            <span>Filter & Search</span>
+        </div>
+        <div class="row g-3">
+            <div class="col-md-4">
+                <label for="searchBox" class="form-label fw-semibold">
+                    <i class="fa-solid fa-search text-muted me-2"></i>Search Milestones
+                </label>
+                <input type="text" class="form-control" id="searchBox" 
+                       placeholder="Search by lead, project, milestone...">
+            </div>
+            <div class="col-md-2">
+                <label for="filterStatus" class="form-label fw-semibold">Status</label>
+                <select id="filterStatus" class="form-select">
+                    <option value="">🔍 All Status</option>
+                    <option value="Paid">✅ Paid</option>
+                    <option value="Pending">⏳ Pending</option>
+                    <option value="Partial">🔄 Partial</option>
+                    <option value="Overdue">⚠️ Overdue</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label for="filterMilestone" class="form-label fw-semibold">Milestone</label>
+                <select id="filterMilestone" class="form-select">
+                    <option value="">🔍 All Milestones</option>
+                    <option value="Booking">📝 Booking</option>
+                    <option value="Agreement">📋 Agreement</option>
+                    <option value="Foundation">🏗️ Foundation</option>
+                    <option value="Possession">🏠 Possession</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label for="filterFromDate" class="form-label fw-semibold">From Date</label>
+                <input type="date" id="filterFromDate" class="form-control">
+            </div>
+            <div class="col-md-2">
+                <label for="filterToDate" class="form-label fw-semibold">To Date</label>
+                <input type="date" id="filterToDate" class="form-control">
+            </div>
+        </div>
+        <div class="row mt-3">
+            <div class="col-md-6">
+                <button type="button" class="btn btn-outline-primary" id="clearFilters">
+                    <i class="fa-solid fa-refresh me-1"></i>Clear Filters
+                </button>
+            </div>
+            <div class="col-md-6 text-end">
+                <button type="button" class="btn btn-success me-2" id="exportExcel">
+                    <i class="fa-solid fa-file-excel me-1"></i>Export Excel
+                </button>
+                <button type="button" class="btn btn-info me-2" id="exportCSV">
+                    <i class="fa-solid fa-file-csv me-1"></i>Export CSV
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Milestones List -->
+    <div id="milestonesContainer">
+        <!-- Milestones will be populated by JavaScript -->
+    </div>
+
+    <!-- Pagination -->
+    <div class="pagination-wrapper" id="paginationWrapper" style="display: none;">
+        <div class="row align-items-center">
+            <div class="col-md-6">
+                <p class="text-muted mb-0">Showing <span id="showingStart">0</span> to <span id="showingEnd">0</span> of <span id="totalRecords">0</span> entries</p>
+            </div>
+            <div class="col-md-6">
+                <nav>
+                    <ul class="pagination justify-content-end mb-0" id="pagination">
+                        <!-- Pagination will be generated by JavaScript -->
+                    </ul>
+                </nav>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <!-- SheetJS for Excel operations -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <!-- jsPDF for PDF export -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+
+    <script>
+        // Global variables
+        let allMilestones = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model));
+        let filteredMilestones = [...allMilestones];
+        let currentPage = 1;
+        let pageSize = 10;
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', function () {
+            renderMilestones();
+            attachEventListeners();
+        });
+
+        function attachEventListeners() {
+            // Search and filters
+            document.getElementById('searchBox').addEventListener('input', applyFilters);
+            document.getElementById('filterStatus').addEventListener('change', applyFilters);
+            document.getElementById('filterMilestone').addEventListener('change', applyFilters);
+            document.getElementById('filterFromDate').addEventListener('change', applyFilters);
+            document.getElementById('filterToDate').addEventListener('change', applyFilters);
+
+            // Clear filters
+            document.getElementById('clearFilters').addEventListener('click', clearFilters);
+
+            // Export buttons
+            document.getElementById('exportExcel').addEventListener('click', exportToExcel);
+            document.getElementById('exportCSV').addEventListener('click', exportToCSV);
+            document.getElementById('exportPDF').addEventListener('click', exportToPDF);
+        }
+
+        function applyFilters() {
+            const searchText = document.getElementById('searchBox').value.toLowerCase();
+            const status = document.getElementById('filterStatus').value;
+            const milestone = document.getElementById('filterMilestone').value;
+            const fromDate = document.getElementById('filterFromDate').value;
+            const toDate = document.getElementById('filterToDate').value;
+
+            filteredMilestones = allMilestones.filter(m => {
+                // Search filter
+                const matchesSearch = !searchText ||
+                    (m.LeadName && m.LeadName.toLowerCase().includes(searchText)) ||
+                    (m.Project && m.Project.toLowerCase().includes(searchText)) ||
+                    (m.Flat && m.Flat.toLowerCase().includes(searchText)) ||
+                    (m.Milestone && m.Milestone.toLowerCase().includes(searchText));
+
+                // Status filter
+                const matchesStatus = !status || m.Status === status;
+
+                // Milestone filter
+                const matchesMilestone = !milestone || m.Milestone === milestone;
+
+                // Date filter
+                let matchesDate = true;
+                if (fromDate || toDate) {
+                    const milestoneDate = new Date(m.DueDate);
+                    if (fromDate) {
+                        matchesDate = matchesDate && milestoneDate >= new Date(fromDate);
+                    }
+                    if (toDate) {
+                        matchesDate = matchesDate && milestoneDate <= new Date(toDate + 'T23:59:59');
+                    }
+                }
+
+                return matchesSearch && matchesStatus && matchesMilestone && matchesDate;
+            });
+
+            currentPage = 1;
+            renderMilestones();
+        }
+
+        function clearFilters() {
+            document.getElementById('searchBox').value = '';
+            document.getElementById('filterStatus').value = '';
+            document.getElementById('filterMilestone').value = '';
+            document.getElementById('filterFromDate').value = '';
+            document.getElementById('filterToDate').value = '';
+            filteredMilestones = [...allMilestones];
+            currentPage = 1;
+            renderMilestones();
+        }
+
+        function renderMilestones() {
+            const container = document.getElementById('milestonesContainer');
+            const start = (currentPage - 1) * pageSize;
+            const end = start + pageSize;
+            const paginatedMilestones = filteredMilestones.slice(start, end);
+
+            container.innerHTML = '';
+
+            if (paginatedMilestones.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fa-solid fa-check-square"></i>
+                        <h3>No Milestones Found</h3>
+                        <p class="text-muted">No milestone payments match your current filters</p>
+                    </div>
+                `;
+                document.getElementById('paginationWrapper').style.display = 'none';
+            } else {
+                paginatedMilestones.forEach(milestone => {
+                    const milestoneCard = document.createElement('div');
+                    milestoneCard.className = 'milestone-card';
+                    milestoneCard.innerHTML = `
+                        <div class="row align-items-center">
+                            <div class="col-md-3">
+                                <h6 class="mb-1 text-primary">${milestone.LeadName || 'Unknown Lead'}</h6>
+                                <div class="milestone-info">
+                                    <i class="fa-solid fa-building"></i>
+                                    <span>${milestone.Project || 'No project'}</span>
+                                </div>
+                                <div class="milestone-info">
+                                    <i class="fa-solid fa-door-open"></i>
+                                    <span>${milestone.Flat || 'No flat'}</span>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="milestone-info">
+                                    <i class="fa-solid fa-flag"></i>
+                                    <span><strong>${milestone.Milestone || 'No milestone'}</strong></span>
+                                </div>
+                                <div class="milestone-info">
+                                    <i class="fa-solid fa-calendar"></i>
+                                    <span>Due: ${formatDate(milestone.DueDate)}</span>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="milestone-info">
+                                    <i class="fa-solid fa-rupee-sign"></i>
+                                    <span>Amount: ₹${milestone.Amount ? milestone.Amount.toLocaleString() : '0'}</span>
+                                </div>
+                                <div class="milestone-info">
+                                    <i class="fa-solid fa-check-circle"></i>
+                                    <span>Paid: ₹${milestone.Paid ? milestone.Paid.toLocaleString() : '0'}</span>
+                                </div>
+                            </div>
+                            <div class="col-md-3 text-center">
+                                <span class="status-badge status-${(milestone.Status || 'pending').toLowerCase()}">
+                                    ${milestone.Status || 'Pending'}
+                                </span>
+                            </div>
+                        </div>
+                    `;
+                    container.appendChild(milestoneCard);
+                });
+                document.getElementById('paginationWrapper').style.display = 'block';
+            }
+
+            updatePaginationInfo();
+            renderPagination();
+        }
+
+        function formatDate(dateString) {
+            if (!dateString) return '-';
+            const date = new Date(dateString);
+            return date.toLocaleDateString('en-GB');
+        }
+
+        function updatePaginationInfo() {
+            const total = filteredMilestones.length;
+            const start = total === 0 ? 0 : (currentPage - 1) * pageSize + 1;
+            const end = Math.min(currentPage * pageSize, total);
+
+            document.getElementById('showingStart').textContent = start;
+            document.getElementById('showingEnd').textContent = end;
+            document.getElementById('totalRecords').textContent = total;
+        }
+
+        function renderPagination() {
+            const pagination = document.getElementById('pagination');
+            const totalPages = Math.ceil(filteredMilestones.length / pageSize);
+
+            pagination.innerHTML = '';
+
+            if (totalPages <= 1) {
+                const singleLi = document.createElement('li');
+                singleLi.className = 'page-item active';
+                singleLi.innerHTML = `<span class="page-link">1</span>`;
+                pagination.appendChild(singleLi);
+                return;
+            }
+
+            // Previous button
+            const prevLi = document.createElement('li');
+            prevLi.className = `page-item ${currentPage === 1 ? 'disabled' : ''}`;
+            prevLi.innerHTML = `<a class="page-link" href="#" onclick="changePage(${currentPage - 1}); return false;">&laquo;</a>`;
+            pagination.appendChild(prevLi);
+
+            // Page numbers
+            const startPage = Math.max(1, currentPage - 2);
+            const endPage = Math.min(totalPages, currentPage + 2);
+
+            for (let i = startPage; i <= endPage; i++) {
+                const li = document.createElement('li');
+                li.className = `page-item ${i === currentPage ? 'active' : ''}`;
+                li.innerHTML = `<a class="page-link" href="#" onclick="changePage(${i}); return false;">${i}</a>`;
+                pagination.appendChild(li);
+            }
+
+            // Next button
+            const nextLi = document.createElement('li');
+            nextLi.className = `page-item ${currentPage === totalPages ? 'disabled' : ''}`;
+            nextLi.innerHTML = `<a class="page-link" href="#" onclick="changePage(${currentPage + 1}); return false;">&raquo;</a>`;
+            pagination.appendChild(nextLi);
+        }
+
+        function changePage(page) {
+            const totalPages = Math.ceil(filteredMilestones.length / pageSize);
+            if (page < 1 || page > totalPages) return;
+            currentPage = page;
+            renderMilestones();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function exportToExcel() {
+            const ws_data = [
+                ['Lead Name', 'Project', 'Flat', 'Milestone', 'Due Date', 'Amount', 'Paid', 'Status']
+            ];
+
+            filteredMilestones.forEach(milestone => {
+                ws_data.push([
+                    milestone.LeadName || '',
+                    milestone.Project || '',
+                    milestone.Flat || '',
+                    milestone.Milestone || '',
+                    formatDate(milestone.DueDate),
+                    milestone.Amount || 0,
+                    milestone.Paid || 0,
+                    milestone.Status || ''
+                ]);
+            });
+
+            const wb = XLSX.utils.book_new();
+            const ws = XLSX.utils.aoa_to_sheet(ws_data);
+            ws['!cols'] = [{ wch: 20 }, { wch: 20 }, { wch: 15 }, { wch: 15 }, { wch: 12 }, { wch: 15 }, { wch: 15 }, { wch: 12 }];
+            XLSX.utils.book_append_sheet(wb, ws, "Milestones");
+            XLSX.writeFile(wb, `Milestone_Tracking_${new Date().toISOString().split('T')[0]}.xlsx`);
+        }
+
+        function exportToCSV() {
+            let csv = 'Lead Name,Project,Flat,Milestone,Due Date,Amount,Paid,Status\n';
+            filteredMilestones.forEach(milestone => {
+                csv += [
+                    escapeCSV(milestone.LeadName),
+                    escapeCSV(milestone.Project),
+                    escapeCSV(milestone.Flat),
+                    escapeCSV(milestone.Milestone),
+                    formatDate(milestone.DueDate),
+                    milestone.Amount || 0,
+                    milestone.Paid || 0,
+                    escapeCSV(milestone.Status)
+                ].join(',') + '\n';
+            });
+
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `Milestone_Tracking_${new Date().toISOString().split('T')[0]}.csv`;
+            a.click();
+            window.URL.revokeObjectURL(url);
+        }
+
+        function exportToPDF() {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+
+            doc.setFontSize(18);
+            doc.text('Milestone Payment Tracking Report', 14, 22);
+            doc.setFontSize(11);
+            doc.text(`Generated on: ${new Date().toLocaleDateString()}`, 14, 30);
+
+            const tableData = filteredMilestones.map(milestone => [
+                milestone.LeadName || '',
+                milestone.Project || '',
+                milestone.Flat || '',
+                milestone.Milestone || '',
+                formatDate(milestone.DueDate),
+                `₹${(milestone.Amount || 0).toLocaleString()}`,
+                `₹${(milestone.Paid || 0).toLocaleString()}`,
+                milestone.Status || ''
+            ]);
+
+            doc.autoTable({
+                head: [['Lead Name', 'Project', 'Flat', 'Milestone', 'Due Date', 'Amount', 'Paid', 'Status']],
+                body: tableData,
+                startY: 35,
+                styles: { fontSize: 8 },
+                headStyles: { fillColor: [79, 70, 229] }
+            });
+
+            doc.save(`Milestone_Tracking_${new Date().toISOString().split('T')[0]}.pdf`);
+        }
+
+        function escapeCSV(value) {
+            if (!value) return '';
+            value = value.toString();
+            if (value.includes(',') || value.includes('"') || value.includes('\n')) {
+                return '"' + value.replace(/"/g, '""') + '"';
+            }
+            return value;
+        }
+    </script>
+}

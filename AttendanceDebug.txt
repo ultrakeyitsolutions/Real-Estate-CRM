@@ -1,0 +1,363 @@
+
+=== Attendance Lookup ===
+UserId: 45
+
+=== ALL AgentAttendance Records ===
+
+=== ALL Users ===
+
+=== Calendar Debug ===
+URL AgentId: 45
+Mapped UserId: 45
+Querying: Year=2026, Month=2
+Found 0 records
+All records for AgentId 45: 0
+AgentId from URL: 45, Mapped UserId: 45, Year: 2026, Month: 2, Records found: 0
+
+=== Attendance Lookup ===
+UserId: 18
+
+=== ALL AgentAttendance Records ===
+  AttendanceId: 14, AgentId: 2, Date: 2025-11-27, Status: Present
+  AttendanceId: 15, AgentId: 2, Date: 2025-11-26, Status: Present
+  AttendanceId: 16, AgentId: 2, Date: 2025-11-25, Status: Present
+  AttendanceId: 17, AgentId: 2, Date: 2025-11-29, Status: Present
+  AttendanceId: 18, AgentId: 2, Date: 2025-11-30, Status: Present
+  AttendanceId: 19, AgentId: 9, Date: 2025-11-27, Status: Present
+  AttendanceId: 20, AgentId: 9, Date: 2025-11-28, Status: Present
+  AttendanceId: 21, AgentId: 9, Date: 2025-11-29, Status: Present
+  AttendanceId: 22, AgentId: 9, Date: 2025-11-26, Status: Present
+  AttendanceId: 23, AgentId: 9, Date: 2025-11-25, Status: Present
+  AttendanceId: 24, AgentId: 9, Date: 2025-11-30, Status: Present
+  AttendanceId: 25, AgentId: 11, Date: 2025-12-01, Status: Present
+  AttendanceId: 26, AgentId: 19, Date: 2025-12-01, Status: Present
+  AttendanceId: 27, AgentId: 2, Date: 2025-12-01, Status: Present
+  AttendanceId: 28, AgentId: 2, Date: 2025-12-06, Status: Present
+  AttendanceId: 29, AgentId: 25, Date: 2025-12-09, Status: Present
+  AttendanceId: 30, AgentId: 27, Date: 2025-12-10, Status: Present
+  AttendanceId: 31, AgentId: 2, Date: 2025-12-10, Status: Present
+  AttendanceId: 32, AgentId: 2, Date: 2025-12-09, Status: Present
+  AttendanceId: 33, AgentId: 29, Date: 2025-12-11, Status: Present
+
+=== ALL Users ===
+  UserId: 2, Username: MahiSales, Email: Mahi@gmail.com, Role: Agent
+  UserId: 3, Username: Sales, Email: Mahi@gmail.com, Role: Agent
+  UserId: 4, Username: Sales Head, Email: saleshead@gmail.com, Role: Agent
+  UserId: 6, Username: Mahi@gmail.com, Email: Mahi@gmail.com, Role: Agent
+  UserId: 7, Username: ForApprove test, Email: ForApprove@gmailcom, Role: Agent
+  UserId: 9, Username: Fixed salary Agent , Email: TestingAgent@gmail.com, Role: Agent
+  UserId: 10, Username: FixedWITHcommison, Email: FixedWITHcommison@gmail.com, Role: Agent
+  UserId: 11, Username: Commisonwithfixed, Email: FixedWITHcommison@gmail.com, Role: Agent
+  UserId: 14, Username: Commonly, Email: Commonly@gmail.com, Role: Agent
+  UserId: 15, Username: comonman, Email: com@gmail.com, Role: Agent
+  UserId: 16, Username: 2ndhybrid, Email: 2ndhybrid@gmail.com, Role: Agent
+  UserId: 17, Username: 3rdcommison, Email: 3rdcommison@gmail.com, Role: Agent
+  UserId: 18, Username: 1stfixed, Email: 1stfixed@gmail.com, Role: Agent
+  UserId: 19, Username: wowfixed, Email: wowfixed@gmail.com, Role: Agent
+  UserId: 20, Username: wowcomition, Email: wowcomition@gmail.com, Role: Agent
+  UserId: 21, Username: commwow, Email: commwow@gmail.com, Role: Agent
+  UserId: 22, Username: thnaks, Email: thank@gmail.com, Role: Agent
+  UserId: 23, Username: Virrr, Email: virrr@gmail.com, Role: Agent
+  UserId: 42, Username: tester, Email: Mahi@gmail.com, Role: Agent
+
+=== Calendar Debug ===
+URL AgentId: 18
+Mapped UserId: 18
+Querying: Year=2026, Month=2
+Found 0 records
+All records for AgentId 18: 0
+AgentId from URL: 18, Mapped UserId: 18, Year: 2026, Month: 2, Records found: 0
+
+=== Attendance Lookup ===
+UserId: 1
+
+=== ALL AgentAttendance Records ===
+  AttendanceId: 14, AgentId: 2, Date: 2025-11-27, Status: Present
+  AttendanceId: 15, AgentId: 2, Date: 2025-11-26, Status: Present
+  AttendanceId: 16, AgentId: 2, Date: 2025-11-25, Status: Present
+  AttendanceId: 17, AgentId: 2, Date: 2025-11-29, Status: Present
+  AttendanceId: 18, AgentId: 2, Date: 2025-11-30, Status: Present
+  AttendanceId: 19, AgentId: 9, Date: 2025-11-27, Status: Present
+  AttendanceId: 20, AgentId: 9, Date: 2025-11-28, Status: Present
+  AttendanceId: 21, AgentId: 9, Date: 2025-11-29, Status: Present
+  AttendanceId: 22, AgentId: 9, Date: 2025-11-26, Status: Present
+  AttendanceId: 23, AgentId: 9, Date: 2025-11-25, Status: Present
+  AttendanceId: 24, AgentId: 9, Date: 2025-11-30, Status: Present
+  AttendanceId: 25, AgentId: 11, Date: 2025-12-01, Status: Present
+  AttendanceId: 26, AgentId: 19, Date: 2025-12-01, Status: Present
+  AttendanceId: 27, AgentId: 2, Date: 2025-12-01, Status: Present
+  AttendanceId: 28, AgentId: 2, Date: 2025-12-06, Status: Present
+  AttendanceId: 29, AgentId: 25, Date: 2025-12-09, Status: Present
+  AttendanceId: 30, AgentId: 27, Date: 2025-12-10, Status: Present
+  AttendanceId: 31, AgentId: 2, Date: 2025-12-10, Status: Present
+  AttendanceId: 32, AgentId: 2, Date: 2025-12-09, Status: Present
+  AttendanceId: 33, AgentId: 29, Date: 2025-12-11, Status: Present
+
+=== ALL Users ===
+  UserId: 2, Username: MahiSales, Email: Mahi@gmail.com, Role: Agent
+  UserId: 3, Username: Sales, Email: Mahi@gmail.com, Role: Agent
+  UserId: 4, Username: Sales Head, Email: saleshead@gmail.com, Role: Agent
+  UserId: 6, Username: Mahi@gmail.com, Email: Mahi@gmail.com, Role: Agent
+  UserId: 7, Username: ForApprove test, Email: ForApprove@gmailcom, Role: Agent
+  UserId: 9, Username: Fixed salary Agent , Email: TestingAgent@gmail.com, Role: Agent
+  UserId: 10, Username: FixedWITHcommison, Email: FixedWITHcommison@gmail.com, Role: Agent
+  UserId: 11, Username: Commisonwithfixed, Email: FixedWITHcommison@gmail.com, Role: Agent
+  UserId: 14, Username: Commonly, Email: Commonly@gmail.com, Role: Agent
+  UserId: 15, Username: comonman, Email: com@gmail.com, Role: Agent
+  UserId: 16, Username: 2ndhybrid, Email: 2ndhybrid@gmail.com, Role: Agent
+  UserId: 17, Username: 3rdcommison, Email: 3rdcommison@gmail.com, Role: Agent
+  UserId: 18, Username: 1stfixed, Email: 1stfixed@gmail.com, Role: Agent
+  UserId: 19, Username: wowfixed, Email: wowfixed@gmail.com, Role: Agent
+  UserId: 20, Username: wowcomition, Email: wowcomition@gmail.com, Role: Agent
+  UserId: 21, Username: commwow, Email: commwow@gmail.com, Role: Agent
+  UserId: 22, Username: thnaks, Email: thank@gmail.com, Role: Agent
+  UserId: 23, Username: Virrr, Email: virrr@gmail.com, Role: Agent
+  UserId: 42, Username: tester, Email: Mahi@gmail.com, Role: Agent
+
+=== Calendar Debug ===
+URL AgentId: 1
+Mapped UserId: 1
+Querying: Year=2026, Month=2
+Found 0 records
+All records for AgentId 1: 0
+AgentId from URL: 1, Mapped UserId: 1, Year: 2026, Month: 2, Records found: 0
+
+=== Attendance Lookup ===
+UserId: 9
+
+=== ALL AgentAttendance Records ===
+  AttendanceId: 14, AgentId: 2, Date: 2025-11-27, Status: Present
+  AttendanceId: 15, AgentId: 2, Date: 2025-11-26, Status: Present
+  AttendanceId: 16, AgentId: 2, Date: 2025-11-25, Status: Present
+  AttendanceId: 17, AgentId: 2, Date: 2025-11-29, Status: Present
+  AttendanceId: 18, AgentId: 2, Date: 2025-11-30, Status: Present
+  AttendanceId: 19, AgentId: 9, Date: 2025-11-27, Status: Present
+  AttendanceId: 20, AgentId: 9, Date: 2025-11-28, Status: Present
+  AttendanceId: 21, AgentId: 9, Date: 2025-11-29, Status: Present
+  AttendanceId: 22, AgentId: 9, Date: 2025-11-26, Status: Present
+  AttendanceId: 23, AgentId: 9, Date: 2025-11-25, Status: Present
+  AttendanceId: 24, AgentId: 9, Date: 2025-11-30, Status: Present
+  AttendanceId: 25, AgentId: 11, Date: 2025-12-01, Status: Present
+  AttendanceId: 26, AgentId: 19, Date: 2025-12-01, Status: Present
+  AttendanceId: 27, AgentId: 2, Date: 2025-12-01, Status: Present
+  AttendanceId: 28, AgentId: 2, Date: 2025-12-06, Status: Present
+  AttendanceId: 29, AgentId: 25, Date: 2025-12-09, Status: Present
+  AttendanceId: 30, AgentId: 27, Date: 2025-12-10, Status: Present
+  AttendanceId: 31, AgentId: 2, Date: 2025-12-10, Status: Present
+  AttendanceId: 32, AgentId: 2, Date: 2025-12-09, Status: Present
+  AttendanceId: 33, AgentId: 29, Date: 2025-12-11, Status: Present
+
+=== ALL Users ===
+  UserId: 2, Username: MahiSales, Email: Mahi@gmail.com, Role: Agent
+  UserId: 3, Username: Sales, Email: Mahi@gmail.com, Role: Agent
+  UserId: 4, Username: Sales Head, Email: saleshead@gmail.com, Role: Agent
+  UserId: 6, Username: Mahi@gmail.com, Email: Mahi@gmail.com, Role: Agent
+  UserId: 7, Username: ForApprove test, Email: ForApprove@gmailcom, Role: Agent
+  UserId: 9, Username: Fixed salary Agent , Email: TestingAgent@gmail.com, Role: Agent
+  UserId: 10, Username: FixedWITHcommison, Email: FixedWITHcommison@gmail.com, Role: Agent
+  UserId: 11, Username: Commisonwithfixed, Email: FixedWITHcommison@gmail.com, Role: Agent
+  UserId: 14, Username: Commonly, Email: Commonly@gmail.com, Role: Agent
+  UserId: 15, Username: comonman, Email: com@gmail.com, Role: Agent
+  UserId: 16, Username: 2ndhybrid, Email: 2ndhybrid@gmail.com, Role: Agent
+  UserId: 17, Username: 3rdcommison, Email: 3rdcommison@gmail.com, Role: Agent
+  UserId: 18, Username: 1stfixed, Email: 1stfixed@gmail.com, Role: Agent
+  UserId: 19, Username: wowfixed, Email: wowfixed@gmail.com, Role: Agent
+  UserId: 20, Username: wowcomition, Email: wowcomition@gmail.com, Role: Agent
+  UserId: 21, Username: commwow, Email: commwow@gmail.com, Role: Agent
+  UserId: 22, Username: thnaks, Email: thank@gmail.com, Role: Agent
+  UserId: 23, Username: Virrr, Email: virrr@gmail.com, Role: Agent
+  UserId: 42, Username: tester, Email: Mahi@gmail.com, Role: Agent
+
+=== Calendar Debug ===
+URL AgentId: 9
+Mapped UserId: 9
+Querying: Year=2025, Month=11
+Found 6 records
+All records for AgentId 9: 6
+  Record: Date=2025-11-27, Status=Present
+  Record: Date=2025-11-28, Status=Present
+  Record: Date=2025-11-29, Status=Present
+  Record: Date=2025-11-26, Status=Present
+  Record: Date=2025-11-25, Status=Present
+  Record: Date=2025-11-30, Status=Present
+AgentId from URL: 9, Mapped UserId: 9, Year: 2025, Month: 11, Records found: 6
+  Date: 2025-11-27, Status: Present
+  Date: 2025-11-28, Status: Present
+  Date: 2025-11-29, Status: Present
+  Date: 2025-11-26, Status: Present
+  Date: 2025-11-25, Status: Present
+  Date: 2025-11-30, Status: Present
+
+=== Attendance Lookup ===
+UserId: 9
+
+=== ALL AgentAttendance Records ===
+  AttendanceId: 14, AgentId: 2, Date: 2025-11-27, Status: Present
+  AttendanceId: 15, AgentId: 2, Date: 2025-11-26, Status: Present
+  AttendanceId: 16, AgentId: 2, Date: 2025-11-25, Status: Present
+  AttendanceId: 17, AgentId: 2, Date: 2025-11-29, Status: Present
+  AttendanceId: 18, AgentId: 2, Date: 2025-11-30, Status: Present
+  AttendanceId: 19, AgentId: 9, Date: 2025-11-27, Status: Present
+  AttendanceId: 20, AgentId: 9, Date: 2025-11-28, Status: Present
+  AttendanceId: 21, AgentId: 9, Date: 2025-11-29, Status: Present
+  AttendanceId: 22, AgentId: 9, Date: 2025-11-26, Status: Present
+  AttendanceId: 23, AgentId: 9, Date: 2025-11-25, Status: Present
+  AttendanceId: 24, AgentId: 9, Date: 2025-11-30, Status: Present
+  AttendanceId: 25, AgentId: 11, Date: 2025-12-01, Status: Present
+  AttendanceId: 26, AgentId: 19, Date: 2025-12-01, Status: Present
+  AttendanceId: 27, AgentId: 2, Date: 2025-12-01, Status: Present
+  AttendanceId: 28, AgentId: 2, Date: 2025-12-06, Status: Present
+  AttendanceId: 29, AgentId: 25, Date: 2025-12-09, Status: Present
+  AttendanceId: 30, AgentId: 27, Date: 2025-12-10, Status: Present
+  AttendanceId: 31, AgentId: 2, Date: 2025-12-10, Status: Present
+  AttendanceId: 32, AgentId: 2, Date: 2025-12-09, Status: Present
+  AttendanceId: 33, AgentId: 29, Date: 2025-12-11, Status: Present
+
+=== ALL Users ===
+  UserId: 2, Username: MahiSales, Email: Mahi@gmail.com, Role: Agent
+  UserId: 3, Username: Sales, Email: Mahi@gmail.com, Role: Agent
+  UserId: 4, Username: Sales Head, Email: saleshead@gmail.com, Role: Agent
+  UserId: 6, Username: Mahi@gmail.com, Email: Mahi@gmail.com, Role: Agent
+  UserId: 7, Username: ForApprove test, Email: ForApprove@gmailcom, Role: Agent
+  UserId: 9, Username: Fixed salary Agent , Email: TestingAgent@gmail.com, Role: Agent
+  UserId: 10, Username: FixedWITHcommison, Email: FixedWITHcommison@gmail.com, Role: Agent
+  UserId: 11, Username: Commisonwithfixed, Email: FixedWITHcommison@gmail.com, Role: Agent
+  UserId: 14, Username: Commonly, Email: Commonly@gmail.com, Role: Agent
+  UserId: 15, Username: comonman, Email: com@gmail.com, Role: Agent
+  UserId: 16, Username: 2ndhybrid, Email: 2ndhybrid@gmail.com, Role: Agent
+  UserId: 17, Username: 3rdcommison, Email: 3rdcommison@gmail.com, Role: Agent
+  UserId: 18, Username: 1stfixed, Email: 1stfixed@gmail.com, Role: Agent
+  UserId: 19, Username: wowfixed, Email: wowfixed@gmail.com, Role: Agent
+  UserId: 20, Username: wowcomition, Email: wowcomition@gmail.com, Role: Agent
+  UserId: 21, Username: commwow, Email: commwow@gmail.com, Role: Agent
+  UserId: 22, Username: thnaks, Email: thank@gmail.com, Role: Agent
+  UserId: 23, Username: Virrr, Email: virrr@gmail.com, Role: Agent
+  UserId: 42, Username: tester, Email: Mahi@gmail.com, Role: Agent
+
+=== Calendar Debug ===
+URL AgentId: 9
+Mapped UserId: 9
+Querying: Year=2025, Month=11
+Found 6 records
+All records for AgentId 9: 6
+  Record: Date=2025-11-27, Status=Present
+  Record: Date=2025-11-28, Status=Present
+  Record: Date=2025-11-29, Status=Present
+  Record: Date=2025-11-26, Status=Present
+  Record: Date=2025-11-25, Status=Present
+  Record: Date=2025-11-30, Status=Present
+AgentId from URL: 9, Mapped UserId: 9, Year: 2025, Month: 11, Records found: 6
+  Date: 2025-11-27, Status: Present
+  Date: 2025-11-28, Status: Present
+  Date: 2025-11-29, Status: Present
+  Date: 2025-11-26, Status: Present
+  Date: 2025-11-25, Status: Present
+  Date: 2025-11-30, Status: Present
+
+=== Attendance Lookup ===
+UserId: 1
+
+=== ALL AgentAttendance Records ===
+  AttendanceId: 14, AgentId: 2, Date: 2025-11-27, Status: Present
+  AttendanceId: 15, AgentId: 2, Date: 2025-11-26, Status: Present
+  AttendanceId: 16, AgentId: 2, Date: 2025-11-25, Status: Present
+  AttendanceId: 17, AgentId: 2, Date: 2025-11-29, Status: Present
+  AttendanceId: 18, AgentId: 2, Date: 2025-11-30, Status: Present
+  AttendanceId: 19, AgentId: 9, Date: 2025-11-27, Status: Present
+  AttendanceId: 20, AgentId: 9, Date: 2025-11-28, Status: Present
+  AttendanceId: 21, AgentId: 9, Date: 2025-11-29, Status: Present
+  AttendanceId: 22, AgentId: 9, Date: 2025-11-26, Status: Present
+  AttendanceId: 23, AgentId: 9, Date: 2025-11-25, Status: Present
+  AttendanceId: 24, AgentId: 9, Date: 2025-11-30, Status: Present
+  AttendanceId: 25, AgentId: 11, Date: 2025-12-01, Status: Present
+  AttendanceId: 26, AgentId: 19, Date: 2025-12-01, Status: Present
+  AttendanceId: 27, AgentId: 2, Date: 2025-12-01, Status: Present
+  AttendanceId: 28, AgentId: 2, Date: 2025-12-06, Status: Present
+  AttendanceId: 29, AgentId: 25, Date: 2025-12-09, Status: Present
+  AttendanceId: 30, AgentId: 27, Date: 2025-12-10, Status: Present
+  AttendanceId: 31, AgentId: 2, Date: 2025-12-10, Status: Present
+  AttendanceId: 32, AgentId: 2, Date: 2025-12-09, Status: Present
+  AttendanceId: 33, AgentId: 29, Date: 2025-12-11, Status: Present
+
+=== ALL Users ===
+  UserId: 2, Username: MahiSales, Email: Mahi@gmail.com, Role: Agent
+  UserId: 3, Username: Sales, Email: Mahi@gmail.com, Role: Agent
+  UserId: 4, Username: Sales Head, Email: saleshead@gmail.com, Role: Agent
+  UserId: 6, Username: Mahi@gmail.com, Email: Mahi@gmail.com, Role: Agent
+  UserId: 7, Username: ForApprove test, Email: ForApprove@gmailcom, Role: Agent
+  UserId: 9, Username: Fixed salary Agent , Email: TestingAgent@gmail.com, Role: Agent
+  UserId: 10, Username: FixedWITHcommison, Email: FixedWITHcommison@gmail.com, Role: Agent
+  UserId: 11, Username: Commisonwithfixed, Email: FixedWITHcommison@gmail.com, Role: Agent
+  UserId: 14, Username: Commonly, Email: Commonly@gmail.com, Role: Agent
+  UserId: 15, Username: comonman, Email: com@gmail.com, Role: Agent
+  UserId: 16, Username: 2ndhybrid, Email: 2ndhybrid@gmail.com, Role: Agent
+  UserId: 17, Username: 3rdcommison, Email: 3rdcommison@gmail.com, Role: Agent
+  UserId: 18, Username: 1stfixed, Email: 1stfixed@gmail.com, Role: Agent
+  UserId: 19, Username: wowfixed, Email: wowfixed@gmail.com, Role: Agent
+  UserId: 20, Username: wowcomition, Email: wowcomition@gmail.com, Role: Agent
+  UserId: 21, Username: commwow, Email: commwow@gmail.com, Role: Agent
+  UserId: 22, Username: thnaks, Email: thank@gmail.com, Role: Agent
+  UserId: 23, Username: Virrr, Email: virrr@gmail.com, Role: Agent
+  UserId: 42, Username: tester, Email: Mahi@gmail.com, Role: Agent
+
+=== Calendar Debug ===
+URL AgentId: 1
+Mapped UserId: 1
+Querying: Year=2026, Month=2
+Found 0 records
+All records for AgentId 1: 0
+AgentId from URL: 1, Mapped UserId: 1, Year: 2026, Month: 2, Records found: 0
+
+=== Attendance Lookup ===
+UserId: 7
+
+=== ALL AgentAttendance Records ===
+  AttendanceId: 14, AgentId: 2, Date: 2025-11-27, Status: Present
+  AttendanceId: 15, AgentId: 2, Date: 2025-11-26, Status: Present
+  AttendanceId: 16, AgentId: 2, Date: 2025-11-25, Status: Present
+  AttendanceId: 17, AgentId: 2, Date: 2025-11-29, Status: Present
+  AttendanceId: 18, AgentId: 2, Date: 2025-11-30, Status: Present
+  AttendanceId: 19, AgentId: 9, Date: 2025-11-27, Status: Present
+  AttendanceId: 20, AgentId: 9, Date: 2025-11-28, Status: Present
+  AttendanceId: 21, AgentId: 9, Date: 2025-11-29, Status: Present
+  AttendanceId: 22, AgentId: 9, Date: 2025-11-26, Status: Present
+  AttendanceId: 23, AgentId: 9, Date: 2025-11-25, Status: Present
+  AttendanceId: 24, AgentId: 9, Date: 2025-11-30, Status: Present
+  AttendanceId: 25, AgentId: 11, Date: 2025-12-01, Status: Present
+  AttendanceId: 26, AgentId: 19, Date: 2025-12-01, Status: Present
+  AttendanceId: 27, AgentId: 2, Date: 2025-12-01, Status: Present
+  AttendanceId: 28, AgentId: 2, Date: 2025-12-06, Status: Present
+  AttendanceId: 29, AgentId: 25, Date: 2025-12-09, Status: Present
+  AttendanceId: 30, AgentId: 27, Date: 2025-12-10, Status: Present
+  AttendanceId: 31, AgentId: 2, Date: 2025-12-10, Status: Present
+  AttendanceId: 32, AgentId: 2, Date: 2025-12-09, Status: Present
+  AttendanceId: 33, AgentId: 29, Date: 2025-12-11, Status: Present
+
+=== ALL Users ===
+  UserId: 2, Username: MahiSales, Email: Mahi@gmail.com, Role: Agent
+  UserId: 3, Username: Sales, Email: Mahi@gmail.com, Role: Agent
+  UserId: 4, Username: Sales Head, Email: saleshead@gmail.com, Role: Agent
+  UserId: 6, Username: Mahi@gmail.com, Email: Mahi@gmail.com, Role: Agent
+  UserId: 7, Username: ForApprove test, Email: ForApprove@gmailcom, Role: Agent
+  UserId: 9, Username: Fixed salary Agent , Email: TestingAgent@gmail.com, Role: Agent
+  UserId: 10, Username: FixedWITHcommison, Email: FixedWITHcommison@gmail.com, Role: Agent
+  UserId: 11, Username: Commisonwithfixed, Email: FixedWITHcommison@gmail.com, Role: Agent
+  UserId: 14, Username: Commonly, Email: Commonly@gmail.com, Role: Agent
+  UserId: 15, Username: comonman, Email: com@gmail.com, Role: Agent
+  UserId: 16, Username: 2ndhybrid, Email: 2ndhybrid@gmail.com, Role: Agent
+  UserId: 17, Username: 3rdcommison, Email: 3rdcommison@gmail.com, Role: Agent
+  UserId: 18, Username: 1stfixed, Email: 1stfixed@gmail.com, Role: Agent
+  UserId: 19, Username: wowfixed, Email: wowfixed@gmail.com, Role: Agent
+  UserId: 20, Username: wowcomition, Email: wowcomition@gmail.com, Role: Agent
+  UserId: 21, Username: commwow, Email: commwow@gmail.com, Role: Agent
+  UserId: 22, Username: thnaks, Email: thank@gmail.com, Role: Agent
+  UserId: 23, Username: Virrr, Email: virrr@gmail.com, Role: Agent
+  UserId: 42, Username: tester, Email: Mahi@gmail.com, Role: Agent
+
+=== Calendar Debug ===
+URL AgentId: 7
+Mapped UserId: 7
+Querying: Year=2026, Month=2
+Found 0 records
+All records for AgentId 7: 0
+AgentId from URL: 7, Mapped UserId: 7, Year: 2026, Month: 2, Records found: 0

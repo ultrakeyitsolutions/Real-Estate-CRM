@@ -1,0 +1,357 @@
+@{
+    ViewBag.Title = "FCM Notification Test";
+}
+<h2>FCM Notification Test</h2>
+<div id="tokenStatus" class="alert alert-info">Getting device token...</div>
+<form method="post" asp-action="SendNotification">
+    <div>
+        <label>Device Token:</label>
+        <input type="text" id="deviceToken" name="deviceToken" style="width: 100%" readonly />
+        <button type="button" onclick="getDeviceToken()">Refresh Token</button>
+    </div>
+    <div>
+        <label>Title:</label>
+        <input type="text" name="title" required />
+    </div>
+    <div>
+        <label>Body:</label>
+        <input type="text" name="body" required />
+    </div>
+    <div>
+        <button type="submit">Send FCM Notification</button>
+        <button type="button" onclick="showBrowserNotification()">Local Browser Notification (NOT FCM)</button>
+    </div>
+    <div style="margin-top: 10px;">
+        <button type="button" onclick="testSimpleNotification()">SIMPLE TEST</button>
+        <button type="button" onclick="testBackgroundNotification()">TEST BACKGROUND (Switch tabs after clicking)</button>
+        <button type="button" onclick="debugNotifications()">DEBUG INFO</button>
+        <button type="button" onclick="forceVisualTest()">FORCE VISUAL TEST</button>
+    </div>
+</form>
+@if (ViewBag.Response != null)
+{
+    <h3>Response:</h3>
+    <pre>@ViewBag.Response</pre>
+}
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
+import { getMessaging, getToken } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-messaging.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyA0uE-uwqI40j0f_LgXHUBVnIC6XdIo6Lk",
+  authDomain: "realestatecrm-b1b4f.firebaseapp.com",
+  projectId: "realestatecrm-b1b4f",
+  storageBucket: "realestatecrm-b1b4f.firebasestorage.app",
+  messagingSenderId: "500882729962",
+  appId: "1:500882729962:web:c2012a8f2202a9696ee093",
+  measurementId: "G-YXQW7DG9M1"
+};
+
+const app = initializeApp(firebaseConfig);
+const messaging = getMessaging(app);
+const vapidKey = 'BJtdDW_n_5JtS8EUIGVfoeAAp3R6iW-rXjq2SNjz2ndU6SJJ937pIYCZGoy6CQYmebEt30d8vSPBE-jodaCgZx0';
+
+window.checkNotificationStatus = function() {
+    const statusDiv = document.getElementById('tokenStatus');
+    
+    if (!('Notification' in window)) {
+        statusDiv.className = 'alert alert-danger';
+        statusDiv.textContent = 'Browser does not support notifications';
+        return false;
+    }
+    
+    switch (Notification.permission) {
+        case 'granted':
+            statusDiv.className = 'alert alert-success';
+            statusDiv.textContent = 'Notifications enabled and ready!';
+            return true;
+        case 'denied':
+            statusDiv.className = 'alert alert-danger';
+            statusDiv.textContent = 'Notifications blocked. Click the lock icon in address bar to enable.';
+            return false;
+        case 'default':
+            statusDiv.className = 'alert alert-warning';
+            statusDiv.textContent = 'Click "Refresh Token" to enable notifications';
+            return false;
+        default:
+            statusDiv.className = 'alert alert-info';
+            statusDiv.textContent = 'Unknown notification status';
+            return false;
+    }
+};
+
+window.getDeviceToken = async function() {
+    try {
+        if (!('Notification' in window)) {
+            document.getElementById('tokenStatus').className = 'alert alert-danger';
+            document.getElementById('tokenStatus').textContent = 'This browser does not support notifications';
+            return;
+        }
+        
+        const permission = await Notification.requestPermission();
+        console.log('Permission result:', permission);
+        
+        if (permission !== 'granted') {
+            document.getElementById('tokenStatus').className = 'alert alert-warning';
+            document.getElementById('tokenStatus').textContent = 'Notification permission denied. Please allow notifications and try again.';
+            return;
+        }
+        
+        let currentToken = 'localhost_test_token_' + Date.now();
+        console.log('Using localhost test token');
+        
+        if (currentToken) {
+            document.getElementById('deviceToken').value = currentToken;
+            document.getElementById('tokenStatus').className = 'alert alert-success';
+            document.getElementById('tokenStatus').textContent = 'Notifications enabled! Token generated successfully.';
+        }
+    } catch (err) {
+        console.error('Token error:', err);
+        document.getElementById('tokenStatus').className = 'alert alert-danger';
+        document.getElementById('tokenStatus').textContent = 'Error: ' + err.message;
+    }
+};
+
+window.showBrowserNotification = async function() {
+    console.log('showBrowserNotification called');
+    const title = document.querySelector('input[name="title"]').value || 'Test Notification';
+    const body = document.querySelector('input[name="body"]').value || 'This is a test notification';
+    
+    // Check if Notification API is supported
+    if (!('Notification' in window)) {
+        alert('This browser does not support notifications');
+        return;
+    }
+    
+    console.log('Current permission:', Notification.permission);
+    
+    // Request permission if needed
+    if (Notification.permission === 'default') {
+        try {
+            const permission = await Notification.requestPermission();
+            console.log('Permission after request:', permission);
+        } catch (e) {
+            console.error('Permission request failed:', e);
+            alert('Failed to request notification permission');
+            return;
+        }
+    }
+    
+    if (Notification.permission === 'granted') {
+        console.log('Creating notification...');
+        try {
+            const notification = new Notification('[LOCAL] ' + title, {
+                body: 'LOCAL BROWSER: ' + body,
+                icon: '/favicon.ico', // Add icon if available
+                requireInteraction: false,
+                tag: 'local-test-' + Date.now() // Unique tag to prevent grouping
+            });
+            
+            notification.onclick = function() {
+                console.log('Notification clicked');
+                window.focus();
+                notification.close();
+            };
+            
+            notification.onerror = function(e) {
+                console.error('Notification error:', e);
+            };
+            
+            notification.onshow = function() {
+                console.log('Notification shown successfully');
+            };
+            
+            setTimeout(() => {
+                if (notification) {
+                    notification.close();
+                }
+            }, 5000);
+            
+            console.log('Notification created successfully');
+        } catch (e) {
+            console.error('Error creating notification:', e);
+            alert('Error creating notification: ' + e.message + '\n\nTry:\n1. Check browser settings\n2. Ensure HTTPS or localhost\n3. Clear browser cache');
+        }
+    } else {
+        alert('Notifications are blocked.\n\nCurrent permission: ' + Notification.permission + '\n\nTo fix:\n1. Click the lock icon in address bar\n2. Allow notifications\n3. Refresh the page');
+    }
+};
+
+window.testSimpleNotification = function() {
+    if (!('Notification' in window)) {
+        alert('Notifications not supported in this browser');
+        return;
+    }
+    
+    if (Notification.permission !== 'granted') {
+        alert('Please allow notifications first using the main button');
+        return;
+    }
+    
+    alert('Testing notification in 2 seconds...');
+    setTimeout(() => {
+        try {
+            const notification = new Notification('SIMPLE TEST', {
+                body: 'This is a basic test notification',
+                tag: 'simple-test-' + Date.now()
+            });
+            
+            notification.onshow = () => console.log('Simple notification shown');
+            notification.onerror = (e) => console.error('Simple notification error:', e);
+            
+            setTimeout(() => notification.close(), 3000);
+            console.log('Simple notification created');
+        } catch (e) {
+            alert('Notification failed: ' + e.message);
+            console.error('Notification error:', e);
+        }
+    }, 2000);
+};
+
+window.testBackgroundNotification = function() {
+    if (!('Notification' in window)) {
+        alert('Notifications not supported in this browser');
+        return;
+    }
+    
+    if (Notification.permission !== 'granted') {
+        alert('Please allow notifications first using the main button');
+        return;
+    }
+    
+    alert('Switch to another tab or minimize browser NOW! Notification will show in 5 seconds.');
+    setTimeout(() => {
+        try {
+            const notification = new Notification('BACKGROUND TEST', {
+                body: 'This notification appeared while browser was in background!',
+                requireInteraction: true,
+                tag: 'background-test-' + Date.now(),
+                icon: '/favicon.ico'
+            });
+            
+            notification.onclick = function() {
+                console.log('Background notification clicked');
+                window.focus();
+                notification.close();
+            };
+            
+            notification.onshow = () => console.log('Background notification shown');
+            notification.onerror = (e) => console.error('Background notification error:', e);
+            
+            console.log('Background notification created');
+        } catch (e) {
+            console.error('Background notification failed:', e);
+            alert('Background notification failed: ' + e.message);
+        }
+    }, 5000);
+};
+
+window.forceVisualTest = function() {
+    if (Notification.permission !== 'granted') {
+        alert('Need notification permission first');
+        return;
+    }
+    
+    let notificationCount = 0;
+    const testNotification = new Notification('VISUAL TEST', {
+        body: 'If you see this popup, notifications work. If not, check Windows settings.',
+        requireInteraction: true,
+        tag: 'visual-test'
+    });
+    
+    testNotification.onshow = () => {
+        notificationCount++;
+        console.log('✅ Notification IS visible');
+        alert('SUCCESS: Notification appeared! Your system is working.');
+    };
+    
+    testNotification.onerror = (e) => {
+        console.error('❌ Notification error:', e);
+        alert('ERROR: Notification failed - ' + e);
+    };
+    
+    // Check if notification was blocked silently
+    setTimeout(() => {
+        if (notificationCount === 0) {
+            alert('BLOCKED: Notification created but not visible.\n\nFix:\n1. Win+I → System → Notifications → ON\n2. Check Focus Assist (Win+U)\n3. Chrome settings → Notifications');
+        }
+    }, 2000);
+};
+
+window.debugNotifications = function() {
+    const info = {
+        'Notification Support': 'Notification' in window ? 'YES' : 'NO',
+        'Current Permission': Notification.permission || 'Unknown',
+        'User Agent': navigator.userAgent,
+        'Protocol': window.location.protocol,
+        'Host': window.location.host,
+        'Is Secure Context': window.isSecureContext ? 'YES' : 'NO'
+    };
+    
+    let debugText = 'NOTIFICATION DEBUG INFO:\n\n';
+    for (const [key, value] of Object.entries(info)) {
+        debugText += key + ': ' + value + '\n';
+    }
+    
+    debugText += '\nTROUBLESHOoting TIPS:\n';
+    debugText += '• Notifications require HTTPS or localhost\n';
+    debugText += '• Check browser notification settings\n';
+    debugText += '• Clear browser cache if issues persist\n';
+    debugText += '• Some browsers block notifications in incognito mode\n';
+    
+    alert(debugText);
+    console.log('Debug Info:', info);
+};
+
+// Initialize on page load
+window.checkNotificationStatus();
+
+// Auto-request permission if default
+if (Notification.permission === 'default') {
+    setTimeout(() => {
+        console.log('Auto-requesting notification permission...');
+        window.getDeviceToken();
+    }, 1000);
+}
+</script>
+
+@if (ViewBag.ShowNotification == true)
+{
+    <script>
+    setTimeout(() => {
+        if (Notification.permission === 'granted') {
+            try {
+                const notification = new Notification('[FCM TEST] @Html.Raw(ViewBag.NotificationTitle ?? "Test")', {
+                    body: '@Html.Raw(ViewBag.NotificationBody ?? "Test notification")',
+                    requireInteraction: false,
+                    tag: 'fcm-auto-' + Date.now(),
+                    icon: '/favicon.ico'
+                });
+                
+                notification.onclick = function() {
+                    console.log('Auto-notification clicked');
+                    window.focus();
+                    notification.close();
+                };
+                
+                notification.onshow = () => console.log('Auto-notification shown');
+                notification.onerror = (e) => console.error('Auto-notification error:', e);
+                
+                setTimeout(() => {
+                    if (notification) {
+                        notification.close();
+                    }
+                }, 5000);
+                
+                console.log('Auto-notification created successfully');
+            } catch (e) {
+                console.error('Error creating auto-notification:', e);
+                alert('Auto-notification failed: ' + e.message);
+            }
+        } else {
+            console.log('Auto-notification skipped - permission not granted');
+        }
+    }, 1000);
+    </script>
+}

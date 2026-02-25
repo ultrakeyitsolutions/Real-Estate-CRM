@@ -1,0 +1,41 @@
+Facebook Service Started at 2025-12-30 14:48:31
+2025-12-30 14:48:31 - Facebook service triggered
+2025-12-30 14:48:31 - Calling API: https://localhost:44383/api/facebook/fetch-leads
+2025-12-30 14:48:35 - Status: OK
+2025-12-30 14:48:35 - Response: {"success":true,"adId":"120238582989390653","formId":"828021610076758","totalLeads":20,"newLeads":0,"duplicates":20,"message":"0 new leads processed, 20 duplicates skipped","leads":[]}
+2025-12-30 14:48:35 - Sleeping until 2025-12-30 14:50:35
+2025-12-30 14:50:35 - Facebook service triggered
+2025-12-30 14:50:35 - Calling API: https://localhost:44383/api/facebook/fetch-leads
+2025-12-30 14:50:37 - Status: OK
+2025-12-30 14:50:37 - Response: {"success":true,"adId":"120238582989390653","formId":"828021610076758","totalLeads":20,"newLeads":0,"duplicates":20,"message":"0 new leads processed, 20 duplicates skipped","leads":[]}
+2025-12-30 14:50:37 - Sleeping until 2025-12-30 14:52:37
+2025-12-30 14:52:37 - Facebook service triggered
+2025-12-30 14:52:37 - Calling API: https://localhost:44383/api/facebook/fetch-leads
+2025-12-30 14:52:38 - Status: OK
+2025-12-30 14:52:38 - Response: {"success":true,"adId":"120238582989390653","formId":"828021610076758","totalLeads":20,"newLeads":0,"duplicates":20,"message":"0 new leads processed, 20 duplicates skipped","leads":[]}
+2025-12-30 14:52:38 - Sleeping until 2025-12-30 14:54:38
+2025-12-30 14:54:38 - Facebook service triggered
+2025-12-30 14:54:38 - Calling API: https://localhost:44383/api/facebook/fetch-leads
+2025-12-30 14:54:40 - Status: OK
+2025-12-30 14:54:40 - Response: {"success":true,"adId":"120238582989390653","formId":"828021610076758","totalLeads":20,"newLeads":0,"duplicates":20,"message":"0 new leads processed, 20 duplicates skipped","leads":[]}
+2025-12-30 14:54:40 - Sleeping until 2025-12-30 14:56:40
+2025-12-30 14:56:40 - Facebook service triggered
+2025-12-30 14:56:40 - Calling API: https://localhost:44383/api/facebook/fetch-leads
+2025-12-30 14:56:42 - Status: OK
+2025-12-30 14:56:42 - Response: {"success":true,"adId":"120238582989390653","formId":"828021610076758","totalLeads":20,"newLeads":0,"duplicates":20,"message":"0 new leads processed, 20 duplicates skipped","leads":[]}
+2025-12-30 14:56:42 - Sleeping until 2025-12-30 14:58:42
+2025-12-30 14:58:42 - Facebook service triggered
+2025-12-30 14:58:42 - Calling API: https://localhost:44383/api/facebook/fetch-leads
+2025-12-30 14:58:44 - Status: OK
+2025-12-30 14:58:44 - Response: {"success":true,"adId":"120238582989390653","formId":"828021610076758","totalLeads":20,"newLeads":0,"duplicates":20,"message":"0 new leads processed, 20 duplicates skipped","leads":[]}
+2025-12-30 14:58:44 - Sleeping until 2025-12-30 15:00:44
+2025-12-30 15:00:44 - Facebook service triggered
+2025-12-30 15:00:44 - Calling API: https://localhost:44383/api/facebook/fetch-leads
+2025-12-30 15:00:46 - Status: OK
+2025-12-30 15:00:46 - Response: {"success":true,"adId":"120238582989390653","formId":"828021610076758","totalLeads":20,"newLeads":0,"duplicates":20,"message":"0 new leads processed, 20 duplicates skipped","leads":[]}
+2025-12-30 15:00:46 - Sleeping until 2025-12-30 15:02:46
+2025-12-30 15:02:46 - Facebook service triggered
+2025-12-30 15:02:46 - Calling API: https://localhost:44383/api/facebook/fetch-leads
+2025-12-30 15:02:48 - Status: OK
+2025-12-30 15:02:48 - Response: {"success":true,"adId":"120238582989390653","formId":"828021610076758","totalLeads":20,"newLeads":0,"duplicates":20,"message":"0 new leads processed, 20 duplicates skipped","leads":[]}
+2025-12-30 15:02:48 - Sleeping until 2025-12-30 15:04:48

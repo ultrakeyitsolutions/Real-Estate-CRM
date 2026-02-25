@@ -1,0 +1,1361 @@
+@model IEnumerable<CRM.Models.AgentModel>
+@{
+    ViewData["Title"] = "Agent Management";
+}
+
+<style>
+    .modern-header {
+        background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+        position: relative;
+        overflow: hidden;
+        border-radius: 16px;
+        margin-bottom: 2rem;
+        box-shadow: 0 8px 32px rgba(40, 167, 69, 0.15);
+    }
+
+    .modern-header::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="50" cy="50" r="1" fill="%23ffffff" opacity="0.1"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>') repeat;
+        opacity: 0.3;
+    }
+
+    .header-content {
+        position: relative;
+        z-index: 2;
+        padding: 2.5rem 2rem;
+        color: white;
+    }
+
+    .header-title {
+        font-size: 2.5rem;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .header-subtitle {
+        font-size: 1.1rem;
+        opacity: 0.9;
+        margin-bottom: 2rem;
+        font-weight: 400;
+    }
+
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1.5rem;
+        margin-top: 2rem;
+    }
+
+    .stats-card {
+        background: rgba(255, 255, 255, 0.15);
+        backdrop-filter: blur(20px);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        border-radius: 12px;
+        padding: 1.5rem;
+        text-align: center;
+        transition: all 0.3s ease;
+    }
+
+    .stats-card:hover {
+        background: rgba(255, 255, 255, 0.25);
+        transform: translateY(-2px);
+    }
+
+    .stats-number {
+        font-size: 2.2rem;
+        font-weight: 800;
+        margin-bottom: 0.5rem;
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .stats-label {
+        font-size: 0.9rem;
+        opacity: 0.9;
+        font-weight: 500;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .action-btn {
+        background: rgba(255, 255, 255, 0.2);
+        border: 2px solid rgba(255, 255, 255, 0.3);
+        color: white;
+        padding: 0.875rem 2rem;
+        border-radius: 50px;
+        font-weight: 600;
+        font-size: 1rem;
+        backdrop-filter: blur(10px);
+        transition: all 0.3s ease;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin: 0.25rem;
+    }
+
+    .action-btn:hover {
+        background: rgba(255, 255, 255, 0.3);
+        border-color: rgba(255, 255, 255, 0.5);
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+        color: white;
+    }
+
+    .filter-section {
+        background: white;
+        border-radius: 16px;
+        padding: 2rem;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        margin-bottom: 2rem;
+        border: 1px solid rgba(0, 0, 0, 0.05);
+    }
+
+    .filter-title {
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: #2d3748;
+        margin-bottom: 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .agent-card {
+        background: white;
+        border-radius: 16px;
+        padding: 1.5rem;
+        margin-bottom: 1rem;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        border: 1px solid rgba(0, 0, 0, 0.05);
+        transition: all 0.3s ease;
+    }
+
+    .agent-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+        border-color: rgba(40, 167, 69, 0.2);
+    }
+
+    .agent-name {
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: #28a745;
+        margin-bottom: 0.5rem;
+        display: block;
+        transition: all 0.2s ease;
+    }
+
+    .agent-name:hover {
+        color: #20c997;
+        text-decoration: underline !important;
+    }
+
+    .agent-info {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin-bottom: 0.5rem;
+        color: #6b7280;
+        font-size: 0.9rem;
+    }
+
+    .status-badge {
+        padding: 0.5rem 1rem;
+        border-radius: 25px;
+        font-weight: 600;
+        font-size: 0.875rem;
+        border: 2px solid transparent;
+        transition: all 0.2s ease;
+    }
+
+    .status-pending { background-color: #fef3c7; color: #92400e; border-color: #f59e0b; }
+    .status-approved { background-color: #d1fae5; color: #065f46; border-color: #10b981; }
+    .status-rejected { background-color: #fee2e2; color: #991b1b; border-color: #ef4444; }
+
+    .type-badge {
+        padding: 0.35rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        background-color: #ddd6fe;
+        color: #5b21b6;
+        border: 1px solid #c4b5fd;
+    }
+
+    .action-buttons {
+        display: flex;
+        gap: 0.5rem;
+        justify-content: flex-end;
+    }
+
+    .btn-action {
+        padding: 0.5rem 1rem;
+        border-radius: 8px;
+        font-size: 0.875rem;
+        font-weight: 500;
+        border: none;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.25rem;
+    }
+
+    .btn-approve {
+        background-color: #10b981;
+        color: white;
+    }
+
+    .btn-approve:hover {
+        background-color: #059669;
+        transform: translateY(-1px);
+    }
+
+    .btn-reject {
+        background-color: #ef4444;
+        color: white;
+    }
+
+    .btn-reject:hover {
+        background-color: #dc2626;
+        transform: translateY(-1px);
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 4rem 2rem;
+        background: white;
+        border-radius: 16px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        border: 1px solid rgba(0, 0, 0, 0.05);
+    }
+
+    .empty-state i {
+        font-size: 5rem;
+        color: #e5e7eb;
+        margin-bottom: 1.5rem;
+    }
+
+    .pagination-wrapper {
+        background: white;
+        border-radius: 16px;
+        padding: 1.5rem;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        border: 1px solid rgba(0, 0, 0, 0.05);
+        margin-top: 2rem;
+    }
+
+    @@media (max-width: 768px) {
+        .header-content {
+            padding: 2rem 1.5rem;
+        }
+        
+        .header-title {
+            font-size: 2rem;
+        }
+        
+        .stats-grid {
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+        }
+        
+        .stats-number {
+            font-size: 1.8rem;
+        }
+        
+        .filter-section {
+            padding: 1.5rem;
+        }
+
+        .agent-card {
+            padding: 1rem;
+        }
+
+        .action-buttons {
+            justify-content: center;
+            margin-top: 1rem;
+        }
+    }
+    
+    @@media (max-width: 576px) {
+        .stats-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .action-btn {
+            width: 100%;
+            justify-content: center;
+            margin: 0.25rem 0;
+        }
+    }
+
+    .dark-mode .filter-section {
+        background: #222639 !important;
+        border-color: #2c3049 !important;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3) !important;
+    }
+    
+    .dark-mode .filter-title {
+        color: #e4e6eb !important;
+    }
+    
+    .dark-mode .agent-card {
+        background: #222639 !important;
+        border-color: #2c3049 !important;
+        color: #e4e6eb !important;
+    }
+    
+    .dark-mode .agent-name {
+        color: #34d399 !important;
+    }
+    
+    .dark-mode .agent-info {
+        color: #a6adc8 !important;
+    }
+    
+    .dark-mode .empty-state {
+        background: #222639 !important;
+        border-color: #2c3049 !important;
+        color: #e4e6eb !important;
+    }
+    
+    .dark-mode .pagination-wrapper {
+        background: #222639 !important;
+        border-color: #2c3049 !important;
+    }
+
+    /* Document upload styles */
+    .document-item {
+        background: #f8f9fa;
+        border: 1px solid #dee2e6;
+        border-radius: 8px;
+        padding: 15px;
+        margin-bottom: 12px;
+    }
+
+    .document-item-row {
+        display: grid;
+        grid-template-columns: 2fr 2fr 1fr auto;
+        gap: 12px;
+        align-items: start;
+    }
+
+    .document-file-info {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+    }
+
+    .document-file-name {
+        font-weight: 600;
+        font-size: 0.9rem;
+        color: #2d3748;
+        word-break: break-all;
+    }
+
+    .document-file-size {
+        font-size: 0.875rem;
+        color: #6c757d;
+    }
+
+    .document-input-group {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+    }
+
+    .document-name-input,
+    .document-type-select {
+        width: 100%;
+        border: 1px solid #ced4da;
+        border-radius: 6px;
+        padding: 8px 12px;
+        font-size: 0.875rem;
+    }
+
+    .document-name-input:focus,
+    .document-type-select:focus {
+        border-color: #28a745;
+        outline: none;
+        box-shadow: 0 0 0 0.2rem rgba(40, 167, 69, 0.25);
+    }
+
+    .file-upload-btn {
+        background: #f8f9fa;
+        border: 2px dashed #ced4da;
+        border-radius: 6px;
+        padding: 8px 16px;
+        cursor: pointer;
+        transition: all 0.2s;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 0.875rem;
+        color: #495057;
+    }
+
+    .file-upload-btn:hover {
+        border-color: #28a745;
+        background: #e8f5e9;
+        color: #28a745;
+    }
+
+    .document-remove-btn {
+        background: #dc3545;
+        color: white;
+        border: none;
+        border-radius: 6px;
+        width: 36px;
+        height: 36px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .document-remove-btn:hover {
+        background: #c82333;
+        transform: scale(1.1);
+    }
+
+    .document-file-input {
+        display: none;
+    }
+
+    @@media (max-width: 768px) {
+        .document-item-row {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    .dark-mode .document-item {
+        background: #2c3049 !important;
+        border-color: #3a3f5c !important;
+    }
+
+    .dark-mode .document-file-name {
+        color: #e4e6eb !important;
+    }
+
+    .dark-mode .document-name-input,
+    .dark-mode .document-type-select {
+        background: #222639 !important;
+        color: #e4e6eb !important;
+        border-color: #3a3f5c !important;
+    }
+
+    .dark-mode .file-upload-btn {
+        background: #222639 !important;
+        border-color: #3a3f5c !important;
+        color: #e4e6eb !important;
+    }
+
+    .dark-mode .file-upload-btn:hover {
+        border-color: #34d399 !important;
+        background: #2c3049 !important;
+        color: #34d399 !important;
+    }
+</style>
+
+<div class="content">
+    <!-- Breadcrumb -->
+    <nav class="mb-3" aria-label="breadcrumb">
+        <ol class="breadcrumb mb-0">
+            <li class="breadcrumb-item"><a href="/Home/Index">Home</a></li>
+            <li class="breadcrumb-item active">Agents</li>
+        </ol>
+    </nav>
+
+    <!-- Modern Header with Stats -->
+    <div class="modern-header">
+        <div class="header-content">
+            <div class="row align-items-center mb-4">
+                <div class="col-lg-8">
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="me-3">
+                            <i class="fa-solid fa-user-tie" style="font-size: 2.5rem; opacity: 0.9;"></i>
+                        </div>
+                        <div>
+                            <h1 class="header-title mb-0">Agent Management</h1>
+                            <p class="header-subtitle mb-0">Manage and approve agent onboarding requests</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-4 text-lg-end">
+                    <button type="button" class="action-btn" data-bs-toggle="modal" data-bs-target="#onboardModal">
+                        <i class="fa-solid fa-plus"></i>
+                        <span>Agent Onboarding</span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="stats-grid">
+                <div class="stats-card">
+                    <div class="stats-number" id="totalAgents">@Model.Count()</div>
+                    <div class="stats-label">Total Agents</div>
+                </div>
+                <div class="stats-card">
+                    <div class="stats-number" id="pendingAgents">@Model.Count(a => a.Status == "Pending")</div>
+                    <div class="stats-label">Pending</div>
+                </div>
+                <div class="stats-card">
+                    <div class="stats-number" id="approvedAgents">@Model.Count(a => a.Status == "Approved")</div>
+                    <div class="stats-label">Approved</div>
+                </div>
+                <div class="stats-card">
+                    <div class="stats-number" id="rejectedAgents">@Model.Count(a => a.Status == "Rejected")</div>
+                    <div class="stats-label">Rejected</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filter Section -->
+    <div class="filter-section">
+        <div class="filter-title">
+            <i class="fa-solid fa-filter"></i>
+            <span>Filter & Search</span>
+        </div>
+        <div class="row g-3">
+            <div class="col-md-4">
+                <label for="searchBox" class="form-label fw-semibold">Search Agents</label>
+                <div class="input-group">
+                    @* <span class="input-group-text bg-light border-end-0">
+                        <i class="fa-solid fa-search text-muted"></i>
+                    </span> *@
+                    <input type="text" class="form-control border-start-0 ps-0" id="searchBox" 
+                           placeholder="Search by name, email, phone...">
+                </div>
+            </div>
+            <div class="col-md-2">
+                <label for="filterStatus" class="form-label fw-semibold">Status</label>
+                <select id="filterStatus" class="form-select">
+                    <option value="">🔍 All Status</option>
+                    <option value="Pending">⏳ Pending</option>
+                    <option value="Approved">✅ Approved</option>
+                    <option value="Rejected">❌ Rejected</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label for="filterType" class="form-label fw-semibold">Type</label>
+                <select id="filterType" class="form-select">
+                    <option value="">🔍 All Types</option>
+                    <option value="Salary">💰 Salary</option>
+                    <option value="Commission">📈 Commission</option>
+                    <option value="Hybrid">🔄 Hybrid</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label for="filterFromDate" class="form-label fw-semibold">From Date</label>
+                <input type="date" id="filterFromDate" class="form-control">
+            </div>
+            <div class="col-md-2">
+                <label for="filterToDate" class="form-label fw-semibold">To Date</label>
+                <input type="date" id="filterToDate" class="form-control">
+            </div>
+        </div>
+        <div class="row mt-3">
+            <div class="col-md-6">
+                <button type="button" class="btn btn-outline-primary" id="clearFilters">
+                    <i class="fa-solid fa-refresh me-1"></i>Clear Filters
+                </button>
+            </div>
+            <div class="col-md-6 text-end">
+                <button type="button" class="btn btn-success me-2" id="exportExcel">
+                    <i class="fa-solid fa-file-excel me-1"></i>Export Excel
+                </button>
+                <button type="button" class="btn btn-info me-2" id="exportCSV">
+                    <i class="fa-solid fa-file-csv me-1"></i>Export CSV
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Agents List -->
+    <div id="agentsContainer">
+        <!-- Agents will be populated by JavaScript -->
+    </div>
+
+    <!-- Pagination -->
+    <div class="pagination-wrapper" id="paginationWrapper" style="display: none;">
+        <div class="row align-items-center">
+            <div class="col-md-6">
+                <p class="text-muted mb-0">Showing <span id="showingStart">0</span> to <span id="showingEnd">0</span> of <span id="totalRecords">0</span> entries</p>
+            </div>
+            <div class="col-md-6">
+                <nav>
+                    <ul class="pagination justify-content-end mb-0" id="pagination">
+                        <!-- Pagination will be generated by JavaScript -->
+                    </ul>
+                </nav>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Agent Onboarding Modal -->
+<div class="modal fade" id="onboardModal" tabindex="-1" aria-labelledby="onboardModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" style="max-width: 700px !important; width: 700px;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="onboardModalLabel">Agent Onboarding</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="onboardForm" enctype="multipart/form-data">
+                <div class="modal-body">
+                    @Html.AntiForgeryToken()
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Full Name <span class="text-danger">*</span></label>
+                            <input name="FullName" class="form-control" required />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Email <span class="text-danger">*</span></label>
+                            <input name="Email" id="modalEmailInput" class="form-control" type="email" required />
+                            <div id="modalEmailError" class="text-danger" style="display: none;"></div>
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Phone <span class="text-danger">*</span></label>
+                            <input name="Phone" class="form-control" required />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Address</label>
+                            <input name="Address" class="form-control" />
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Agent Type <span class="text-danger">*</span></label>
+                            <select name="AgentType" class="form-select" required>
+                                <option value="">Select Type</option>
+                                <option value="Salary">Salary</option>
+                                <option value="Hybrid">Hybrid</option>
+                                <option value="Commission">Commission</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Salary (if applicable)</label>
+                            <input name="Salary" class="form-control" type="number" step="0.01" />
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-12">
+                            <label class="form-label">Commission Rules <span class="text-danger">*</span></label>
+                            <select name="CommissionRules" class="form-select" required>
+                                <option value="">Select Commission Percentage</option>
+                                <option value="None (0% of sale)">None (0% of sale)</option>
+                                <option value="0.5% of sale">0.5% of sale</option>
+                                <option value="1% of sale">1% of sale</option>
+                                <option value="1.5% of sale">1.5% of sale</option>
+                                <option value="2% of sale">2% of sale</option>
+                                <option value="2.5% of sale">2.5% of sale</option>
+                                <option value="3% of sale">3% of sale</option>
+                                <option value="3.5% of sale">3.5% of sale</option>
+                                <option value="4% of sale">4% of sale</option>
+                                <option value="4.5% of sale">4.5% of sale</option>
+                                <option value="5% of sale">5% of sale</option>
+                                <option value="5.5% of sale">5.5% of sale</option>
+                                <option value="6% of sale">6% of sale</option>
+                                <option value="6.5% of sale">6.5% of sale</option>
+                                <option value="7% of sale">7% of sale</option>
+                                <option value="7.5% of sale">7.5% of sale</option>
+                                <option value="8% of sale">8% of sale</option>
+                                <option value="8.5% of sale">8.5% of sale</option>
+                                <option value="9% of sale">9% of sale</option>
+                                <option value="9.5% of sale">9.5% of sale</option>
+                                <option value="10% of sale">10% of sale</option>
+                                <option value="10.5% of sale">10.5% of sale</option>
+                                <option value="11% of sale">11% of sale</option>
+                                <option value="11.5% of sale">11.5% of sale</option>
+                                <option value="12% of sale">12% of sale</option>
+                                <option value="12.5% of sale">12.5% of sale</option>
+                                <option value="13% of sale">13% of sale</option>
+                                <option value="13.5% of sale">13.5% of sale</option>
+                                <option value="14% of sale">14% of sale</option>
+                                <option value="14.5% of sale">14.5% of sale</option>
+                                <option value="15% of sale">15% of sale</option>
+                                <option value="15.5% of sale">15.5% of sale</option>
+                                <option value="16% of sale">16% of sale</option>
+                                <option value="16.5% of sale">16.5% of sale</option>
+                                <option value="17% of sale">17% of sale</option>
+                                <option value="17.5% of sale">17.5% of sale</option>
+                                <option value="18% of sale">18% of sale</option>
+                                <option value="18.5% of sale">18.5% of sale</option>
+                                <option value="19% of sale">19% of sale</option>
+                                <option value="19.5% of sale">19.5% of sale</option>
+                                <option value="20% of sale">20% of sale</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-12">
+                            <label class="form-label">Upload Documents</label>
+                            <button type="button" class="btn btn-sm btn-outline-primary" onclick="addNewDocument()">
+                                <i class="fa-solid fa-plus me-1"></i> Add New Document
+                            </button>
+                        </div>
+                    </div>
+                    <div class="row mb-3" id="documentsList" style="display: none;">
+                        <div class="col-md-12">
+                            <label class="form-label">Selected Documents</label>
+                            <div id="documentsContainer"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" id="modalSubmitBtn" class="btn btn-primary">Submit</button>
+                </div>
+            </form>
+            <div id="onboardSuccess" class="alert alert-success mt-3 d-none">Agent onboarded successfully!</div>
+            <div id="onboardError" class="alert alert-danger mt-3 d-none"></div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script>
+        // Global variables
+        let allAgents = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model));
+        let filteredAgents = [...allAgents];
+        let currentPage = 1;
+        let pageSize = 10;
+        let selectedDocuments = [];
+        let emailValid = false;
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', function () {
+            renderTable();
+            attachEventListeners();
+            setupEmailValidation();
+        });
+
+        function setupEmailValidation() {
+            const emailInput = document.getElementById('modalEmailInput');
+            const errorDiv = document.getElementById('modalEmailError');
+            const submitBtn = document.getElementById('modalSubmitBtn');
+            
+            emailInput.addEventListener('blur', function() {
+                const email = this.value.trim();
+                
+                if (!email) {
+                    errorDiv.style.display = 'none';
+                    emailValid = false;
+                    submitBtn.disabled = false;
+                    return;
+                }
+                
+                // Check if email already exists
+                fetch(`/Agent/CheckEmailExists?email=${encodeURIComponent(email)}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.exists) {
+                            errorDiv.textContent = 'This email is already registered';
+                            errorDiv.style.display = 'block';
+                            emailValid = false;
+                            submitBtn.disabled = true;
+                        } else {
+                            errorDiv.style.display = 'none';
+                            emailValid = true;
+                            submitBtn.disabled = false;
+                        }
+                    })
+                    .catch(error => {
+                        errorDiv.textContent = 'Error checking email availability';
+                        errorDiv.style.display = 'block';
+                        emailValid = false;
+                        submitBtn.disabled = true;
+                    });
+            });
+        }
+
+        function attachEventListeners() {
+            // Search and filters
+            document.getElementById('searchBox').addEventListener('input', applyFilters);
+            document.getElementById('filterStatus').addEventListener('change', applyFilters);
+            document.getElementById('filterType').addEventListener('change', applyFilters);
+            document.getElementById('filterFromDate').addEventListener('change', applyFilters);
+            document.getElementById('filterToDate').addEventListener('change', applyFilters);
+
+            // Clear filters
+            document.getElementById('clearFilters').addEventListener('click', clearFilters);
+
+            // Export buttons
+            document.getElementById('exportExcel').addEventListener('click', exportToExcel);
+            document.getElementById('exportCSV').addEventListener('click', exportToCSV);
+
+            // Form submission
+            document.getElementById('onboardForm').addEventListener('submit', handleOnboard);
+
+            // Modal events
+            document.getElementById('onboardModal').addEventListener('hidden.bs.modal', resetForm);
+        }
+
+        // Add new document row
+        function addNewDocument() {
+            const docId = Date.now();
+            selectedDocuments.push({
+                id: docId,
+                file: null,
+                name: '',
+                type: ''
+            });
+            renderDocuments();
+            document.getElementById('documentsList').style.display = 'block';
+        }
+
+        // Handle file selection for a specific document
+        function handleFileSelect(index, event) {
+            const file = event.target.files[0];
+            if (file) {
+                selectedDocuments[index].file = file;
+                renderDocuments();
+            }
+        }
+
+        // Render selected documents
+        function renderDocuments() {
+            const container = document.getElementById('documentsContainer');
+            container.innerHTML = '';
+
+            selectedDocuments.forEach((doc, index) => {
+                const docItem = document.createElement('div');
+                docItem.className = 'document-item';
+                
+                if (doc.file) {
+                    // File is selected - show file info with name and type inputs
+                    const fileSize = (doc.file.size / 1024).toFixed(2);
+                    docItem.innerHTML = `
+                        <div class="document-item-row">
+                            <div class="document-file-info">
+                                <div class="document-file-name">${doc.file.name}</div>
+                                <div class="document-file-size">${fileSize} KB</div>
+                            </div>
+                            <div class="document-input-group">
+                                <input type="text" class="document-name-input" 
+                                       placeholder="Document Name (e.g., Aadhar Card)" 
+                                       value="${doc.name}" 
+                                       onchange="updateDocumentName(${index}, this.value)" 
+                                       required />
+                            </div>
+                            <div class="document-input-group">
+                                <select class="document-type-select" 
+                                        onchange="updateDocumentType(${index}, this.value)" 
+                                        required>
+                                    <option value="">Select Document Type</option>
+                                    <option value="Aadhar Card" ${doc.type === 'Aadhar Card' ? 'selected' : ''}>Aadhar Card</option>
+                                    <option value="PAN Card" ${doc.type === 'PAN Card' ? 'selected' : ''}>PAN Card</option>
+                                    <option value="Resume" ${doc.type === 'Resume' ? 'selected' : ''}>Resume</option>
+                                    <option value="Experience Letter" ${doc.type === 'Experience Letter' ? 'selected' : ''}>Experience Letter</option>
+                                    <option value="Bank Details" ${doc.type === 'Bank Details' ? 'selected' : ''}>Bank Details</option>
+                                    <option value="Educational Certificate" ${doc.type === 'Educational Certificate' ? 'selected' : ''}>Educational Certificate</option>
+                                    <option value="Photo" ${doc.type === 'Photo' ? 'selected' : ''}>Photo</option>
+                                    <option value="Other" ${doc.type === 'Other' ? 'selected' : ''}>Other</option>
+                                </select>
+                            </div>
+                            <div>
+                                <button type="button" class="document-remove-btn" onclick="removeDocument(${index})" title="Remove">
+                                    <i class="fa-solid fa-times"></i>
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    // No file selected yet - show file upload button
+                    docItem.innerHTML = `
+                        <div class="document-item-row">
+                            <div style="grid-column: 1 / -1;">
+                                <label class="file-upload-btn">
+                                    <i class="fa-solid fa-upload"></i>
+                                    <span>Choose File</span>
+                                    <input type="file" class="document-file-input" 
+                                           accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
+                                           onchange="handleFileSelect(${index}, event)" />
+                                </label>
+                                <button type="button" class="btn btn-sm btn-link text-danger" 
+                                        onclick="removeDocument(${index})">
+                                    Remove
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                }
+                
+                container.appendChild(docItem);
+            });
+        }
+
+        // Update document name
+        function updateDocumentName(index, name) {
+            selectedDocuments[index].name = name;
+        }
+
+        // Update document type
+        function updateDocumentType(index, type) {
+            selectedDocuments[index].type = type;
+        }
+
+        // Remove document
+        function removeDocument(index) {
+            selectedDocuments.splice(index, 1);
+            if (selectedDocuments.length === 0) {
+                document.getElementById('documentsList').style.display = 'none';
+            }
+            renderDocuments();
+        }
+
+        function applyFilters() {
+            const searchText = document.getElementById('searchBox').value.toLowerCase();
+            const status = document.getElementById('filterStatus').value;
+            const type = document.getElementById('filterType').value;
+            const fromDate = document.getElementById('filterFromDate').value;
+            const toDate = document.getElementById('filterToDate').value;
+
+            filteredAgents = allAgents.filter(agent => {
+                const matchesSearch = !searchText ||
+                    (agent.FullName && agent.FullName.toLowerCase().includes(searchText)) ||
+                    (agent.Email && agent.Email.toLowerCase().includes(searchText)) ||
+                    (agent.Phone && agent.Phone.includes(searchText));
+
+                const matchesStatus = !status || agent.Status === status;
+                const matchesType = !type || agent.AgentType === type;
+
+                let matchesDate = true;
+                if (fromDate || toDate) {
+                    const agentDate = new Date(agent.CreatedOn || new Date());
+                    if (fromDate) {
+                        matchesDate = matchesDate && agentDate >= new Date(fromDate);
+                    }
+                    if (toDate) {
+                        matchesDate = matchesDate && agentDate <= new Date(toDate + 'T23:59:59');
+                    }
+                }
+
+                return matchesSearch && matchesStatus && matchesType && matchesDate;
+            });
+
+            currentPage = 1;
+            renderTable();
+        }
+
+        function clearFilters() {
+            document.getElementById('searchBox').value = '';
+            document.getElementById('filterStatus').value = '';
+            document.getElementById('filterType').value = '';
+            document.getElementById('filterFromDate').value = '';
+            document.getElementById('filterToDate').value = '';
+            filteredAgents = [...allAgents];
+            currentPage = 1;
+            renderTable();
+        }
+
+        function renderTable() {
+            const container = document.getElementById('agentsContainer');
+            const start = (currentPage - 1) * pageSize;
+            const end = start + pageSize;
+            const paginatedAgents = filteredAgents.slice(start, end);
+
+            container.innerHTML = '';
+
+            if (paginatedAgents.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fa-solid fa-user-tie"></i>
+                        <h3>No Agents Found</h3>
+                        <p class="text-muted">Start by onboarding your first agent or adjust your filters</p>
+                        <button type="button" class="btn btn-primary mt-3" data-bs-toggle="modal" data-bs-target="#onboardModal">
+                            <i class="fa-solid fa-plus me-2"></i>Onboard Agent
+                        </button>
+                    </div>
+                `;
+                document.getElementById('paginationWrapper').style.display = 'none';
+            } else {
+                paginatedAgents.forEach(agent => {
+                    const agentCard = document.createElement('div');
+                    agentCard.className = 'agent-card';
+                    agentCard.innerHTML = `
+                        <div class="row align-items-center">
+                            <div class="col-md-4">
+                                <a href="/Agent/Details/${agent.AgentId}" class="agent-name" style="text-decoration: none; cursor: pointer;">${agent.FullName || 'Unnamed Agent'}</a>
+                                <div class="agent-info">
+                                    <i class="fa-solid fa-envelope"></i>
+                                    <span>${agent.Email || 'No email'}</span>
+                                </div>
+                                <div class="agent-info">
+                                    <i class="fa-solid fa-phone"></i>
+                                    <span>${agent.Phone || 'No phone'}</span>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="agent-info">
+                                    <i class="fa-solid fa-map-marker-alt"></i>
+                                    <span>${agent.Address || 'No address'}</span>
+                                </div>
+                                <div class="agent-info">
+                                    <i class="fa-solid fa-dollar-sign"></i>
+                                    <span>${agent.Salary ? '₹' + agent.Salary.toLocaleString('en-IN') : 'No salary'}</span>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="mb-2">
+                                    <span class="type-badge">${agent.AgentType || 'No type'}</span>
+                                </div>
+                                <div class="mb-2">
+                                    <span class="status-badge status-${(agent.Status || 'pending').toLowerCase()}">
+                                        ${agent.Status || 'Pending'}
+                                    </span>
+                                </div>
+                                <div class="agent-info">
+                                    <i class="fa-solid fa-percentage"></i>
+                                    <span>${agent.CommissionRules || 'No commission rules'}</span>
+                                </div>
+                            </div>
+                            <div class="col-md-2">
+                                <div class="action-buttons">
+                                    <button class="btn-action btn-approve" onclick="editAgent(${agent.AgentId})" title="Edit Agent" style="background-color: #3b82f6;">
+                                        <i class="fa-solid fa-edit"></i>
+                                    </button>
+                                    ${agent.Status === 'Pending' ? `
+                                        <button class="btn-action btn-approve" onclick="approveAgent(${agent.AgentId})" title="Approve Agent">
+                                            <i class="fa-solid fa-check"></i>
+                                        </button>
+                                        <button class="btn-action btn-reject" onclick="rejectAgent(${agent.AgentId})" title="Reject Agent">
+                                            <i class="fa-solid fa-times"></i>
+                                        </button>
+                                    ` : ''}
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    container.appendChild(agentCard);
+                });
+                document.getElementById('paginationWrapper').style.display = 'block';
+            }
+
+            updatePaginationInfo();
+            renderPagination();
+            updateStats();
+        }
+
+        function updateStats() {
+            document.getElementById('totalAgents').textContent = filteredAgents.length;
+            document.getElementById('pendingAgents').textContent = filteredAgents.filter(a => a.Status === 'Pending').length;
+            document.getElementById('approvedAgents').textContent = filteredAgents.filter(a => a.Status === 'Approved').length;
+            document.getElementById('rejectedAgents').textContent = filteredAgents.filter(a => a.Status === 'Rejected').length;
+        }
+
+        function updatePaginationInfo() {
+            const total = filteredAgents.length;
+            const start = total === 0 ? 0 : (currentPage - 1) * pageSize + 1;
+            const end = Math.min(currentPage * pageSize, total);
+
+            document.getElementById('showingStart').textContent = start;
+            document.getElementById('showingEnd').textContent = end;
+            document.getElementById('totalRecords').textContent = total;
+        }
+
+        function renderPagination() {
+            const pagination = document.getElementById('pagination');
+            const totalPages = Math.ceil(filteredAgents.length / pageSize);
+
+            pagination.innerHTML = '';
+
+            if (totalPages <= 1) {
+                const singleLi = document.createElement('li');
+                singleLi.className = 'page-item active';
+                singleLi.innerHTML = `<span class="page-link">1</span>`;
+                pagination.appendChild(singleLi);
+                return;
+            }
+
+            // Previous button
+            const prevLi = document.createElement('li');
+            prevLi.className = `page-item ${currentPage === 1 ? 'disabled' : ''}`;
+            prevLi.innerHTML = `<a class="page-link" href="#" onclick="changePage(${currentPage - 1}); return false;">Previous</a>`;
+            pagination.appendChild(prevLi);
+
+            // Page numbers
+            const startPage = Math.max(1, currentPage - 2);
+            const endPage = Math.min(totalPages, currentPage + 2);
+
+            for (let i = startPage; i <= endPage; i++) {
+                const li = document.createElement('li');
+                li.className = `page-item ${i === currentPage ? 'active' : ''}`;
+                li.innerHTML = `<a class="page-link" href="#" onclick="changePage(${i}); return false;">${i}</a>`;
+                pagination.appendChild(li);
+            }
+
+            // Next button
+            const nextLi = document.createElement('li');
+            nextLi.className = `page-item ${currentPage === totalPages ? 'disabled' : ''}`;
+            nextLi.innerHTML = `<a class="page-link" href="#" onclick="changePage(${currentPage + 1}); return false;">Next</a>`;
+            pagination.appendChild(nextLi);
+        }
+
+        function changePage(page) {
+            const totalPages = Math.ceil(filteredAgents.length / pageSize);
+            if (page < 1 || page > totalPages) return;
+            currentPage = page;
+            renderTable();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function approveAgent(agentId) {
+            if (!confirm('Are you sure you want to approve this agent?')) return;
+
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = '/Agent/Approve';
+            
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = 'agentId';
+            input.value = agentId;
+            
+            // Add anti-forgery token
+            const token = document.querySelector('input[name="__RequestVerificationToken"]');
+            if (token) {
+                const tokenInput = document.createElement('input');
+                tokenInput.type = 'hidden';
+                tokenInput.name = '__RequestVerificationToken';
+                tokenInput.value = token.value;
+                form.appendChild(tokenInput);
+            }
+            
+            form.appendChild(input);
+            document.body.appendChild(form);
+            form.submit();
+        }
+
+        function rejectAgent(agentId) {
+            if (!confirm('Are you sure you want to reject this agent?')) return;
+
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = '/Agent/Reject';
+            
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = 'agentId';
+            input.value = agentId;
+            
+            // Add anti-forgery token
+            const token = document.querySelector('input[name="__RequestVerificationToken"]');
+            if (token) {
+                const tokenInput = document.createElement('input');
+                tokenInput.type = 'hidden';
+                tokenInput.name = '__RequestVerificationToken';
+                tokenInput.value = token.value;
+                form.appendChild(tokenInput);
+            }
+            
+            form.appendChild(input);
+            document.body.appendChild(form);
+            form.submit();
+        }
+
+        function handleOnboard(e) {
+            e.preventDefault();
+            
+            const form = e.target;
+            const isEdit = form.action.includes('UpdateAgent');
+            const url = isEdit ? form.action : '/Agent/Onboard';
+            
+            // Validate email before submission (skip for edit)
+            if (!isEdit) {
+                const emailInput = document.getElementById('modalEmailInput');
+                if (!emailValid && emailInput.value.trim()) {
+                    document.getElementById('onboardError').textContent = 'Please use a unique email address';
+                    document.getElementById('onboardError').classList.remove('d-none');
+                    return;
+                }
+            }
+            
+            // Validate documents have files, names and types
+            if (selectedDocuments.length > 0) {
+                for (let i = 0; i < selectedDocuments.length; i++) {
+                    const doc = selectedDocuments[i];
+                    if (!doc.file) {
+                        document.getElementById('onboardError').textContent = 'Please select a file for all documents or remove the empty row';
+                        document.getElementById('onboardError').classList.remove('d-none');
+                        return;
+                    }
+                    if (!doc.name || !doc.type) {
+                        document.getElementById('onboardError').textContent = 'Please provide name and type for all selected documents';
+                        document.getElementById('onboardError').classList.remove('d-none');
+                        return;
+                    }
+                }
+            }
+
+            const formData = new FormData(form);
+
+            // Add documents to formData
+            selectedDocuments.forEach((doc, index) => {
+                if (doc.file) {
+                    formData.append('DocumentFiles', doc.file);
+                    formData.append('DocumentNames', doc.name);
+                    formData.append('DocumentTypes', doc.type);
+                }
+            });
+
+            fetch(url, {
+                method: 'POST',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    document.getElementById('onboardSuccess').classList.remove('d-none');
+                    document.getElementById('onboardError').classList.add('d-none');
+                    setTimeout(() => {
+                        bootstrap.Modal.getInstance(document.getElementById('onboardModal')).hide();
+                        location.reload();
+                    }, 1000);
+                } else {
+                    document.getElementById('onboardError').textContent = data.message || 'Submission failed';
+                    document.getElementById('onboardError').classList.remove('d-none');
+                    document.getElementById('onboardSuccess').classList.add('d-none');
+                    if (data.errors && data.errors.length > 0) {
+                        document.getElementById('onboardError').textContent += '\n' + data.errors.join('\n');
+                    }
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                document.getElementById('onboardError').textContent = 'Error: ' + error.message;
+                document.getElementById('onboardError').classList.remove('d-none');
+                document.getElementById('onboardSuccess').classList.add('d-none');
+            });
+        }
+
+        function resetForm() {
+            document.getElementById('onboardForm').reset();
+            document.getElementById('onboardSuccess').classList.add('d-none');
+            document.getElementById('onboardError').classList.add('d-none');
+            document.getElementById('modalEmailError').style.display = 'none';
+            document.getElementById('modalSubmitBtn').disabled = false;
+            selectedDocuments = [];
+            document.getElementById('documentsContainer').innerHTML = '';
+            document.getElementById('documentsList').style.display = 'none';
+            emailValid = false;
+            document.getElementById('onboardModalLabel').textContent = 'Agent Onboarding';
+            document.getElementById('onboardForm').action = '';
+        }
+
+        function editAgent(agentId) {
+            fetch(`/Agent/GetAgent?id=${agentId}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        const agent = data.agent;
+                        document.querySelector('[name="FullName"]').value = agent.fullName || '';
+                        document.querySelector('[name="Email"]').value = agent.email || '';
+                        document.querySelector('[name="Phone"]').value = agent.phone || '';
+                        document.querySelector('[name="Address"]').value = agent.address || '';
+                        document.querySelector('[name="AgentType"]').value = agent.agentType || '';
+                        document.querySelector('[name="Salary"]').value = agent.salary || '';
+                        document.querySelector('[name="CommissionRules"]').value = agent.commissionRules || '';
+                        
+                        document.getElementById('onboardModalLabel').textContent = 'Edit Agent';
+                        document.getElementById('onboardForm').action = `/Agent/UpdateAgent?id=${agentId}`;
+                        emailValid = true;
+                        
+                        const modal = new bootstrap.Modal(document.getElementById('onboardModal'));
+                        modal.show();
+                    }
+                })
+                .catch(error => console.error('Error:', error));
+        }
+
+        function exportToExcel() {
+            const ws_data = [
+                ['Full Name', 'Email', 'Phone', 'Address', 'Agent Type', 'Salary', 'Commission Rules', 'Status', 'Documents']
+            ];
+
+            filteredAgents.forEach(agent => {
+                ws_data.push([
+                    agent.FullName || '',
+                    agent.Email || '',
+                    agent.Phone || '',
+                    agent.Address || '',
+                    agent.AgentType || '',
+                    agent.Salary || '',
+                    agent.CommissionRules || '',
+                    agent.Status || '',
+                    agent.Documents || ''
+                ]);
+            });
+
+            const wb = XLSX.utils.book_new();
+            const ws = XLSX.utils.aoa_to_sheet(ws_data);
+            ws['!cols'] = [{ wch: 20 }, { wch: 25 }, { wch: 15 }, { wch: 30 }, { wch: 12 }, { wch: 12 }, { wch: 30 }, { wch: 12 }, { wch: 30 }];
+            XLSX.utils.book_append_sheet(wb, ws, "Agents");
+            XLSX.writeFile(wb, `Agents_Export_${new Date().toISOString().split('T')[0]}.xlsx`);
+            showToast('Excel exported successfully!', 'success');
+        }
+
+        function exportToCSV() {
+            let csv = 'Full Name,Email,Phone,Address,Agent Type,Salary,Commission Rules,Status,Documents\n';
+
+            filteredAgents.forEach(agent => {
+                csv += [
+                    escapeCSV(agent.FullName),
+                    escapeCSV(agent.Email),
+                    escapeCSV(agent.Phone),
+                    escapeCSV(agent.Address),
+                    escapeCSV(agent.AgentType),
+                    agent.Salary || '',
+                    escapeCSV(agent.CommissionRules),
+                    escapeCSV(agent.Status),
+                    escapeCSV(agent.Documents)
+                ].join(',') + '\n';
+            });
+
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `Agents_Export_${new Date().toISOString().split('T')[0]}.csv`;
+            a.click();
+            window.URL.revokeObjectURL(url);
+            showToast('CSV exported successfully!', 'success');
+        }
+
+        function escapeCSV(value) {
+            if (!value) return '';
+            value = value.toString();
+            if (value.includes(',') || value.includes('"') || value.includes('\n')) {
+                return '"' + value.replace(/"/g, '""') + '"';
+            }
+            return value;
+        }
+
+        function showToast(message, type) {
+            const alertDiv = document.createElement('div');
+            alertDiv.className = `alert alert-${type === 'success' ? 'success' : 'danger'} alert-dismissible fade show position-fixed`;
+            alertDiv.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+            alertDiv.innerHTML = `
+                <i class="fa-solid fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'} me-2"></i>
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            `;
+            document.body.appendChild(alertDiv);
+            setTimeout(() => alertDiv.remove(), 5000);
+        }
+    </script>
+}

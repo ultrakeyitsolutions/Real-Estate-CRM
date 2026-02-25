@@ -1,0 +1,162 @@
+[
+  {
+    "ContainingType": "CRM.Controllers.FacebookLeadsController",
+    "Method": "FetchLeads",
+    "RelativePath": "api/facebook/fetch-leads",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "CRM.Controllers.FacebookLeadsController",
+    "Method": "FetchLeadsBackground",
+    "RelativePath": "api/facebook/fetch-leads-bg",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "CRM.Controllers.ApiController",
+    "Method": "Login",
+    "RelativePath": "api/login",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "CRM.Controllers.LoginRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "CRM.Controllers.WebhookController",
+    "Method": "GetLeads",
+    "RelativePath": "api/meta/leads",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "CRM.Controllers.WebhookController",
+    "Method": "Test",
+    "RelativePath": "api/meta/test",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "CRM.Controllers.WebhookController",
+    "Method": "VerifyWebhook",
+    "RelativePath": "api/meta/webhook",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "hub.mode",
+        "Type": "System.String",
+        "IsRequired": false
+      },
+      {
+        "Name": "hub.verify_token",
+        "Type": "System.String",
+        "IsRequired": false
+      },
+      {
+        "Name": "hub.challenge",
+        "Type": "System.String",
+        "IsRequired": false
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "CRM.Controllers.WebhookController",
+    "Method": "ReceiveWebhook",
+    "RelativePath": "api/meta/webhook",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "CRM.Controllers.ApiController",
+    "Method": "CreateOrder",
+    "RelativePath": "api/subscription/create-order",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "CRM.Controllers.CreateOrderRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "CRM.Controllers.ApiController",
+    "Method": "GetPlans",
+    "RelativePath": "api/subscription/plans",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "CRM.Controllers.ApiController",
+    "Method": "ProcessRefund",
+    "RelativePath": "api/subscription/refund",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "CRM.Controllers.RefundRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "CRM.Controllers.ApiController",
+    "Method": "GetTransactions",
+    "RelativePath": "api/subscription/transactions",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "type",
+        "Type": "System.String",
+        "IsRequired": false
+      },
+      {
+        "Name": "fromDate",
+        "Type": "System.Nullable\u00601[[System.DateTime, System.Private.CoreLib, Version=8.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]",
+        "IsRequired": false
+      },
+      {
+        "Name": "toDate",
+        "Type": "System.Nullable\u00601[[System.DateTime, System.Private.CoreLib, Version=8.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]",
+        "IsRequired": false
+      }
+    ],
+    "ReturnTypes": []
+  }
+]

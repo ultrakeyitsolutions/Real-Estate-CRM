@@ -1,0 +1,482 @@
+@{
+    ViewData["Title"] = "Partner Dashboard";
+}
+
+<style>
+    @@keyframes fadeInUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+    @@keyframes slideInLeft { from { opacity: 0; transform: translateX(-50px); } to { opacity: 1; transform: translateX(0); } }
+    @@keyframes bounce { 0%, 20%, 50%, 80%, 100% { transform: translateY(0); } 40% { transform: translateY(-10px); } 60% { transform: translateY(-5px); } }
+    @@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.7; } }
+    
+    .subscription-banner {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 12px;
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+        color: white;
+        box-shadow: 0 8px 30px rgba(102, 126, 234, 0.3);
+        animation: fadeInUp 0.5s ease-out;
+    }
+    .subscription-banner.trial {
+        background: linear-gradient(135deg, #f59e0b 0%, #f97316 100%);
+    }
+    .subscription-banner h4 {
+        margin-bottom: 0.5rem;
+        font-weight: 600;
+    }
+    .subscription-banner p {
+        margin-bottom: 0;
+        opacity: 0.95;
+    }
+    .subscription-banner .btn {
+        background: white;
+        color: #667eea;
+        border: none;
+        padding: 0.5rem 1.5rem;
+        border-radius: 8px;
+        font-weight: 600;
+        transition: all 0.3s;
+        animation: pulse 2s infinite;
+    }
+    .subscription-banner.trial .btn {
+        color: #f59e0b;
+    }
+    .subscription-banner .btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    }
+    
+    .dashboard-card {
+        background: white;
+        border-radius: 12px;
+        padding: 1.25rem;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+        border: 1px solid rgba(0,0,0,0.05);
+        transition: all 0.3s;
+        animation: fadeInUp 0.6s ease-out;
+    }
+    .dashboard-card:hover { transform: translateY(-5px); box-shadow: 0 12px 40px rgba(0,0,0,0.15); }
+    .stat-card { position: relative; overflow: hidden; min-height: 120px; }
+    .stat-number { font-size: 2rem; font-weight: 700; margin: 0; }
+    .stat-label { color: #6b7280; font-size: 0.85rem; margin-top: 0.5rem; }
+    .stat-icon { font-size: 2.5rem; opacity: 0.15; position: absolute; right: 1rem; top: 1rem; animation: bounce 2s infinite; }
+    .leads-card .stat-number { color: #f59e0b; }
+    .commission-card .stat-number { color: #10b981; }
+    .conversion-card .stat-number { color: #4f46e5; }
+    .revenue-card .stat-number { color: #ef4444; }
+    .chart-card { min-height: 350px; }
+    .chart-card canvas { height: 280px !important; }
+    .table-card { min-height: 350px; }
+    .table-responsive { max-height: 280px; overflow-y: auto; }
+    .table-responsive::-webkit-scrollbar { width: 4px; }
+    .table-responsive::-webkit-scrollbar-thumb { background: #888; border-radius: 10px; }
+    .animated-row { animation: slideInLeft 0.5s ease-out; }
+    .dark-mode .dashboard-card { background: #222639 !important; border-color: #2c3049 !important; color: #e4e6eb !important; }
+    .dark-mode .stat-label { color: #a6adc8 !important; }
+    .card-1 { animation-delay: 0.1s; }
+    .card-2 { animation-delay: 0.2s; }
+    .card-3 { animation-delay: 0.3s; }
+    .card-4 { animation-delay: 0.4s; }
+    .chart-1 { animation-delay: 0.5s; }
+    .chart-2 { animation-delay: 0.6s; }
+    .chart-3 { animation-delay: 0.7s; }
+    .chart-4 { animation-delay: 0.8s; }
+</style>
+
+<div class="content">
+    <h1 class="h3 mb-4" style="animation: fadeInUp 0.5s ease-out;"><i class="fa-solid fa-chart-line me-2"></i>Partner Dashboard</h1>
+
+    <!-- Subscription Banner (will be shown via JavaScript based on subscription status) -->
+    <div id="subscriptionBanner" style="display: none;"></div>
+
+    <!-- Stats Cards -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-3">
+            <div class="dashboard-card stat-card leads-card card-1">
+                <i class="fa-solid fa-users stat-icon"></i>
+                <h2 class="stat-number" id="totalLeads">0</h2>
+                <p class="stat-label">My Leads</p>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="dashboard-card stat-card commission-card card-2">
+                <i class="fa-solid fa-indian-rupee-sign stat-icon"></i>
+                <h2 class="stat-number" id="totalCommission">₹0</h2>
+                <p class="stat-label">Total Commission</p>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="dashboard-card stat-card conversion-card card-3">
+                <i class="fa-solid fa-chart-line stat-icon"></i>
+                <h2 class="stat-number" id="conversionRate">0%</h2>
+                <p class="stat-label">Conversion Rate</p>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="dashboard-card stat-card revenue-card card-4">
+                <i class="fa-solid fa-indian-rupee-sign stat-icon"></i>
+                <h2 class="stat-number" id="monthlyRevenue">₹0</h2>
+                <p class="stat-label">This Month Revenue</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-3 mb-4">
+        <!-- Lead Performance -->
+        <div class="col-lg-8">
+            <div class="dashboard-card chart-card chart-1">
+                <h5 class="mb-3"><i class="fa-solid fa-chart-column me-2"></i>Lead Performance (Last 6 Months)</h5>
+                <canvas id="leadPerformanceChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Lead Status -->
+        <div class="col-lg-4">
+            <div class="dashboard-card chart-card chart-2">
+                <h5 class="mb-3"><i class="fa-solid fa-chart-pie me-2"></i>Lead Status</h5>
+                <canvas id="leadStatusChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-3 mb-4">
+        <!-- Commission Trend -->
+        <div class="col-lg-6">
+            <div class="dashboard-card chart-card chart-3">
+                <h5 class="mb-3"><i class="fa-solid fa-arrow-trend-up me-2"></i>Commission Trend</h5>
+                <canvas id="commissionTrendChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Recent Leads -->
+        <div class="col-lg-6">
+            <div class="dashboard-card table-card chart-4">
+                <h5 class="mb-3"><i class="fa-solid fa-clock me-2"></i>Recent Leads</h5>
+                <div class="table-responsive">
+                    <table class="table table-sm" id="recentLeadsTable">
+                        <thead>
+                            <tr>
+                                <th>Lead</th>
+                                <th>Status</th>
+                                <th>Value</th>
+                                <th>Date</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        let charts = {};
+
+        document.addEventListener('DOMContentLoaded', function() {
+            setTimeout(() => {
+                loadPartnerDashboardData();
+            }, 100);
+        });
+
+        function loadPartnerDashboardData() {
+            // Sample data for Partner Dashboard
+            const sampleData = {
+                totalLeads: 45,
+                totalCommission: 125000,
+                conversionRate: 68,
+                monthlyRevenue: 85000,
+                leadPerformance: [
+                    {month: 'Jan', leads: 8, conversions: 5},
+                    {month: 'Feb', leads: 12, conversions: 8},
+                    {month: 'Mar', leads: 10, conversions: 7},
+                    {month: 'Apr', leads: 15, conversions: 10},
+                    {month: 'May', leads: 13, conversions: 9},
+                    {month: 'Jun', leads: 18, conversions: 12}
+                ],
+                leadStatus: {newLeads: 12, contacted: 8, qualified: 15, converted: 10},
+                commissionTrend: [
+                    {month: 'Jan', commission: 15000},
+                    {month: 'Feb', commission: 22000},
+                    {month: 'Mar', commission: 18000},
+                    {month: 'Apr', commission: 28000},
+                    {month: 'May', commission: 25000},
+                    {month: 'Jun', commission: 32000}
+                ],
+                recentLeads: [
+                    {name: 'John Doe', status: 'Qualified', value: 25000, date: '2024-01-15'},
+                    {name: 'Jane Smith', status: 'Contacted', value: 18000, date: '2024-01-14'},
+                    {name: 'Mike Johnson', status: 'New', value: 22000, date: '2024-01-13'},
+                    {name: 'Sarah Wilson', status: 'Converted', value: 35000, date: '2024-01-12'}
+                ]
+            };
+            
+            animateStats(sampleData);
+            renderLeadPerformanceChart(sampleData.leadPerformance);
+            renderLeadStatusChart(sampleData.leadStatus);
+            renderCommissionTrendChart(sampleData.commissionTrend);
+            renderRecentLeads(sampleData.recentLeads);
+        }
+
+        function animateStats(data) {
+            animateNumber('totalLeads', data.totalLeads, '');
+            animateNumber('totalCommission', data.totalCommission, '₹');
+            animateNumber('conversionRate', data.conversionRate, '', '%');
+            animateNumber('monthlyRevenue', data.monthlyRevenue, '₹');
+        }
+
+        function animateNumber(elementId, targetValue, prefix = '', suffix = '') {
+            const element = document.getElementById(elementId);
+            const duration = 2000;
+            const startTime = performance.now();
+            const startValue = 0;
+
+            function updateNumber(currentTime) {
+                const elapsed = currentTime - startTime;
+                const progress = Math.min(elapsed / duration, 1);
+                const easeOutQuart = 1 - Math.pow(1 - progress, 4);
+                const currentValue = Math.floor(startValue + (targetValue - startValue) * easeOutQuart);
+                
+                element.textContent = prefix + formatNumber(currentValue) + suffix;
+                
+                if (progress < 1) {
+                    requestAnimationFrame(updateNumber);
+                }
+            }
+            
+            requestAnimationFrame(updateNumber);
+        }
+
+        function renderLeadPerformanceChart(data) {
+            setTimeout(() => {
+                const ctx = document.getElementById('leadPerformanceChart').getContext('2d');
+                if (charts.leadPerformance) charts.leadPerformance.destroy();
+                charts.leadPerformance = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: data.map(d => d.month),
+                        datasets: [{
+                            label: 'Total Leads',
+                            data: data.map(d => d.leads),
+                            backgroundColor: '#f59e0b',
+                            borderRadius: 8
+                        }, {
+                            label: 'Conversions',
+                            data: data.map(d => d.conversions),
+                            backgroundColor: '#10b981',
+                            borderRadius: 8
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: { y: { beginAtZero: true } },
+                        animation: {
+                            duration: 2000,
+                            easing: 'easeOutBounce'
+                        }
+                    }
+                });
+            }, 500);
+        }
+
+        function renderLeadStatusChart(data) {
+            setTimeout(() => {
+                const ctx = document.getElementById('leadStatusChart').getContext('2d');
+                if (charts.leadStatus) charts.leadStatus.destroy();
+                charts.leadStatus = new Chart(ctx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['New', 'Contacted', 'Qualified', 'Converted'],
+                        datasets: [{
+                            data: [data.newLeads, data.contacted, data.qualified, data.converted],
+                            backgroundColor: ['#f59e0b', '#3b82f6', '#4f46e5', '#10b981']
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        animation: {
+                            animateRotate: true,
+                            animateScale: true,
+                            duration: 2000,
+                            easing: 'easeOutBounce'
+                        },
+                        plugins: {
+                            legend: {
+                                position: 'bottom'
+                            }
+                        }
+                    }
+                });
+            }, 600);
+        }
+
+        function renderCommissionTrendChart(data) {
+            setTimeout(() => {
+                const ctx = document.getElementById('commissionTrendChart').getContext('2d');
+                if (charts.commissionTrend) charts.commissionTrend.destroy();
+                charts.commissionTrend = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: data.map(d => d.month),
+                        datasets: [{
+                            label: 'Commission',
+                            data: data.map(d => d.commission),
+                            borderColor: '#10b981',
+                            backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                            tension: 0.4,
+                            fill: true
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: { legend: { display: false } },
+                        scales: { y: { beginAtZero: true } },
+                        animation: {
+                            duration: 2000,
+                            easing: 'easeInOutQuart'
+                        }
+                    }
+                });
+            }, 700);
+        }
+
+        function renderRecentLeads(data) {
+            const tbody = document.querySelector('#recentLeadsTable tbody');
+            tbody.innerHTML = '';
+            
+            data.forEach((lead, index) => {
+                setTimeout(() => {
+                    const row = document.createElement('tr');
+                    row.className = 'animated-row';
+                    const statusColor = lead.status === 'Converted' ? 'success' : 
+                                       lead.status === 'Qualified' ? 'primary' : 
+                                       lead.status === 'Contacted' ? 'warning' : 'secondary';
+                    row.innerHTML = `
+                        <td><strong>${lead.name}</strong></td>
+                        <td><span class="badge bg-${statusColor}">${lead.status}</span></td>
+                        <td><strong>₹${formatNumber(lead.value)}</strong></td>
+                        <td><small>${lead.date}</small></td>
+                    `;
+                    tbody.appendChild(row);
+                }, index * 200);
+            });
+        }
+
+        function formatNumber(num) {
+            return new Intl.NumberFormat('en-IN').format(num);
+        }
+
+        // Check subscription status and show banner
+        async function checkSubscriptionStatus() {
+            try {
+                const response = await fetch('/Home/GetPartnerSubscriptionStatus');
+                const data = await response.json();
+                
+                if (!data.hasSubscription) {
+                    showSubscriptionBanner(
+                        '❌ No Active Subscription',
+                        'You don\'t have an active subscription plan. Subscribe now to start using all features.',
+                        false,
+                        '/Subscription/MyPlan',
+                        'danger'
+                    );
+                } else if (data.billingCycle === 'Trial') {
+                    const daysLeft = Math.ceil((new Date(data.endDate) - new Date()) / (1000 * 60 * 60 * 24));
+                    
+                    if (daysLeft <= 0) {
+                        // Trial expired
+                        showSubscriptionBanner(
+                            '⏰ Trial Period Ended',
+                            `Your free trial has expired. Upgrade to a paid plan to continue using all features without interruption.`,
+                            false,
+                            '/Subscription/MyPlan',
+                            'danger'
+                        );
+                    } else if (daysLeft === 1) {
+                        // Last day
+                        showSubscriptionBanner(
+                            '🚨 Trial Ending Tomorrow!',
+                            `Your ${data.planName} trial ends tomorrow. Upgrade now to avoid any service interruption.`,
+                            true,
+                            '/Subscription/MyPlan',
+                            'warning'
+                        );
+                    } else {
+                        // Trial active
+                        showSubscriptionBanner(
+                            `🎉 Free Trial Active - ${daysLeft} days remaining`,
+                            `You're on a ${data.planName} trial plan. Upgrade before ${new Date(data.endDate).toLocaleDateString()} to continue without interruption.`,
+                            true,
+                            '/Subscription/MyPlan',
+                            'trial'
+                        );
+                    }
+                } else if (data.daysUntilExpiry <= 7 && data.daysUntilExpiry > 0) {
+                    showSubscriptionBanner(
+                        `⚠️ Subscription Expiring Soon`,
+                        `Your ${data.planName} plan expires in ${data.daysUntilExpiry} days on ${new Date(data.endDate).toLocaleDateString()}. Renew now to avoid service interruption.`,
+                        false,
+                        '/Subscription/MyPlan',
+                        'warning'
+                    );
+                } else if (data.daysUntilExpiry <= 0) {
+                    // Subscription expired
+                    showSubscriptionBanner(
+                        '❌ Subscription Expired',
+                        `Your ${data.planName} plan has expired. Renew immediately to restore access to all features.`,
+                        false,
+                        '/Subscription/MyPlan',
+                        'danger'
+                    );
+                }
+            } catch (error) {
+                console.error('Error checking subscription:', error);
+            }
+        }
+
+        function showSubscriptionBanner(title, message, isTrial, actionUrl, type = 'trial') {
+            const banner = document.getElementById('subscriptionBanner');
+            let bgClass = '';
+            
+            switch(type) {
+                case 'trial':
+                    bgClass = 'subscription-banner trial';
+                    break;
+                case 'warning':
+                    bgClass = 'subscription-banner';
+                    banner.style.background = 'linear-gradient(135deg, #f59e0b 0%, #f97316 100%)';
+                    break;
+                case 'danger':
+                    bgClass = 'subscription-banner';
+                    banner.style.background = 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)';
+                    break;
+                default:
+                    bgClass = 'subscription-banner';
+            }
+            
+            banner.className = bgClass;
+            banner.innerHTML = `
+                <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+                    <div>
+                        <h4><i class="fas fa-crown me-2"></i>${title}</h4>
+                        <p>${message}</p>
+                    </div>
+                    <a href="${actionUrl}" class="btn">
+                        <i class="fas fa-arrow-right me-2"></i>${isTrial ? 'Upgrade Now' : 'View Plans'}
+                    </a>
+                </div>
+            `;
+            banner.style.display = 'block';
+        }
+
+        // Check subscription on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            checkSubscriptionStatus();
+        });
+    </script>
+}

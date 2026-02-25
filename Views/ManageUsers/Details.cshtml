@@ -1,0 +1,24 @@
+@{
+    ViewBag.Title = "User Details";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <h2 class="mb-4">User Details</h2>
+            <dl class="row">
+                <dt class="col-sm-3">Name</dt>
+                <dd class="col-sm-9">@Model.Name</dd>
+                <dt class="col-sm-3">Email</dt>
+                <dd class="col-sm-9">@Model.Email</dd>
+                <dt class="col-sm-3">Role</dt>
+                <dd class="col-sm-9">@Model.Role</dd>
+                <dt class="col-sm-3">Status</dt>
+                <dd class="col-sm-9">@(Model.IsActive ? "Active" : "Inactive")</dd>
+            </dl>
+            <a href="@Url.Action("Edit", "ManageUsers", new { id = Model.Id })" class="btn btn-warning">Edit</a>
+            <a href="@Url.Action("Index", "ManageUsers")" class="btn btn-secondary ml-2">Back to List</a>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,758 @@
+@model CRM.Models.UserProfile
+@{
+    ViewData["Title"] = "Profile";
+    
+    string profileImageSrc = Model?.ProfileImage != null
+        ? $"data:image/png;base64,{Convert.ToBase64String(Model.ProfileImage)}"
+        : "~/img/avatars/avatar.jpg";
+}
+
+<style>
+    .modern-header {
+        background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+        position: relative;
+        overflow: hidden;
+        border-radius: 16px;
+        margin-bottom: 2rem;
+        box-shadow: 0 8px 32px rgba(79, 70, 229, 0.15);
+    }
+
+    .modern-header::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="50" cy="50" r="1" fill="%23ffffff" opacity="0.1"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>') repeat;
+        opacity: 0.3;
+    }
+
+    .header-content {
+        position: relative;
+        z-index: 2;
+        padding: 2.5rem 2rem;
+        color: white;
+    }
+
+    .header-title {
+        font-size: 2.5rem;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .header-subtitle {
+        font-size: 1.1rem;
+        opacity: 0.9;
+        margin-bottom: 0;
+        font-weight: 400;
+    }
+
+    .action-btn {
+        background: rgba(255, 255, 255, 0.2);
+        border: 2px solid rgba(255, 255, 255, 0.3);
+        color: white;
+        padding: 0.875rem 2rem;
+        border-radius: 50px;
+        font-weight: 600;
+        font-size: 1rem;
+        backdrop-filter: blur(10px);
+        transition: all 0.3s ease;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin: 0.25rem;
+    }
+
+    .action-btn:hover {
+        background: rgba(255, 255, 255, 0.3);
+        border-color: rgba(255, 255, 255, 0.5);
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+        color: white;
+    }
+
+    .profile-card {
+        background: white;
+        border-radius: 16px;
+        padding: 2rem;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        border: 1px solid rgba(0, 0, 0, 0.05);
+        transition: all 0.3s ease;
+        margin-bottom: 2rem;
+    }
+
+    .profile-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+        border-color: rgba(79, 70, 229, 0.2);
+    }
+
+    .profile-image-preview {
+        transition: transform 0.3s ease;
+        border: 4px solid rgba(79, 70, 229, 0.1);
+        box-shadow: 0 4px 20px rgba(79, 70, 229, 0.15);
+    }
+
+    .profile-image-preview:hover {
+        transform: scale(1.05);
+    }
+
+    .profile-info-item {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        margin-bottom: 1rem;
+        padding: 0.75rem;
+        background: rgba(79, 70, 229, 0.05);
+        border-radius: 8px;
+        transition: all 0.2s ease;
+    }
+
+    .profile-info-item:hover {
+        background: rgba(79, 70, 229, 0.1);
+    }
+
+    .profile-info-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 8px;
+        background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 1rem;
+    }
+
+    .form-control:focus {
+        border-color: #4f46e5;
+        box-shadow: 0 0 0 0.2rem rgba(79, 70, 229, 0.15);
+    }
+
+    .form-control.border-primary {
+        border-color: #4f46e5 !important;
+        box-shadow: 0 0 0 0.2rem rgba(79, 70, 229, 0.15);
+    }
+
+    input[readonly] {
+        background-color: #f8f9fa;
+        cursor: not-allowed;
+    }
+
+    .card-header {
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        border-bottom: 2px solid rgba(79, 70, 229, 0.1);
+        border-radius: 16px 16px 0 0 !important;
+    }
+
+    .btn-success {
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        border: none;
+        border-radius: 8px;
+        padding: 0.75rem 1.5rem;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+
+    .btn-success:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(16, 185, 129, 0.25);
+    }
+
+    .btn-secondary {
+        background: #6b7280;
+        border: none;
+        border-radius: 8px;
+        padding: 0.75rem 1.5rem;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+
+    .btn-secondary:hover {
+        background: #4b5563;
+        transform: translateY(-2px);
+    }
+
+    .btn-primary {
+        background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+        border: none;
+        border-radius: 8px;
+        padding: 0.75rem 1.5rem;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(79, 70, 229, 0.25);
+    }
+
+    .form-label {
+        font-weight: 600;
+        color: #374151;
+        margin-bottom: 0.5rem;
+    }
+
+    .profile-card .form-label {
+        font-weight: 700;
+        color: #1f2937;
+    }
+
+    .text-danger {
+        color: #ef4444 !important;
+    }
+
+    @@media (max-width: 768px) {
+        .header-content {
+            padding: 2rem 1.5rem;
+        }
+        
+        .header-title {
+            font-size: 2rem;
+        }
+        
+        .profile-card {
+            padding: 1.5rem;
+        }
+
+        .action-btn {
+            padding: 0.6rem 1rem;
+            font-size: 0.85rem;
+        }
+    }
+
+    .dark-mode .profile-card {
+        background: #222639 !important;
+        border-color: #2c3049 !important;
+        color: #e4e6eb !important;
+    }
+    
+    .dark-mode .card-header {
+        background: #2c3049 !important;
+        color: #e4e6eb !important;
+    }
+    
+    .dark-mode .form-label {
+        color: #e4e6eb !important;
+    }
+    
+    .dark-mode .profile-info-item {
+        background: rgba(124, 58, 237, 0.1) !important;
+        color: #e4e6eb !important;
+    }
+    
+    .dark-mode .profile-info-item:hover {
+        background: rgba(124, 58, 237, 0.2) !important;
+    }
+
+    .form-control-plaintext {
+        padding: 0.625rem 1rem;
+        background-color: #f8f9fa;
+        border: 1px solid #e9ecef;
+        border-radius: 8px;
+        color: #374151;
+        font-weight: 500;
+        min-height: 38px;
+    }
+
+    .dark-mode .form-control-plaintext {
+        background-color: #2c3049 !important;
+        border-color: #3d4261 !important;
+        color: #e4e6eb !important;
+    }
+
+    .modal-content {
+        border-radius: 16px;
+        border: none;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    }
+
+    #editProfileModal .modal-dialog {
+        max-width: 450px !important;
+        width: 450px !important;
+    }
+
+    @@media (max-width: 576px) {
+        #editProfileModal .modal-dialog {
+            max-width: 95% !important;
+            width: 95% !important;
+            margin: 0.5rem auto;
+        }
+    }
+
+    .modal-header {
+        border-radius: 16px 16px 0 0;
+        border-bottom: none;
+        padding: 1.5rem 2rem;
+    }
+
+    .modal-body {
+        padding: 2rem;
+    }
+
+    .modal-footer {
+        border-top: 1px solid #e9ecef;
+        padding: 1.25rem 2rem;
+    }
+
+    .border-end {
+        border-right: 2px solid #e9ecef !important;
+    }
+
+    .dark-mode .border-end {
+        border-right-color: #2c3049 !important;
+    }
+
+    @@media (max-width: 991px) {
+        .border-end {
+            border-right: none !important;
+            border-bottom: 2px solid #e9ecef !important;
+            padding-bottom: 2rem;
+            margin-bottom: 2rem;
+        }
+    }
+</style>
+
+<!-- Success/Error Messages -->
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        <i class="fa-solid fa-check-circle me-2"></i>@TempData["Success"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        <i class="fa-solid fa-exclamation-circle me-2"></i>@TempData["Error"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+<div class="content">
+    <!-- Breadcrumb -->
+    <nav class="mb-3" aria-label="breadcrumb">
+        <ol class="breadcrumb mb-0">
+            <li class="breadcrumb-item"><a href="/Home/Index">Home</a></li>
+            <li class="breadcrumb-item active">Profile</li>
+        </ol>
+    </nav>
+
+    <!-- Modern Header -->
+    <div class="modern-header">
+        <div class="header-content">
+            <div class="row align-items-center">
+                <div class="col-lg-8">
+                    <div class="d-flex align-items-center">
+                        <div class="me-3">
+                            <i class="fa-solid fa-user-circle" style="font-size: 2.5rem; opacity: 0.9;"></i>
+                        </div>
+                        <div>
+                            <h1 class="header-title mb-0">Profile Settings</h1>
+                            <p class="header-subtitle">Manage your personal information and preferences</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-4 text-lg-end">
+                    @{
+                        var role = ViewBag.UserRole as string;
+                        var channelPartnerId = ViewBag.ChannelPartnerId as int?;
+                        var agentId = ViewBag.AgentId as int?;
+                        
+                        string profileUrl = "";
+                        bool showFullProfile = false;
+                        
+                        if (role?.ToLower() == "partner" && channelPartnerId.HasValue)
+                        {
+                            profileUrl = Url.Action("PartnerDetails", "ManageUsers", new { id = channelPartnerId.Value });
+                            showFullProfile = true;
+                        }
+                        else if ((role?.ToLower() == "agent" || role?.ToLower() == "sales") && agentId.HasValue)
+                        {
+                            profileUrl = Url.Action("Details", "Agent", new { id = agentId.Value });
+                            showFullProfile = true;
+                        }
+                    }
+                    @if (showFullProfile)
+                    {
+                        <a href="@profileUrl" class="action-btn">
+                            <i class="fa-solid fa-id-card"></i>
+                            <span>Full Profile</span>
+                        </a>
+                    }
+                    <button type="button" class="action-btn" data-bs-toggle="modal" data-bs-target="#editProfileModal">
+                        <i class="fa-solid fa-edit"></i>
+                        <span>Edit Profile</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Full Width Profile Card -->
+        <div class="col-12">
+            <div class="profile-card">
+                <div class="row">
+                    <!-- Profile Image Section - Smaller -->
+                    <div class="col-lg-2 text-center border-end">
+                        <img src="@profileImageSrc" alt="User Avatar" class="img-fluid rounded-circle mb-2 profile-image-preview" width="100" height="100" id="profileImagePreview" />
+                        <h5 class="fw-bold mb-1">@(!string.IsNullOrEmpty(Model?.FirstName) && !string.IsNullOrEmpty(Model?.LastName) ? $"{Model.FirstName} {Model.LastName}" : Model?.Username)</h5>
+                        <p class="text-muted mb-2 small">@Model?.Location</p>
+                        <span class="badge bg-success px-2 py-1 mb-2" style="font-size: 0.75rem;">Active User</span>
+                    </div>
+
+                    <!-- Contact Information - Wider -->
+                    <div class="col-lg-4 border-end">
+                        <h5 class="fw-bold mb-4">
+                            <i class="fa-solid fa-address-card me-2 text-primary"></i>Contact Info
+                        </h5>
+                        @if (!string.IsNullOrEmpty(Model?.Email))
+                        {
+                            <div class="profile-info-item">
+                                <div class="profile-info-icon">
+                                    <i class="fa-solid fa-envelope"></i>
+                                </div>
+                                <div style="flex: 1; overflow: hidden;">
+                                    <small class="text-muted d-block">Email</small>
+                                    <strong style="word-break: break-all; font-size: 0.95rem;">@Model.Email</strong>
+                                </div>
+                            </div>
+                        }
+                        @if (!string.IsNullOrEmpty(Model?.PhoneNumber))
+                        {
+                            <div class="profile-info-item">
+                                <div class="profile-info-icon">
+                                    <i class="fa-solid fa-phone"></i>
+                                </div>
+                                <div>
+                                    <small class="text-muted d-block">Phone</small>
+                                    <strong>@Model.PhoneNumber</strong>
+                                </div>
+                            </div>
+                        }
+                    </div>
+
+                    <!-- Location Information -->
+                    <div class="col-lg-3 border-end">
+                        <h5 class="fw-bold mb-4">
+                            <i class="fa-solid fa-map-marker-alt me-2 text-primary"></i>Location
+                        </h5>
+                        @if (!string.IsNullOrEmpty(Model?.City))
+                        {
+                            <div class="profile-info-item">
+                                <div class="profile-info-icon">
+                                    <i class="fa-solid fa-home"></i>
+                                </div>
+                                <div>
+                                    <small class="text-muted d-block">City</small>
+                                    <strong>@Model.City</strong>
+                                </div>
+                            </div>
+                        }
+                        @if (!string.IsNullOrEmpty(Model?.State))
+                        {
+                            <div class="profile-info-item">
+                                <div class="profile-info-icon">
+                                    <i class="fa-solid fa-map"></i>
+                                </div>
+                                <div>
+                                    <small class="text-muted d-block">State</small>
+                                    <strong>@Model.State</strong>
+                                </div>
+                            </div>
+                        }
+                    </div>
+
+                    <!-- Additional Information -->
+                    <div class="col-lg-3">
+                        <h5 class="fw-bold mb-4">
+                            <i class="fa-solid fa-info-circle me-2 text-primary"></i>Details
+                        </h5>
+                        @if (!string.IsNullOrEmpty(Model?.Country))
+                        {
+                            <div class="profile-info-item">
+                                <div class="profile-info-icon">
+                                    <i class="fa-solid fa-flag"></i>
+                                </div>
+                                <div>
+                                    <small class="text-muted d-block">Country</small>
+                                    <strong>@Model.Country</strong>
+                                </div>
+                            </div>
+                        }
+                        @if (!string.IsNullOrEmpty(Model?.PostalCode))
+                        {
+                            <div class="profile-info-item">
+                                <div class="profile-info-icon">
+                                    <i class="fa-solid fa-mail-bulk"></i>
+                                </div>
+                                <div>
+                                    <small class="text-muted d-block">Postal Code</small>
+                                    <strong>@Model.PostalCode</strong>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Full Width Details Card -->
+        <!-- Full Width Details Card -->
+        <div class="col-12">
+            <div class="profile-card">
+                <div class="card-header">
+                    <h5 class="mb-0 fw-bold">
+                        <i class="fa-solid fa-user me-2"></i>
+                        Personal Information
+                    </h5>
+                </div>
+                <div class="card-body p-4">
+                    <!-- Read-Only View -->
+                    <div class="row">
+                        <div class="col-md-4 mb-4">
+                            <label class="form-label">First Name</label>
+                            <p class="form-control-plaintext">@(Model?.FirstName ?? "")</p>
+                        </div>
+                        
+                        <div class="col-md-4 mb-4">
+                            <label class="form-label">Last Name</label>
+                            <p class="form-control-plaintext">@(Model?.LastName ?? "")</p>
+                        </div>
+                        
+                        <div class="col-md-4 mb-4">
+                            <label class="form-label">Email</label>
+                            <p class="form-control-plaintext">@(Model?.Email ?? "")</p>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-4 mb-4">
+                            <label class="form-label">Phone</label>
+                            <p class="form-control-plaintext">@(Model?.PhoneNumber ?? "")</p>
+                        </div>
+                        
+                        <div class="col-md-4 mb-4">
+                            <label class="form-label">Location/Position</label>
+                            <p class="form-control-plaintext">@(Model?.Location ?? "")</p>
+                        </div>
+                        
+                        <div class="col-md-4 mb-4">
+                            <label class="form-label">City</label>
+                            <p class="form-control-plaintext">@(Model?.City ?? "")</p>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-4 mb-4">
+                            <label class="form-label">State</label>
+                            <p class="form-control-plaintext">@(Model?.State ?? "")</p>
+                        </div>
+
+                        <div class="col-md-4 mb-4">
+                            <label class="form-label">Country</label>
+                            <p class="form-control-plaintext">@(Model?.Country ?? "")</p>
+                        </div>
+                        
+                        <div class="col-md-4 mb-4">
+                            <label class="form-label">Postal Code</label>
+                            <p class="form-control-plaintext">@(Model?.PostalCode ?? "")</p>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-12 mb-4">
+                            <label class="form-label">Address</label>
+                            <p class="form-control-plaintext">@(Model?.Address ?? "")</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Change Password Card -->
+        <div class="col-12">
+            <div class="profile-card">
+                <div class="card-header">
+                    <h5 class="mb-0 fw-bold">
+                        <i class="fa-solid fa-lock me-2"></i>
+                        Change Password
+                    </h5>
+                </div>
+                <div class="card-body p-4">
+                    <form asp-controller="Account" asp-action="ResetPassword" method="post">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="Username" value="@Model?.Username" />
+                        <div class="row">
+                            <div class="col-md-4 mb-4">
+                                <label for="oldPassword" class="form-label">Current Password</label>
+                                <input type="password" class="form-control" id="oldPassword" name="oldPassword" placeholder="Enter current password" required />
+                            </div>
+                            <div class="col-md-4 mb-4">
+                                <label for="NewPassword" class="form-label">New Password</label>
+                                <input type="password" class="form-control" id="NewPassword" name="NewPassword" placeholder="Enter new password" required />
+                            </div>
+                            <div class="col-md-4 mb-4">
+                                <label for="ConfirmPassword" class="form-label">Confirm Password</label>
+                                <input type="password" class="form-control" id="ConfirmPassword" name="ConfirmPassword" placeholder="Confirm new password" required />
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-12">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fa-solid fa-key me-2"></i>Update Password
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Profile Modal -->
+<div class="modal fade" id="editProfileModal" tabindex="-1" aria-labelledby="editProfileModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable" style="max-width: 450px !important; width: 450px;">
+        <div class="modal-content">
+            <div class="modal-header" style="background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%); color: white;">
+                <h5 class="modal-title" id="editProfileModalLabel">
+                    <i class="fa-solid fa-edit me-2"></i>Edit Profile Information
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form asp-action="UpdateProfile" method="post" enctype="multipart/form-data" id="editProfileForm">
+                @Html.AntiForgeryToken()
+                <div class="modal-body">
+                    <!-- Profile Image Upload -->
+                    <div class="mb-4 text-center">
+                        <img src="@profileImageSrc" alt="Profile Preview" class="img-fluid rounded-circle mb-3" width="120" height="120" id="modalProfileImagePreview" style="border: 3px solid #4f46e5; box-shadow: 0 4px 15px rgba(79, 70, 229, 0.2);" />
+                        <div>
+                            <label for="modalProfileImage" class="btn btn-sm btn-outline-primary">
+                                <i class="fa-solid fa-camera me-2"></i>Change Photo
+                            </label>
+                            <input type="file" class="d-none" id="modalProfileImage" name="profileImage" accept="image/*" onchange="previewModalImage(event)" />
+                            <small class="d-block text-muted mt-2">JPG, PNG, GIF - Max 5MB</small>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="FirstName" class="form-label">First Name</label>
+                        <input asp-for="FirstName" class="form-control" placeholder="Enter first name" />
+                        <span asp-validation-for="FirstName" class="text-danger"></span>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label asp-for="LastName" class="form-label">Last Name</label>
+                        <input asp-for="LastName" class="form-control" placeholder="Enter last name" />
+                        <span asp-validation-for="LastName" class="text-danger"></span>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label asp-for="Email" class="form-label">Email <span class="text-danger">*</span></label>
+                        <input asp-for="Email" type="email" class="form-control" placeholder="Enter email address" required />
+                        <span asp-validation-for="Email" class="text-danger"></span>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label asp-for="PhoneNumber" class="form-label">Phone</label>
+                        <input asp-for="PhoneNumber" type="tel" class="form-control" placeholder="+1 (555) 123-4567" />
+                        <span asp-validation-for="PhoneNumber" class="text-danger"></span>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label asp-for="Location" class="form-label">Location/Position</label>
+                        <input asp-for="Location" class="form-control" placeholder="e.g., Administrator, Developer" />
+                        <span asp-validation-for="Location" class="text-danger"></span>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label asp-for="Address" class="form-label">Address</label>
+                        <textarea asp-for="Address" class="form-control" placeholder="123 Main Street" rows="2"></textarea>
+                        <span asp-validation-for="Address" class="text-danger"></span>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label asp-for="City" class="form-label">City</label>
+                        <input asp-for="City" class="form-control" placeholder="San Francisco" />
+                        <span asp-validation-for="City" class="text-danger"></span>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label asp-for="State" class="form-label">State</label>
+                        <input asp-for="State" class="form-control" placeholder="California" />
+                        <span asp-validation-for="State" class="text-danger"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="Country" class="form-label">Country</label>
+                        <input asp-for="Country" class="form-control" placeholder="United States" />
+                        <span asp-validation-for="Country" class="text-danger"></span>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label asp-for="PostalCode" class="form-label">Postal Code</label>
+                        <input asp-for="PostalCode" class="form-control" placeholder="94102" />
+                        <span asp-validation-for="PostalCode" class="text-danger"></span>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="fa-solid fa-times me-2"></i>Cancel
+                    </button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fa-solid fa-save me-2"></i>Save Changes
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        function previewModalImage(event) {
+            const file = event.target.files[0];
+            if (file) {
+                // Check file size (5MB limit)
+                if (file.size > 5 * 1024 * 1024) {
+                    alert('File size must be less than 5MB');
+                    event.target.value = '';
+                    return;
+                }
+
+                // Check file type
+                if (!file.type.match('image.*')) {
+                    alert('Please select an image file');
+                    event.target.value = '';
+                    return;
+                }
+
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const preview = document.getElementById('modalProfileImagePreview');
+                    if (preview) {
+                        preview.src = e.target.result;
+                    }
+                }
+                reader.readAsDataURL(file);
+            }
+        }
+
+        // Auto-dismiss alerts after 5 seconds
+        document.addEventListener('DOMContentLoaded', function() {
+            const alerts = document.querySelectorAll('.alert');
+            alerts.forEach(alert => {
+                setTimeout(() => {
+                    const bsAlert = new bootstrap.Alert(alert);
+                    bsAlert.close();
+                }, 5000);
+            });
+        });
+    </script>
+}
