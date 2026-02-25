@@ -1,7 +1,11 @@
 using CRM.Models;
 using CRM.Services;
-using iTextSharp.text;
-using iTextSharp.text.pdf;
+using iText.Kernel.Pdf;
+using iText.Layout;
+using iText.Layout.Element;
+using iText.Layout.Properties;
+using iText.Kernel.Font;
+using iText.IO.Font.Constants;
 using System.IO;
 using Microsoft.AspNetCore.Mvc;
 using CRM.Attributes;
@@ -896,113 +900,113 @@ namespace CRM.Controllers
 
             using (var ms = new MemoryStream())
             {
-                var doc = new Document(PageSize.A4, 36, 36, 36, 36);
-                PdfWriter.GetInstance(doc, ms);
-                doc.Open();
+                PdfWriter writer = new PdfWriter(ms);
+                PdfDocument pdf = new PdfDocument(writer);
+                Document document = new Document(pdf, PageSize.A4);
+                document.SetMargins(36, 36, 36, 36);
 
-                var titleFont = FontFactory.GetFont(FontFactory.HELVETICA_BOLD, 18);
-                var labelFont = FontFactory.GetFont(FontFactory.HELVETICA_BOLD, 12);
-                var valueFont = FontFactory.GetFont(FontFactory.HELVETICA, 12);
-                var sectionFont = FontFactory.GetFont(FontFactory.HELVETICA_BOLD, 14);
+                PdfFont titleFont = PdfFontFactory.CreateFont(StandardFonts.HELVETICA_BOLD);
+                PdfFont labelFont = PdfFontFactory.CreateFont(StandardFonts.HELVETICA_BOLD);
+                PdfFont valueFont = PdfFontFactory.CreateFont(StandardFonts.HELVETICA);
+                PdfFont sectionFont = PdfFontFactory.CreateFont(StandardFonts.HELVETICA_BOLD);
 
                 // Company Header
-                doc.Add(new Paragraph(companyName, titleFont));
-                doc.Add(new Paragraph(companyAddress, valueFont));
-                doc.Add(new Paragraph($"Phone: {companyPhone} | Email: {companyEmail}", valueFont));
-                doc.Add(new Paragraph($"GST: {companyGst}", valueFont));
-                doc.Add(new Paragraph(" "));
+                document.Add(new Paragraph(companyName).SetFont(titleFont).SetFontSize(18));
+                document.Add(new Paragraph(companyAddress).SetFont(valueFont).SetFontSize(12));
+                document.Add(new Paragraph($"Phone: {companyPhone} | Email: {companyEmail}").SetFont(valueFont).SetFontSize(12));
+                document.Add(new Paragraph($"GST: {companyGst}").SetFont(valueFont).SetFontSize(12));
+                document.Add(new Paragraph(" "));
 
                 // Booking Number and Status
-                doc.Add(new Paragraph($"BOOKING CONFIRMATION: {booking.BookingNumber}", sectionFont));
-                doc.Add(new Paragraph($"Status: {booking.Status}", labelFont));
-                doc.Add(new Paragraph(" "));
+                document.Add(new Paragraph($"BOOKING CONFIRMATION: {booking.BookingNumber}").SetFont(sectionFont).SetFontSize(14));
+                document.Add(new Paragraph($"Status: {booking.Status}").SetFont(labelFont).SetFontSize(12));
+                document.Add(new Paragraph(" "));
 
                 // Customer Details
-                doc.Add(new Paragraph("Customer Details", sectionFont));
-                doc.Add(new Paragraph($"Name: {booking.Lead?.Name}", valueFont));
-                doc.Add(new Paragraph($"Contact: {booking.Lead?.Contact}", valueFont));
-                doc.Add(new Paragraph($"Email: {booking.Lead?.Email}", valueFont));
-                doc.Add(new Paragraph(" "));
+                document.Add(new Paragraph("Customer Details").SetFont(sectionFont).SetFontSize(14));
+                document.Add(new Paragraph($"Name: {booking.Lead?.Name}").SetFont(valueFont).SetFontSize(12));
+                document.Add(new Paragraph($"Contact: {booking.Lead?.Contact}").SetFont(valueFont).SetFontSize(12));
+                document.Add(new Paragraph($"Email: {booking.Lead?.Email}").SetFont(valueFont).SetFontSize(12));
+                document.Add(new Paragraph(" "));
 
                 // Booking Details
-                doc.Add(new Paragraph("Booking Details", sectionFont));
-                doc.Add(new Paragraph($"Booking Date: {booking.BookingDate:dd MMM yyyy}", valueFont));
+                document.Add(new Paragraph("Booking Details").SetFont(sectionFont).SetFontSize(14));
+                document.Add(new Paragraph($"Booking Date: {booking.BookingDate:dd MMM yyyy}").SetFont(valueFont).SetFontSize(12));
                 if (booking.AgreementDate.HasValue)
-                    doc.Add(new Paragraph($"Agreement Date: {booking.AgreementDate:dd MMM yyyy}", valueFont));
+                    document.Add(new Paragraph($"Agreement Date: {booking.AgreementDate:dd MMM yyyy}").SetFont(valueFont).SetFontSize(12));
                 if (booking.PossessionDate.HasValue)
-                    doc.Add(new Paragraph($"Possession Date: {booking.PossessionDate:dd MMM yyyy}", valueFont));
-                doc.Add(new Paragraph(" "));
+                    document.Add(new Paragraph($"Possession Date: {booking.PossessionDate:dd MMM yyyy}").SetFont(valueFont).SetFontSize(12));
+                document.Add(new Paragraph(" "));
 
                 // Property Details
-                doc.Add(new Paragraph("Property Details", sectionFont));
-                doc.Add(new Paragraph($"Project: {booking.Property?.PropertyName}", valueFont));
-                doc.Add(new Paragraph($"Location: {booking.Property?.Location}", valueFont));
-                doc.Add(new Paragraph($"Developer: {booking.Property?.Developer}", valueFont));
-                doc.Add(new Paragraph($"Flat: {booking.Flat?.FlatName}", valueFont));
-                doc.Add(new Paragraph($"Type: {booking.Flat?.BHK}", valueFont));
-                doc.Add(new Paragraph($"Area: {booking.Flat?.Area} sq.ft", valueFont));
-                doc.Add(new Paragraph($"Floor: {booking.Flat?.FloorNumber}", valueFont));
-                doc.Add(new Paragraph(" "));
+                document.Add(new Paragraph("Property Details").SetFont(sectionFont).SetFontSize(14));
+                document.Add(new Paragraph($"Project: {booking.Property?.PropertyName}").SetFont(valueFont).SetFontSize(12));
+                document.Add(new Paragraph($"Location: {booking.Property?.Location}").SetFont(valueFont).SetFontSize(12));
+                document.Add(new Paragraph($"Developer: {booking.Property?.Developer}").SetFont(valueFont).SetFontSize(12));
+                document.Add(new Paragraph($"Flat: {booking.Flat?.FlatName}").SetFont(valueFont).SetFontSize(12));
+                document.Add(new Paragraph($"Type: {booking.Flat?.BHK}").SetFont(valueFont).SetFontSize(12));
+                document.Add(new Paragraph($"Area: {booking.Flat?.Area} sq.ft").SetFont(valueFont).SetFontSize(12));
+                document.Add(new Paragraph($"Floor: {booking.Flat?.FloorNumber}").SetFont(valueFont).SetFontSize(12));
+                document.Add(new Paragraph(" "));
 
                 // Payment Details
-                doc.Add(new Paragraph("Payment Information", sectionFont));
-                doc.Add(new Paragraph($"Total Property Value: â‚¹{booking.TotalAmount:N2}", valueFont));
-                doc.Add(new Paragraph($"Booking Amount Paid: â‚¹{booking.BookingAmount:N2}", valueFont));
-                doc.Add(new Paragraph($"Payment Type: {booking.PaymentType}", valueFont));
+                document.Add(new Paragraph("Payment Information").SetFont(sectionFont).SetFontSize(14));
+                document.Add(new Paragraph($"Total Property Value: â‚¹{booking.TotalAmount:N2}").SetFont(valueFont).SetFontSize(12));
+                document.Add(new Paragraph($"Booking Amount Paid: â‚¹{booking.BookingAmount:N2}").SetFont(valueFont).SetFontSize(12));
+                document.Add(new Paragraph($"Payment Type: {booking.PaymentType}").SetFont(valueFont).SetFontSize(12));
                 if (paymentPlan != null)
                 {
-                    doc.Add(new Paragraph($"Outstanding: â‚¹{paymentPlan.OutstandingAmount:N2}", valueFont));
-                    doc.Add(new Paragraph($"Total Paid: â‚¹{paymentPlan.PaidAmount:N2}", valueFont));
-                    doc.Add(new Paragraph($"Plan Type: {paymentPlan.PlanType}", valueFont));
+                    document.Add(new Paragraph($"Outstanding: â‚¹{paymentPlan.OutstandingAmount:N2}").SetFont(valueFont).SetFontSize(12));
+                    document.Add(new Paragraph($"Total Paid: â‚¹{paymentPlan.PaidAmount:N2}").SetFont(valueFont).SetFontSize(12));
+                    document.Add(new Paragraph($"Plan Type: {paymentPlan.PlanType}").SetFont(valueFont).SetFontSize(12));
                 }
-                doc.Add(new Paragraph(" "));
+                document.Add(new Paragraph(" "));
 
                 // EMI Payment Schedule
                 if (booking.PaymentType == "EMI" && installments.Any())
                 {
-                    doc.Add(new Paragraph("EMI Payment Schedule", sectionFont));
-                    PdfPTable emiTable = new PdfPTable(6) { WidthPercentage = 100 };
-                    emiTable.SetWidths(new float[] { 1, 2, 2, 2, 2, 2 });
-                    emiTable.AddCell(new PdfPCell(new Phrase("#", labelFont)));
-                    emiTable.AddCell(new PdfPCell(new Phrase("Milestone", labelFont)));
-                    emiTable.AddCell(new PdfPCell(new Phrase("Due Date", labelFont)));
-                    emiTable.AddCell(new PdfPCell(new Phrase("Amount", labelFont)));
-                    emiTable.AddCell(new PdfPCell(new Phrase("Paid", labelFont)));
-                    emiTable.AddCell(new PdfPCell(new Phrase("Status", labelFont)));
+                    document.Add(new Paragraph("EMI Payment Schedule").SetFont(sectionFont).SetFontSize(14));
+                    Table emiTable = new Table(UnitValue.CreatePercentArray(new float[] { 1, 2, 2, 2, 2, 2 })).UseAllAvailableWidth();
+                    emiTable.AddHeaderCell("#");
+                    emiTable.AddHeaderCell("Milestone");
+                    emiTable.AddHeaderCell("Due Date");
+                    emiTable.AddHeaderCell("Amount");
+                    emiTable.AddHeaderCell("Paid");
+                    emiTable.AddHeaderCell("Status");
                     foreach (var inst in installments)
                     {
-                        emiTable.AddCell(new PdfPCell(new Phrase(inst.InstallmentNumber.ToString(), valueFont)));
-                        emiTable.AddCell(new PdfPCell(new Phrase(inst.MilestoneName, valueFont)));
-                        emiTable.AddCell(new PdfPCell(new Phrase(inst.DueDate.ToString("dd MMM yyyy"), valueFont)));
-                        emiTable.AddCell(new PdfPCell(new Phrase($"â‚¹{inst.Amount:N2}", valueFont)));
-                        emiTable.AddCell(new PdfPCell(new Phrase($"â‚¹{inst.PaidAmount:N2}", valueFont)));
-                        emiTable.AddCell(new PdfPCell(new Phrase(inst.Status, valueFont)));
+                        emiTable.AddCell(inst.InstallmentNumber.ToString());
+                        emiTable.AddCell(inst.MilestoneName);
+                        emiTable.AddCell(inst.DueDate.ToString("dd MMM yyyy"));
+                        emiTable.AddCell($"â‚¹{inst.Amount:N2}");
+                        emiTable.AddCell($"â‚¹{inst.PaidAmount:N2}");
+                        emiTable.AddCell(inst.Status);
                     }
-                    doc.Add(emiTable);
-                    doc.Add(new Paragraph(" "));
+                    document.Add(emiTable);
+                    document.Add(new Paragraph(" "));
                 }
 
                 // Uploaded Documents
                 if (documents.Any())
                 {
-                    doc.Add(new Paragraph("Uploaded Documents", sectionFont));
+                    document.Add(new Paragraph("Uploaded Documents").SetFont(sectionFont).SetFontSize(14));
                     foreach (var d in documents)
                     {
-                        doc.Add(new Paragraph($"{d.DocumentType}: {d.DocumentName} ({d.UploadedOn:dd MMM yyyy})", valueFont));
+                        document.Add(new Paragraph($"{d.DocumentType}: {d.DocumentName} ({d.UploadedOn:dd MMM yyyy})").SetFont(valueFont).SetFontSize(12));
                     }
-                    doc.Add(new Paragraph(" "));
+                    document.Add(new Paragraph(" "));
                 }
 
                 // Notes
                 if (!string.IsNullOrEmpty(booking.Notes))
                 {
-                    doc.Add(new Paragraph("Notes:", sectionFont));
-                    doc.Add(new Paragraph(booking.Notes, valueFont));
-                    doc.Add(new Paragraph(" "));
+                    document.Add(new Paragraph("Notes:").SetFont(sectionFont).SetFontSize(14));
+                    document.Add(new Paragraph(booking.Notes).SetFont(valueFont).SetFontSize(12));
+                    document.Add(new Paragraph(" "));
                 }
 
                 // Terms & Conditions
-                doc.Add(new Paragraph("Terms & Conditions:", sectionFont));
+                document.Add(new Paragraph("Terms & Conditions:").SetFont(sectionFont).SetFontSize(14));
                 var terms = new[] {
                     "This booking is subject to the terms and conditions as per the agreement.",
                     "All payments should be made as per the payment schedule.",
@@ -1011,14 +1015,14 @@ namespace CRM.Controllers
                     "All payments are non-refundable unless specified otherwise in the agreement."
                 };
                 foreach (var t in terms)
-                    doc.Add(new Paragraph(t, valueFont));
-                doc.Add(new Paragraph(" "));
+                    document.Add(new Paragraph(t).SetFont(valueFont).SetFontSize(12));
+                document.Add(new Paragraph(" "));
 
                 // Footer
-                doc.Add(new Paragraph($"Thank you for choosing {companyName}", valueFont));
-                doc.Add(new Paragraph($"For any queries, please contact us at {companyPhone} or {companyEmail}", valueFont));
+                document.Add(new Paragraph($"Thank you for choosing {companyName}").SetFont(valueFont).SetFontSize(12));
+                document.Add(new Paragraph($"For any queries, please contact us at {companyPhone} or {companyEmail}").SetFont(valueFont).SetFontSize(12));
 
-                doc.Close();
+                document.Close();
                 return File(ms.ToArray(), "application/pdf", $"Booking_{booking.BookingNumber}.pdf");
             }
         }

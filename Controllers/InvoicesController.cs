@@ -4,6 +4,12 @@ using Microsoft.AspNetCore.Mvc;
 using CRM.Attributes;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
+using iText.Kernel.Pdf;
+using iText.Layout;
+using iText.Layout.Element;
+using iText.Layout.Properties;
+using iText.Kernel.Font;
+using iText.IO.Font.Constants;
 
 namespace CRM.Controllers
 {
@@ -544,55 +550,56 @@ namespace CRM.Controllers
 
             using (var ms = new System.IO.MemoryStream())
             {
-                var doc = new iTextSharp.text.Document(iTextSharp.text.PageSize.A4, 36, 36, 36, 36);
-                iTextSharp.text.pdf.PdfWriter.GetInstance(doc, ms);
-                doc.Open();
+                PdfWriter writer = new PdfWriter(ms);
+                PdfDocument pdf = new PdfDocument(writer);
+                Document document = new Document(pdf, PageSize.A4);
+                document.SetMargins(36, 36, 36, 36);
 
-                var titleFont = iTextSharp.text.FontFactory.GetFont(iTextSharp.text.FontFactory.HELVETICA_BOLD, 18);
-                var labelFont = iTextSharp.text.FontFactory.GetFont(iTextSharp.text.FontFactory.HELVETICA_BOLD, 12);
-                var valueFont = iTextSharp.text.FontFactory.GetFont(iTextSharp.text.FontFactory.HELVETICA, 12);
+                PdfFont titleFont = PdfFontFactory.CreateFont(StandardFonts.HELVETICA_BOLD);
+                PdfFont labelFont = PdfFontFactory.CreateFont(StandardFonts.HELVETICA_BOLD);
+                PdfFont valueFont = PdfFontFactory.CreateFont(StandardFonts.HELVETICA);
 
                 // Company Header
-                doc.Add(new iTextSharp.text.Paragraph(companyName, titleFont));
-                doc.Add(new iTextSharp.text.Paragraph(companyAddress, valueFont));
-                doc.Add(new iTextSharp.text.Paragraph($"Phone: {companyPhone} | Email: {companyEmail}", valueFont));
-                doc.Add(new iTextSharp.text.Paragraph($"GST: {companyGst}", valueFont));
-                doc.Add(new iTextSharp.text.Paragraph(" "));
+                document.Add(new Paragraph(companyName).SetFont(titleFont).SetFontSize(18));
+                document.Add(new Paragraph(companyAddress).SetFont(valueFont).SetFontSize(12));
+                document.Add(new Paragraph($"Phone: {companyPhone} | Email: {companyEmail}").SetFont(valueFont).SetFontSize(12));
+                document.Add(new Paragraph($"GST: {companyGst}").SetFont(valueFont).SetFontSize(12));
+                document.Add(new Paragraph(" "));
 
                 // Invoice Info
-                doc.Add(new iTextSharp.text.Paragraph($"INVOICE: {invoice.InvoiceNumber}", labelFont));
-                doc.Add(new iTextSharp.text.Paragraph($"Date: {invoice.InvoiceDate:dd-MMM-yyyy}", valueFont));
-                doc.Add(new iTextSharp.text.Paragraph($"Due Date: {invoice.DueDate:dd-MMM-yyyy}", valueFont));
-                doc.Add(new iTextSharp.text.Paragraph($"Status: {invoice.Status}", valueFont));
-                doc.Add(new iTextSharp.text.Paragraph(" "));
+                document.Add(new Paragraph($"INVOICE: {invoice.InvoiceNumber}").SetFont(labelFont).SetFontSize(12));
+                document.Add(new Paragraph($"Date: {invoice.InvoiceDate:dd-MMM-yyyy}").SetFont(valueFont).SetFontSize(12));
+                document.Add(new Paragraph($"Due Date: {invoice.DueDate:dd-MMM-yyyy}").SetFont(valueFont).SetFontSize(12));
+                document.Add(new Paragraph($"Status: {invoice.Status}").SetFont(valueFont).SetFontSize(12));
+                document.Add(new Paragraph(" "));
 
                 // Lead/Property/Flat
-                doc.Add(new iTextSharp.text.Paragraph($"Lead: {invoice.Booking?.Lead?.Name}", valueFont));
-                doc.Add(new iTextSharp.text.Paragraph($"Property: {invoice.Booking?.Property?.PropertyName}", valueFont));
-                doc.Add(new iTextSharp.text.Paragraph($"Flat: {invoice.Booking?.Flat?.FlatName}", valueFont));
-                doc.Add(new iTextSharp.text.Paragraph(" "));
+                document.Add(new Paragraph($"Lead: {invoice.Booking?.Lead?.Name}").SetFont(valueFont).SetFontSize(12));
+                document.Add(new Paragraph($"Property: {invoice.Booking?.Property?.PropertyName}").SetFont(valueFont).SetFontSize(12));
+                document.Add(new Paragraph($"Flat: {invoice.Booking?.Flat?.FlatName}").SetFont(valueFont).SetFontSize(12));
+                document.Add(new Paragraph(" "));
 
                 // Installment
                 if (invoice.Installment != null)
                 {
-                    doc.Add(new iTextSharp.text.Paragraph($"Installment: {invoice.Installment.MilestoneName}", valueFont));
+                    document.Add(new Paragraph($"Installment: {invoice.Installment.MilestoneName}").SetFont(valueFont).SetFontSize(12));
                 }
 
                 // Notes
                 if (!string.IsNullOrEmpty(invoice.Notes))
                 {
-                    doc.Add(new iTextSharp.text.Paragraph($"Notes: {invoice.Notes}", valueFont));
+                    document.Add(new Paragraph($"Notes: {invoice.Notes}").SetFont(valueFont).SetFontSize(12));
                 }
-                doc.Add(new iTextSharp.text.Paragraph(" "));
+                document.Add(new Paragraph(" "));
 
                 // Items Table
                 if (items.Any())
                 {
-                    var table = new iTextSharp.text.pdf.PdfPTable(4) { WidthPercentage = 100 };
-                    table.AddCell("Description");
-                    table.AddCell("Qty");
-                    table.AddCell("Rate");
-                    table.AddCell("Amount");
+                    Table table = new Table(UnitValue.CreatePercentArray(new float[] { 3, 1, 1, 1 })).UseAllAvailableWidth();
+                    table.AddHeaderCell("Description");
+                    table.AddHeaderCell("Qty");
+                    table.AddHeaderCell("Rate");
+                    table.AddHeaderCell("Amount");
                     foreach (var item in items)
                     {
                         table.AddCell(item.Description);
@@ -600,19 +607,19 @@ namespace CRM.Controllers
                         table.AddCell(item.Rate.ToString("N2"));
                         table.AddCell(item.Amount.ToString("N2"));
                     }
-                    doc.Add(table);
+                    document.Add(table);
                 }
 
-                doc.Add(new iTextSharp.text.Paragraph(" "));
+                document.Add(new Paragraph(" "));
 
                 // Amounts
-                doc.Add(new iTextSharp.text.Paragraph($"Base Amount: â‚¹{invoice.Amount:N2}", labelFont));
-                doc.Add(new iTextSharp.text.Paragraph($"GST ({gstRate}%): â‚¹{invoice.TaxAmount:N2}", labelFont));
-                doc.Add(new iTextSharp.text.Paragraph($"Total Amount: â‚¹{invoice.TotalAmount:N2}", labelFont));
-                doc.Add(new iTextSharp.text.Paragraph($"Paid Amount: â‚¹{invoice.PaidAmount:N2}", labelFont));
-                doc.Add(new iTextSharp.text.Paragraph($"Outstanding: â‚¹{(invoice.TotalAmount - invoice.PaidAmount):N2}", labelFont));
+                document.Add(new Paragraph($"Base Amount: â‚¹{invoice.Amount:N2}").SetFont(labelFont).SetFontSize(12));
+                document.Add(new Paragraph($"GST ({gstRate}%): â‚¹{invoice.TaxAmount:N2}").SetFont(labelFont).SetFontSize(12));
+                document.Add(new Paragraph($"Total Amount: â‚¹{invoice.TotalAmount:N2}").SetFont(labelFont).SetFontSize(12));
+                document.Add(new Paragraph($"Paid Amount: â‚¹{invoice.PaidAmount:N2}").SetFont(labelFont).SetFontSize(12));
+                document.Add(new Paragraph($"Outstanding: â‚¹{(invoice.TotalAmount - invoice.PaidAmount):N2}").SetFont(labelFont).SetFontSize(12));
 
-                doc.Close();
+                document.Close();
                 var pdfBytes = ms.ToArray();
                 return File(pdfBytes, "application/pdf", $"Invoice_{invoice.InvoiceNumber}.pdf");
             }
